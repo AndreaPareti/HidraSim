@@ -40,7 +40,7 @@ void HidraAna(double energy, const string intup){
 //
 //  build vectors with row and column position of each of
 //  the MiniModules
-//
+//  test
   int modcol[84];
   int modrow[84];
   for(int i=0;i<120;i++){
