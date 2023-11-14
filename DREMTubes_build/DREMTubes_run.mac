@@ -1,0 +1,14 @@
+/run/initialize
+/vis/filtering/trajectories/create/particleFilter
+/vis/filtering/trajectories/particleFilter-0/add pi-
+/vis/filtering/trajectories/particleFilter-0/add pi+
+/gps/particle pi+
+/gps/direction 0 0 1
+/gps/position 0 0 -200 cm
+/gps/pos/type Plane
+/gps/pos/shape Circle
+/gps/pos/radius 1. cm
+
+#Run 0
+/gps/energy 10. GeV
+/run/beamOn 10

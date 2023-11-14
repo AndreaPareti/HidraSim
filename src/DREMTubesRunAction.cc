@@ -38,6 +38,9 @@ DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     analysisManager->SetVerboseLevel( 1 );
     analysisManager->SetNtupleMerging( 1 );
 
+    // Set ntuple ID to one (if more than one ntuple is saved)
+    analysisManager->SetFirstNtupleId(1);
+
     //Using ROOT as analysisManager type, print it
     //
     G4cout << "DREMTubes-> Using " << analysisManager->GetType() << G4endl;
@@ -57,13 +60,49 @@ DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     analysisManager->CreateNtupleDColumn("PSEnergy");                       //9
     analysisManager->CreateNtupleDColumn("PrimaryX");                       //10
     analysisManager->CreateNtupleDColumn("PrimaryY");                       //11
+    //analysisManager->CreateNtupleIColumn("EventID");                       //12
+    //analysisManager->CreateNtupleDColumn("HitPheS");                       //13
+    //analysisManager->CreateNtupleIColumn("NofHitSInEvt");                       //14
+
+
     analysisManager->CreateNtupleDColumn("VectorSignals", fEventAction->GetVectorSignals());
     analysisManager->CreateNtupleDColumn("VectorSignalsCher", fEventAction->GetVectorSignalsCher());
     analysisManager->CreateNtupleDColumn("VecTowerE", fEventAction->GetVecTowerE());
     analysisManager->CreateNtupleDColumn("VecSPMT", fEventAction->GetVecSPMT());
     analysisManager->CreateNtupleDColumn ("VecCPMT", fEventAction->GetVecCPMT());
-    analysisManager->FinishNtuple();
-      
+    analysisManager->CreateNtupleDColumn("HitPheSvector", fEventAction->GetHitPheSvector());
+    analysisManager->CreateNtupleDColumn("HitZcoordSvector", fEventAction->GetHitZcoordSvector());
+    analysisManager->CreateNtupleIColumn("HitSiPMIDSvector", fEventAction->GetHitSiPMIDSvector());
+    analysisManager->CreateNtupleDColumn("HitPheCvector", fEventAction->GetHitPheCvector());
+    analysisManager->CreateNtupleDColumn("HitZcoordCvector", fEventAction->GetHitZcoordCvector());
+    analysisManager->CreateNtupleIColumn("HitSiPMIDCvector", fEventAction->GetHitSiPMIDCvector());
+
+
+    analysisManager->FinishNtuple(1);
+
+    
+    //analysisManager->CreateNtuple("SfiberHits", "SfiberHits");
+    //analysisManager->CreateNtupleIColumn("HitEventID");                    //0
+    //analysisManager->CreateNtupleDColumn("HitZcoord");                     //1
+    //analysisManager->CreateNtupleIColumn("SiPMID");                        //2
+    //analysisManager->CreateNtupleIColumn("TowerID");                       //3
+    //analysisManager->CreateNtupleDColumn("pheS");                          //4
+    //analysisManager->CreateNtupleDColumn("TrueX");                         //5
+    //analysisManager->CreateNtupleDColumn("TrueY");                         //6
+    //analysisManager->FinishNtuple(2);
+
+    //analysisManager->CreateNtuple("CfiberHits", "CfiberHits");
+    //analysisManager->CreateNtupleIColumn("HitEventID");                    //0
+    //analysisManager->CreateNtupleDColumn("HitZcoord");                     //1
+    //analysisManager->CreateNtupleIColumn("SiPMID");                        //2
+    //analysisManager->CreateNtupleIColumn("TowerID");                       //3
+    //analysisManager->CreateNtupleDColumn("pheC");                          //4
+    //analysisManager->CreateNtupleDColumn("TrueX");                         //5
+    //analysisManager->CreateNtupleDColumn("TrueY");                         //6
+    //analysisManager->FinishNtuple(3);
+
+
+
 }
 
 //Define de-constructor
@@ -90,7 +129,6 @@ void DREMTubesRunAction::BeginOfRunAction( const G4Run* Run )  {
     std::string runnumber = std::to_string( Run->GetRunID() );
     G4String outputfile = "DREMTubesout_Run"+runnumber;
     analysisManager->OpenFile( outputfile );
-
 }
 
 void DREMTubesRunAction::EndOfRunAction( const G4Run* ) {

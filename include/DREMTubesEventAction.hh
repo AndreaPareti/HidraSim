@@ -15,9 +15,16 @@
 #include "G4UserEventAction.hh"
 #include "globals.hh"
 
+#include "DREMTubesCalorimeterHit.hh"
+#include "G4THitsMap.hh"
+#include "DREMTubesEventAction.hh"
+
 //Includers from C++
 //
 #include <vector>
+#include <set>
+#include <tuple>
+
 
 class DREMTubesEventAction : public G4UserEventAction {
     
@@ -44,13 +51,15 @@ class DREMTubesEventAction : public G4UserEventAction {
         void AddEscapedEnergyd(G4double escapedenergy);
         void AddPSEnergy(G4double de);
 
+
         //Save vectors in ntuple
 	//
         std::vector<G4double>& GetVectorSignals() {return VectorSignals;} 
         std::vector<G4double>& GetVectorSignalsCher() {return VectorSignalsCher;}
-	std::vector<G4double>& GetVecTowerE() {return VecTowerE;}
-	std::vector<G4double>& GetVecSPMT() {return VecSPMT;}
-	std::vector<G4double>& GetVecCPMT() {return VecCPMT;}
+	    std::vector<G4double>& GetVecTowerE() {return VecTowerE;}
+	    std::vector<G4double>& GetVecSPMT() {return VecSPMT;}
+	    std::vector<G4double>& GetVecCPMT() {return VecCPMT;}
+
 
         //Fill vector of scintillating fibers with energy deposition
         //
@@ -59,14 +68,29 @@ class DREMTubesEventAction : public G4UserEventAction {
         //
         void AddVectorCher(G4int fiber, G4int n);
         //Fill vector of energy in each tower
-	//
-	void AddVecTowerE(G4int TowerID, G4double de);
+	    //
+	    void AddVecTowerE(G4int TowerID, G4double de);
         //Fill vector of signals in scintillating PMTs
-	//
+	    //
     	void AddVecSPMT(G4int PMTID, G4double de);
     	//Fill vector of signals in Cherenkov PMTs
         //
-	void AddVecCPMT(G4int PMTID, G4double de);
+	    void AddVecCPMT(G4int PMTID, G4double de);
+        //
+        //
+        // insert funtions per hits
+        // Vector of photoelectrons in each hit (S fibers)
+        std::vector<double>& GetHitPheSvector() {return fHitPheSvector;}
+        std::vector<double>& GetHitZcoordSvector() {return fHitZcoordSvector;}
+        std::vector<int>& GetHitSiPMIDSvector() {return fHitSiPMIDSvector;}
+        std::vector<double>& GetHitPheCvector() {return fHitPheCvector;}
+        std::vector<double>& GetHitZcoordCvector() {return fHitZcoordCvector;}
+        std::vector<int>& GetHitSiPMIDCvector() {return fHitSiPMIDCvector;}
+
+
+        void SaveHitPheSvector(std::vector<double> HitPheSvector);
+        void AddNewHit();
+        void InsertHitPheS(G4double phe);
 
     private:
         G4double  EnergyScin; //Energy in scintillating fibers
@@ -81,23 +105,43 @@ class DREMTubesEventAction : public G4UserEventAction {
         G4double  EscapedEnergy; //Energy deposited in leakage absorber
         G4double  EscapedEnergyl; //Energy deposited in leakage absorber
         G4double  EscapedEnergyd; //Energy deposited in leakage absorber
-	G4double  PSEnergy;
-
+	    G4double  PSEnergy;
         //Vector of SiPMs filled with scintillating signals
     	//
         std::vector<G4double> VectorSignals;
         //Vector of SiPMs filled with Cherenkov signals
-	//
+	    //
         std::vector<G4double> VectorSignalsCher;
-	//Vector of PMTs filled with scintillating signals
+	    //Vector of PMTs filled with scintillating signals
     	//
     	std::vector<G4double> VecSPMT;
     	//Vector of PMTs filled with Cherenkov signals
     	//
-	std::vector<G4double> VecCPMT;
+	    std::vector<G4double> VecCPMT;
     	//Vector of energy deposited in towers
-	//
+	    //
     	std::vector<G4double> VecTowerE;
+        //
+        // insert members per hits
+        std::vector<double> fHitPheSvector;
+        std::vector<double> fHitZcoordSvector;
+        std::vector<int> fHitSiPMIDSvector; 
+        //G4int NofHitSInEvt;
+        std::vector<double> fHitPheCvector;
+        std::vector<double> fHitZcoordCvector;
+        std::vector<int> fHitSiPMIDCvector; 
+        //G4int NofHitSInEvt;
+
+
+        DREMTubesCalorimeterHitsCollection* GetHitsCollection(G4int hcID,
+                                            const G4Event* event) const;
+
+        void PrintEventStatistics(
+                              G4double SEdep, G4double SZcoord, G4int SSiPMID,
+                              G4double CEdep, G4double CZcoord, G4int CSiPMID) const;
+
+        G4int fSfiberHCID;
+        G4int fCfiberHCID;
 
 };
 
@@ -161,6 +205,9 @@ inline void DREMTubesEventAction::Addenergy(G4double de){
 inline void DREMTubesEventAction::AddPSEnergy(G4double de){
     PSEnergy += de;
 }
+
+
+
 #endif
 
 //**************************************************

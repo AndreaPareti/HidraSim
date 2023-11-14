@@ -37,7 +37,7 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
         virtual ~DREMTubesDetectorConstruction();
 
     public:
-        virtual G4VPhysicalVolume* Construct();
+        virtual G4VPhysicalVolume* Construct(); 			// returns DefineVolumes()  
 
         G4LogicalVolume* constructscinfiber(double tolerance,
                                             G4double tuberadius,
@@ -49,7 +49,10 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
                                             G4double claddingradiusmin,
                                             G4double claddingradiusmax,
                                             G4double claddingZ,
-                                            G4Material* CherMaterial);
+                                            G4Material* CherMaterial,
+                                            G4String logicname,
+                                            G4LogicalVolume* logic_Core_S_fiber,
+                                            G4LogicalVolume* logic_Clad_S_fiber);
     
         G4LogicalVolume* constructcherfiber(double tolerance, 
                                             G4double tuberadius,
@@ -61,7 +64,11 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
                                             G4double claddingradiusmin,
                                             G4double claddingradiusmax,
                                             G4double claddingZ,
-                                            G4Material* CladCherMaterial);
+                                            G4Material* CladCherMaterial,
+                                            G4String logicname,
+                                            G4LogicalVolume* logic_Core_C_fiber,
+                                            G4LogicalVolume* logic_Clad_C_fiber);
+
         //Getters
     	//
 	const G4VPhysicalVolume* GetLeakCntPV() const;
@@ -80,6 +87,10 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
 	//  an hexcell shape
 	//
 	std::vector<G4TwoVector> calcmod(double radius, int nrow, int ncol); 
+
+    // make fibers sensitive detector to save hits
+    virtual void ConstructSDandField();
+
 
     private:
         
@@ -117,7 +128,7 @@ inline G4int DREMTubesDetectorConstruction::GetSiPMID( const G4int& cpno ) const
 
 inline G4int DREMTubesDetectorConstruction::GetSiPMTower( const G4int& town ) const {
     G4int SiPMTower=-1;
-    for(int i=0;i<NoModulesSiPM;i++){
+    for(int i=0;i<NofModulesSiPM;i++){
       if(town==SiPMMod[i])SiPMTower=i;
     }
     return SiPMTower;		

@@ -238,6 +238,7 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
     G4int SiPMID = 900;
     G4int SiPMTower;
     G4int signalhit = 0;
+    G4double zdep = 0.;
 
     if ( strstr( Fiber.c_str(), S_fiber.c_str() ) ) { //scintillating fiber/tube
 
@@ -251,14 +252,17 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
 //	 std::cout << " grandmother name " << modvolume->GetName() << " number " << modvolume->GetCopyNo() << std::endl;
 //        std::cout << " grandmother nunber " << step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3) << std::endl;			 
 	TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));
-	SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
+    SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
 	fEventAction->AddScin(edep);
 	signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
 //	if ( TowerID != 0 ) { fEventAction->AddVecSPMT( TowerID, signalhit ); }
 	fEventAction->AddVecSPMT( TowerID, signalhit ); 
 	if(SiPMTower > -1){ 
             SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-	    fEventAction->AddVectorScin( signalhit, SiPMTower*NoFibersTower+SiPMID ); 
+            zdep = fDetConstruction->GetSiPMID(step->GetTrack()->GetPosition().z() );
+	        fEventAction->AddVectorScin( signalhit, SiPMTower*NoFibersTower+SiPMID ); 
+            //fEventAction->AddVecSciZdep( SiPMTower*NoFibersTower+SiPMID, signalhit*zdep);
+
         }
     }
 
@@ -283,10 +287,15 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
 		}
 	    }
 
+
+
+        
+        // Total Internal Reflection Requirement case
 	    switch ( theStatus ){
 								
 	        case TotalInternalReflection: {
-		    G4int c_signal = fSignalHelper->SmearCSignal( );								
+		    G4int c_signal = fSignalHelper->SmearCSignal( ); // return random variable with poissonian distribution around 0.153
+            //G4int c_signal = 1;                                // No Smearing 
 		    TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));		
 	            SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
 		    fEventAction->AddVecCPMT( TowerID, c_signal );
@@ -294,13 +303,41 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
 
 		    if(SiPMTower > -1){ 
 		        SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+         		zdep = fDetConstruction->GetSiPMID(step->GetTrack()->GetPosition().z() );
 			fEventAction->AddVectorCher(SiPMTower*NoFibersTower+SiPMID, c_signal);
+        		//fEventAction->AddVecCerZdep( SiPMTower*NoFibersTower+SiPMID, c_signal*zdep);
 	            }
 		    step->GetTrack()->SetTrackStatus( fStopAndKill );
 		}
 		default:
 		    step->GetTrack()->SetTrackStatus( fStopAndKill );
 	    } //end of swich cases
+        
+
+
+
+        // No Total Reflection Requirement: all photons in the fibers get to the PMTs ant SiPMs
+        // Comment out if total reflection is required
+        /*
+        //G4int c_signal = fSignalHelper->SmearCSignal( ); // return random variable with poissonian distribution around 0.153
+        G4int c_signal = 1;                                // No Smearing Case 
+        TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));        
+        SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
+        fEventAction->AddVecCPMT( TowerID, c_signal );
+        if(SiPMTower > -1){ 
+            SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+        fEventAction->AddVectorCher(SiPMTower*NoFibersTower+SiPMID, c_signal);
+            }
+        step->GetTrack()->SetTrackStatus( fStopAndKill );
+        */
+
+
+
+
+
+
+
+
 
         } //end of optical photon
 
