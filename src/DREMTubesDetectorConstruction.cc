@@ -40,6 +40,13 @@
 #include "G4Colour.hh"
 #include "G4TwoVector.hh"
 
+
+
+
+// Include SensitiveDetector--> Save hits
+#include "G4VSensitiveDetector.hh"
+#include "G4SDManager.hh"
+#include "DREMTubesCalorimeterSD.hh"
 //
 //  sqrt3 constants used in code
 //  reciprocal of sqrt3 given as number that divided 
@@ -159,7 +166,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     G4Material* SiMaterial = nistManager->FindOrBuildMaterial("G4_Si");
     G4Material* LeadMaterial = nistManager->FindOrBuildMaterial("G4_Pb");
     G4Material* PSScinMaterial = nistManager->FindOrBuildMaterial("G4_POLYSTYRENE");
-//    G4Material* absorberMaterial = G4Material::GetMaterial("Brass");
+    //G4Material* absorberMaterial = G4Material::GetMaterial("Brass");
     G4Material* absorberMaterial = G4Material::GetMaterial("Steel304");
     G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
     G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
@@ -335,7 +342,12 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     //  tubes are packed in Y, so Y distance between two tubes is sqrt(3)/2*2.*tuberadius
     //
     double tolerance = 0.0*mm;
-    G4double tuberadius = 1.0*mm;
+    G4double tuberadius = 1.0*mm;	// STANDARD 2mm diameter
+    //G4double tuberadius = 1.5*mm;	// 3mm diameter
+    //G4double tuberadius = 1.375*mm;	// 2.75 mm diameter
+    //G4double tuberadius = 1.25*mm;	// 2.5 mm diameter
+    //G4double tuberadius = 1.125*mm;	// 2.25 mm diameter
+    //G4double tuberadius = 2*mm;
     G4double dtubeY=sq3*tuberadius;
     G4double dtubeX=2.*tuberadius;
     G4double moduleX = (2*NofFiberscolumn+1)*tuberadius; 
@@ -480,12 +492,6 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     PSScinVisAtt->SetVisibility(true);
     PSScinLV->SetVisAttributes( PSScinVisAtt );
 */    
-    //Absorber to calculate leakage
-//    G4VSolid* leakageabsorber  = new G4Box("leakageabsorber", worldX/2, worldY/2, worldZ/2); 
-                         
-    //
-//    G4VSolid* leakageabsorber = new G4Sphere("leakageabsorber",                        
-//        7.*m, 7.1*m, 0.*deg, 360.*deg, 0.*deg, 180.*deg); 
    // Module equipped (with SiPM)
    //
    // Basic module structure: extrusion of an hexcell shape
@@ -583,7 +589,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 //
 //  Build closed tube for detailed leakage study
 //
-    G4double leakradint=sqrt(caloX*caloX+caloY*caloY);
+    G4double leakradint=sqrt(caloX*caloX+caloY*caloY)*1.1;	// Added *1.2 wrt Giacomo's
     G4double leakradout=leakradint+20*cm;
     G4double tube_dPhi = 2.* M_PI * rad;
     G4double disc_th = 20.*cm;
@@ -630,7 +636,25 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                        false,
                        0,
                        fCheckOverlaps);
+
+/* 
+    //
+    G4VSolid* leakageabsorberl = new G4Sphere("leakageabsorberl", 
+        7.*m, 7.1*m, 0.*deg, 360.*deg, 0.*deg, 180.*deg); 
     
+    G4LogicalVolume* leakageabsorberlLV = new G4LogicalVolume(leakageabsorberl,
+                                                             defaultMaterial,  
+                                                             "leakageabsorberl");        
+    leakageabsorberlLV->SetVisAttributes(G4VisAttributes::Invisible);
+
+    new G4PVPlacement( 0, G4ThreeVector(),
+				    leakageabsorberlLV,         
+                                    "leakageabsorberl",
+                                    worldLV,               
+                                    false,          
+                                    0,               
+                                    fCheckOverlaps);
+*/
 
     /*G4VPhysicalVolume* CalorimeterPV =*/ new G4PVPlacement(transform,
                                                          CalorimeterLV,
@@ -769,6 +793,22 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 		
     G4int copynumber = 0;
 
+    // Moved Volume definitions outside loop to set them as sensitive detectors later
+
+    G4Tubs* Core_S_fiber = new G4Tubs("Core_S_fiber", 0., coreradius, coreZ/2, 0., 2.*pi);
+    G4LogicalVolume* logic_Core_S_fiber = new G4LogicalVolume(Core_S_fiber, ScinMaterial, "Core_S_fiber");
+   
+    G4Tubs* Core_C_fiber = new G4Tubs("Core_C_fiber", 0., coreradius, coreZ/2, 0., 2.*pi);
+    G4LogicalVolume* logic_Core_C_fiber = new G4LogicalVolume(Core_C_fiber, CherMaterial, "Core_C_fiber");
+
+    G4Tubs* Clad_S_fiber = new G4Tubs("Clad_S_fiber", claddingradiusmin, claddingradiusmax, claddingZ/2, 0., 2.*pi);
+    G4LogicalVolume* logic_Clad_S_fiber = new G4LogicalVolume(Clad_S_fiber,  CherMaterial,"Clad_S_fiber");
+
+    G4Tubs* Clad_C_fiber = new G4Tubs("Clad_C_fiber", claddingradiusmin, claddingradiusmax, claddingZ/2, 0., 2.*pi);
+    G4LogicalVolume* logic_Clad_C_fiber = new G4LogicalVolume(Clad_C_fiber, CladCherMaterial, "Clad_C_fiber");
+
+
+
     for(int column=0; column<NofFiberscolumn; column++){
         
         std::stringstream S_fiber_column;
@@ -803,6 +843,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                 vec_SiPM.setZ(fiberZ/2+SiPMZ/2-0.18);
             
                 copynumber = ((NofFibersrow/2)*column+row/2);
+
                 auto logic_S_fiber = constructscinfiber(tolerance,
                                                         tuberadius,
                                                         fiberZ,
@@ -813,7 +854,10 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                         claddingradiusmin,
                                                         claddingradiusmax,
                                                         claddingZ,
-                                                        CherMaterial);
+                                                        CherMaterial, S_name, logic_Core_S_fiber, logic_Clad_S_fiber);
+                //std::cout << "Nome della fibra: " << S_name << std::endl;
+
+                //DREMTubesCalorimeterSD* scifiber_sensitive = new DREMTubesCalorimeterSD("/SciFiber");                                        
                 // Tubes with scintillating fiber placement
                 //
                 /*physi_S_fiber[column][row] =*/ new G4PVPlacement(0,
@@ -890,7 +934,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                         claddingradiusmin,
                                                         claddingradiusmax,
                                                         claddingZ,
-                                                        CladCherMaterial);
+                                                        CladCherMaterial, C_name, logic_Core_C_fiber, logic_Clad_C_fiber);
                 /*physi_C_fiber[column][row] =*/ new G4PVPlacement(0,
                                                          vec_C_fiber,
                                                          logic_C_fiber,
@@ -922,13 +966,14 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
 }
 
+
 // Define constructscinfiber method()
 //
 G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolerance,
     G4double tuberadius, G4double fiberZ, G4Material* absorberMaterial, 
     G4double coreradius, G4double coreZ, G4Material* ScinMaterial, 
     G4double claddingradiusmin, G4double claddingradiusmax, G4double claddingZ,
-    G4Material* CherMaterial){
+    G4Material* CherMaterial, G4String logicname, G4LogicalVolume* logic_Core_S_fiber, G4LogicalVolume* logic_Clad_S_fiber){
   
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()m
@@ -942,8 +987,8 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
 
     G4LogicalVolume* logic_S_fiber = new G4LogicalVolume(S_fiber,
                                                          absorberMaterial,
-                                                         "S_fiber");
-    logic_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+                                                         /*"S_fiber"*/logicname);
+    logic_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);	//default is uncommented
 	
     G4Tubs* Abs_S_fiber = new G4Tubs("Abs_Scin_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
 
@@ -959,12 +1004,12 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
                                                0,
                                                fCheckOverlaps);
 
-    G4Tubs* Core_S_fiber = new G4Tubs("Core_S_fiber", 0., 
-                                      coreradius, coreZ/2, 0., 2.*pi);
+    //G4Tubs* Core_S_fiber = new G4Tubs("Core_S_fiber", 0., 
+    //                                  coreradius, coreZ/2, 0., 2.*pi);
 
-    G4LogicalVolume* logic_Core_S_fiber = new G4LogicalVolume(Core_S_fiber,
-                                                              ScinMaterial,
-                                                              "Core_S_fiber");
+    //G4LogicalVolume* logic_Core_S_fiber = new G4LogicalVolume(Core_S_fiber,
+    //                                                          ScinMaterial,
+    //                                                          "Core_S_fiber");
 
     G4VisAttributes* ScincoreVisAtt = new G4VisAttributes(G4Colour(0.0,0.0,0.8)); //blue
     ScincoreVisAtt->SetVisibility(true);
@@ -987,12 +1032,12 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
                                                      fCheckOverlaps);
  
 
-    G4Tubs* Clad_S_fiber = new G4Tubs("Clad_S_fiber", claddingradiusmin, 
-        claddingradiusmax, claddingZ/2, 0., 2.*pi);
+    //G4Tubs* Clad_S_fiber = new G4Tubs("Clad_S_fiber", claddingradiusmin, 
+    //    claddingradiusmax, claddingZ/2, 0., 2.*pi);
 
-    G4LogicalVolume* logic_Clad_S_fiber = new G4LogicalVolume(Clad_S_fiber,
-                                                              CherMaterial,
-                                                              "Clad_S_fiber");
+    //G4LogicalVolume* logic_Clad_S_fiber = new G4LogicalVolume(Clad_S_fiber,
+    //                                                          CherMaterial,
+    //                                                          "Clad_S_fiber");
 
     G4VisAttributes* ScincladVisAtt = new G4VisAttributes(G4Colour(0.0,1.0,1.0));
     //light blue
@@ -1000,7 +1045,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
     ScincladVisAtt->SetForceWireframe(true);
     ScincladVisAtt->SetForceSolid(true);
     logic_Clad_S_fiber->SetVisAttributes(ScincladVisAtt);
-    logic_Clad_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    logic_Clad_S_fiber->SetVisAttributes(G4VisAttributes::Invisible); 	// Default is uncommented
 
     G4ThreeVector vec_Clad_S;
     vec_Clad_S.setX(0.);
@@ -1022,7 +1067,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
     TubeVisAtt->SetForceWireframe(true);
     TubeVisAtt->SetForceSolid(true);
     logic_Abs_S_fiber->SetVisAttributes(TubeVisAtt);
-    logic_Abs_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    //logic_Abs_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);	//dedault is uncommented
     
     return logic_S_fiber;
 
@@ -1034,7 +1079,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
     G4double tuberadius, G4double fiberZ, G4Material* absorberMaterial,
     G4double coreradius, G4double coreZ, G4Material* CherMaterial, 
     G4double claddingradiusmin, G4double claddingradiusmax, G4double claddingZ, 
-    G4Material* CladCherMaterial){ 
+    G4Material* CladCherMaterial, G4String logicname, G4LogicalVolume* logic_Core_C_fiber, G4LogicalVolume* logic_Clad_C_fiber){ 
  
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()m
@@ -1046,9 +1091,9 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
 
     G4LogicalVolume* logic_C_fiber = new G4LogicalVolume(C_fiber,
                                                          absorberMaterial,
-                                                         "C_fiber");
-
-    logic_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+                                                         /*"C_fiber"*/logicname);
+    //std::cout << "Nome logic volume: " << logicname << std::endl;
+    //logic_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
     G4Tubs* Abs_C_fiber = new G4Tubs("Abs_Cher_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
 
     G4LogicalVolume* logic_Abs_C_fiber = new G4LogicalVolume(Abs_C_fiber,
@@ -1063,18 +1108,18 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
                                                      0,
                                                      fCheckOverlaps);
 
-    G4Tubs* Core_C_fiber = new G4Tubs("Core_C_fiber", 0., coreradius, coreZ/2, 0., 2.*pi);
+    //G4Tubs* Core_C_fiber = new G4Tubs("Core_C_fiber", 0., coreradius, coreZ/2, 0., 2.*pi);
 
-    G4LogicalVolume* logic_Core_C_fiber = new G4LogicalVolume(Core_C_fiber,
-                                                              CherMaterial,
-                                                              "Core_C_fiber");
+    //G4LogicalVolume* logic_Core_C_fiber = new G4LogicalVolume(Core_C_fiber,
+    //                                                          CherMaterial,
+    //                                                          "Core_C_fiber");
 
     G4VisAttributes* ChercoreVisAtt = new G4VisAttributes(G4Colour(1.0,0.0,0.0)); //red
     ChercoreVisAtt->SetVisibility(true);
     ChercoreVisAtt->SetForceWireframe(true);
     ChercoreVisAtt->SetForceSolid(true);
     logic_Core_C_fiber->SetVisAttributes(ChercoreVisAtt);
-    logic_Core_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    //logic_Core_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
     G4ThreeVector vec_Core_C;
     vec_Core_C.setX(0.);
     vec_Core_C.setY(0.);
@@ -1089,12 +1134,12 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
                                                     0,
                                                     fCheckOverlaps);
 
-    G4Tubs* Clad_C_fiber = new G4Tubs("Clad_C_fiber", claddingradiusmin,
-        claddingradiusmax, claddingZ/2, 0., 2.*pi);
+    //G4Tubs* Clad_C_fiber = new G4Tubs("Clad_C_fiber", claddingradiusmin,
+    //    claddingradiusmax, claddingZ/2, 0., 2.*pi);
 
-    G4LogicalVolume* logic_Clad_C_fiber = new G4LogicalVolume(Clad_C_fiber,
-                                                              CladCherMaterial,
-                                                              "Clad_C_fiber");
+    //G4LogicalVolume* logic_Clad_C_fiber = new G4LogicalVolume(Clad_C_fiber,
+    //                                                          CladCherMaterial,
+    //                                                          "Clad_C_fiber");
 
     G4VisAttributes* ChercladVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
     //yellow 
@@ -1102,7 +1147,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
     ChercladVisAtt->SetForceWireframe(true);
     ChercladVisAtt->SetForceSolid(true);
     logic_Clad_C_fiber->SetVisAttributes(ChercladVisAtt);
-    logic_Clad_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    logic_Clad_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);	//default is uncommented
 
     G4ThreeVector vec_Clad_C;
     vec_Clad_C.setX(0.);
@@ -1123,7 +1168,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
     TubeVisAtt->SetForceWireframe(true);
     TubeVisAtt->SetForceSolid(true);
     logic_Abs_C_fiber->SetVisAttributes(TubeVisAtt);
-    logic_Abs_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    //logic_Abs_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
 
     return logic_C_fiber;
 
@@ -1169,4 +1214,44 @@ std::vector<G4TwoVector> DREMTubesDetectorConstruction::calcmod(double radius, i
      polygon1[i].set(-xp[i]+moduleX/2.-radius,yp[i]-moduleY/2.);
    }
    return polygon1;
+}
+
+
+
+
+//methods to make S and C fibers sensitive detectors
+void DREMTubesDetectorConstruction::ConstructSDandField()
+{
+  // G4SDManager::GetSDMpointer()->SetVerboseLevel(1);
+  // 
+  // Sensitive detectors
+  //
+  //auto SfiberSD 
+  //  = new DREMTubesCalorimeterSD("SfiberSD", "SfiberHitsCollection", NofFibersrow*NofFiberscolumn/2);
+  //G4VSensitiveDetector *SfiberSD = new DREMTubesCalorimeterSD("SfiberSD", "SfiberHitsCollection", NofFibersrow*NofFiberscolumn/2);
+  G4VSensitiveDetector *SfiberSD = new DREMTubesCalorimeterSD("SfiberSD", "SfiberHitsCollection", G4int(NofFibersrow*NofFiberscolumn*NofModulesSiPM/2));
+  G4SDManager::GetSDMpointer()->AddNewDetector(SfiberSD);
+
+  //auto CfiberSD 
+  //  = new DREMTubesCalorimeterSD("CfiberSD", "CfiberHitsCollection", NofFibersrow*NofFiberscolumn/2);
+  G4VSensitiveDetector *CfiberSD = new DREMTubesCalorimeterSD("CfiberSD", "CfiberHitsCollection", G4int(NofFibersrow*NofFiberscolumn*NofModulesSiPM/2));
+  G4SDManager::GetSDMpointer()->AddNewDetector(CfiberSD);
+
+  SetSensitiveDetector("Core_S_fiber", SfiberSD); 
+  SetSensitiveDetector("Core_C_fiber", CfiberSD); 
+  SetSensitiveDetector("Clad_S_fiber", SfiberSD); 
+  SetSensitiveDetector("Clad_C_fiber", CfiberSD); 
+
+
+  // Magnetic field
+  //
+  // Create global magnetic field messenger.
+  // Uniform magnetic field is then created automatically if
+  // the field value is not zero.
+  //G4ThreeVector fieldValue;
+  //fMagFieldMessenger = new G4GlobalMagFieldMessenger(fieldValue);
+  //fMagFieldMessenger->SetVerboseLevel(1);
+  
+  // Register the field messenger for deleting
+  //G4AutoDelete::Register(fMagFieldMessenger);
 }
