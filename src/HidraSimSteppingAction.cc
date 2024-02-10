@@ -24,12 +24,10 @@
 //Define constructor
 //
 HidraSimSteppingAction::HidraSimSteppingAction( HidraSimEventAction* eventAction,
-						  const HidraSimDetectorConstruction* detConstruction,
-                                                  const G4bool FullOptic)
+						  const HidraSimDetectorConstruction* detConstruction)
     : G4UserSteppingAction(),
     fEventAction(eventAction),
-    fDetConstruction(detConstruction),
-    fFullOptic(FullOptic) {
+    fDetConstruction(detConstruction){
 		
         fSignalHelper = HidraSimSignalHelper::Instance(); 
 		
@@ -49,17 +47,8 @@ void HidraSimSteppingAction::UserSteppingAction( const G4Step* step ) {
 
     //Save fast signal information
     //
-    if( fFullOptic == false ){
-        FastSteppingAction( step );
-    }
-
-    //Save slow signal information
-    //
-    else {
-        G4cout<<"ERROR: FULL OPTICS NOT SUPPORTED IN THIS VERSION"<<G4endl;
-	abort();
-        //SlowSteppingAction( step );
-    } 
+    FastSteppingAction( step );
+    //}
 
 }
 
@@ -77,7 +66,7 @@ void HidraSimSteppingAction::AuxSteppingAction( const G4Step* step ) {
     //Store auxiliary information from event steps
     //--------------------------------------------------
 
-//    if ( volume == fDetConstruction->GetLeakCntPV() ){
+    //    if ( volume == fDetConstruction->GetLeakCntPV() ){
         //Take care operator== works with pointers only
 	//if there is a single placement of the volume
 	//use names or cpNo if not the case
@@ -122,98 +111,7 @@ void HidraSimSteppingAction::AuxSteppingAction( const G4Step* step ) {
 
     }
 }
-/*
-//Define SlowSteppingAction() method
-//
-void HidraSimSteppingAction::SlowSteppingAction( const G4Step* step ){
-    
-    //Random seed and random number generator
-    //
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::default_random_engine generator(seed);
-    
-    std::poisson_distribution<int> scin_distribution(0.008); 
-    std::poisson_distribution<int> cher_distribution(0.25);
-    
-    G4double energydeposited = step->GetTotalEnergyDeposit();
-    G4VPhysicalVolume* PreStepVolume 
-        = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
 
-    std::string Fiber;
-    std::string S_fiber = "S_fiber";
-    std::string C_fiber = "C_fiber";
-    Fiber = PreStepVolume->GetName(); //name of current step fiber
-
-    if ( strstr( Fiber.c_str(), S_fiber.c_str() ) ) { //scintillating fiber
-        fEventAction->AddScin(energydeposited); 
-    }
-
-    if ( strstr( Fiber.c_str(), C_fiber.c_str() ) ) { //Cherenkov fiber
-        fEventAction->AddCher(energydeposited);
-    }
-
-    G4String particlename = step->GetTrack()->GetDefinition()->GetParticleName();
-
-    G4OpBoundaryProcessStatus theStatus = Undefined;
-
-    G4ProcessManager* OpManager =
-        G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
-
-    if (OpManager) {
-        G4int MAXofPostStepLoops =
-              OpManager->GetPostStepProcessVector()->entries();
-        G4ProcessVector* fPostStepDoItVector =
-              OpManager->GetPostStepProcessVector(typeDoIt);
-
-        for ( G4int i=0; i<MAXofPostStepLoops; i++) {
-            G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
-            fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
-            if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break;}
-        }
-    }
-
-    if( particlename == "opticalphoton" ) { //optical photons
-        switch ( theStatus ){
-
-            case TotalInternalReflection:
-                if(strstr(Fiber.c_str(),S_fiber.c_str())){ //scintillating fibre
-                    if (scin_distribution(generator)==0 && step->GetTrack()->GetCurrentStepNumber() == 1){
-                        step->GetTrack()->SetTrackStatus(fStopAndKill);
-                    }
-                }
-                else if( strstr( Fiber.c_str(), C_fiber.c_str() ) ) { //Cherenkov fibre
-                    if (cher_distribution(generator)==0 && step->GetTrack()->GetCurrentStepNumber() == 1){
-                        step->GetTrack()->SetTrackStatus(fStopAndKill);
-                    }
-                }
-
-            case Detection:
-
-                if (step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName() == "C_SiPM"){
-                    fEventAction->AddCherenkov(1); 
-                    fEventAction->AddVectorCherPE(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(), 1);
-                }
-                if (step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName() == "S_SiPM"){
-                    fEventAction->AddVectorScinEnergy(1, step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber());
-                }
-                   
-                //Print info on Detection position and volumes
-                //
-                //G4cout<<"Detection "<<step->GetPreStepPoint()->GetMaterial()->GetName()<<
-                //    " "<<step->GetPostStepPoint()->GetMaterial()->GetName()<<
-                //    " "<<step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName()<<
-                //    " "<<step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber()<<G4endl;
-            break;
-           
-            default: 
-            break;
-
-        } //end of switch cases
-
-    }//end of optical photon loop
-
-}
-*/
 //Define FastSteppingAction() method
 //
 void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) { 
@@ -238,110 +136,106 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
     G4int SiPMID = 900;
     G4int SiPMTower;
     G4int signalhit = 0;
-    G4double zdep = 0.;
+    //G4double zdep = 0.;
 
-    if ( strstr( Fiber.c_str(), S_fiber.c_str() ) ) { //scintillating fiber/tube
+    
+    if ( strstr( Fiber.c_str(), S_fiber.c_str() ) )         //scintillating fiber/tube
+    { 
 
         if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ) {
             step->GetTrack()->SetTrackStatus( fStopAndKill ); 
-	}
+        }
 
-	if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 || step->GetStepLength() == 0. ) { return; } //not ionizing particle
-//    G4VPhysicalVolume* modvolume 
-//        = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume(3);
-//	 std::cout << " grandmother name " << modvolume->GetName() << " number " << modvolume->GetCopyNo() << std::endl;
-//        std::cout << " grandmother nunber " << step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3) << std::endl;			 
-	TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));
-    SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
-	fEventAction->AddScin(edep);
-	signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
-//	if ( TowerID != 0 ) { fEventAction->AddVecSPMT( TowerID, signalhit ); }
-	fEventAction->AddVecSPMT( TowerID, signalhit ); 
-	if(SiPMTower > -1){ 
-            SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-            zdep = fDetConstruction->GetSiPMID(step->GetTrack()->GetPosition().z() );
-	        fEventAction->AddVectorScin( signalhit, SiPMTower*NoFibersTower+SiPMID ); 
-            //fEventAction->AddVecSciZdep( SiPMTower*NoFibersTower+SiPMID, signalhit*zdep);
+        if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 || step->GetStepLength() == 0. ) { return; } //not ionizing particle
+        //    G4VPhysicalVolume* modvolume 
+        //        = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume(3);
+        //	 std::cout << " grandmother name " << modvolume->GetName() << " number " << modvolume->GetCopyNo() << std::endl;
+        //        std::cout << " grandmother nunber " << step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3) << std::endl;			 
+            
+        G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
+        
+        TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));
+        SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
+        fEventAction->AddScin(edep);
+        signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
+        // Attenuate Signal
+        signalhit = fSignalHelper->AttenuateSSignal(signalhit, distance_to_sipm);
+        fEventAction->AddVecSPMT( TowerID, signalhit ); 
+
+
+        if(SiPMTower > -1){ 
+                SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+                //zdep = fDetConstruction->GetSiPMID(step->GetTrack()->GetPosition().z() );
+                fEventAction->AddVectorScin( signalhit, SiPMTower*NoFibersTower+SiPMID ); 
+                //fEventAction->AddVecSciZdep( SiPMTower*NoFibersTower+SiPMID, signalhit*zdep);
 
         }
-    }
+    }   // end of scintillating fiber
 
-    if ( strstr( Fiber.c_str(), C_fiber.c_str() ) ) { //Cherenkov fiber/tube
 
+
+
+    else if ( strstr( Fiber.c_str(), C_fiber.c_str() ) )     //Cherenkov fiber/tube
+    { 
         fEventAction->AddCher(edep);
 
-	if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ){
-					
-	    G4OpBoundaryProcessStatus theStatus = Undefined;
+        if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ){
+                        
+            G4OpBoundaryProcessStatus theStatus = Undefined;
 
-	    G4ProcessManager* OpManager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
+            G4ProcessManager* OpManager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
 
-	    if (OpManager) {
-    	        G4int MAXofPostStepLoops = OpManager->GetPostStepProcessVector()->entries();
-		G4ProcessVector* fPostStepDoItVector = OpManager->GetPostStepProcessVector(typeDoIt);
+            if (OpManager) 
+            {
+                G4int MAXofPostStepLoops = OpManager->GetPostStepProcessVector()->entries();
+                G4ProcessVector* fPostStepDoItVector = OpManager->GetPostStepProcessVector(typeDoIt);
 
-		for ( G4int i=0; i<MAXofPostStepLoops; i++) {
-		    G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
-		    fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
-		    if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break; }
-		}
-	    }
-
-
-
-        
-        // Total Internal Reflection Requirement case
-	    switch ( theStatus ){
-								
-	        case TotalInternalReflection: {
-		    G4int c_signal = fSignalHelper->SmearCSignal( ); // return random variable with poissonian distribution around 0.153
-            //G4int c_signal = 1;                                // No Smearing 
-		    TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));		
-	            SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
-		    fEventAction->AddVecCPMT( TowerID, c_signal );
-//		    if ( TowerID != 0 ) { fEventAction->AddVecCPMT( TowerID, c_signal ); }
-
-		    if(SiPMTower > -1){ 
-		        SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-         		zdep = fDetConstruction->GetSiPMID(step->GetTrack()->GetPosition().z() );
-			fEventAction->AddVectorCher(SiPMTower*NoFibersTower+SiPMID, c_signal);
-        		//fEventAction->AddVecCerZdep( SiPMTower*NoFibersTower+SiPMID, c_signal*zdep);
-	            }
-		    step->GetTrack()->SetTrackStatus( fStopAndKill );
-		}
-		default:
-		    step->GetTrack()->SetTrackStatus( fStopAndKill );
-	    } //end of swich cases
-        
-
-
-
-        // No Total Reflection Requirement: all photons in the fibers get to the PMTs ant SiPMs
-        // Comment out if total reflection is required
-        /*
-        //G4int c_signal = fSignalHelper->SmearCSignal( ); // return random variable with poissonian distribution around 0.153
-        G4int c_signal = 1;                                // No Smearing Case 
-        TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));        
-        SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
-        fEventAction->AddVecCPMT( TowerID, c_signal );
-        if(SiPMTower > -1){ 
-            SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-        fEventAction->AddVectorCher(SiPMTower*NoFibersTower+SiPMID, c_signal);
+                for ( G4int i=0; i<MAXofPostStepLoops; i++)
+                {
+                    G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
+                    fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
+                    if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break; }
+                }
             }
-        step->GetTrack()->SetTrackStatus( fStopAndKill );
-        */
+            
+            // Total Internal Reflection Requirement case
+            switch ( theStatus ){
+                                    
+            case TotalInternalReflection:
+            {
+                G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
 
+                G4int c_signal = fSignalHelper->SmearCSignal( ); // return random variable with poissonian distribution around 0.153
+                //G4int c_signal = 1;                            // in case of no smearing study 
+                // Attenuate Signal
+                c_signal = fSignalHelper->AttenuateCSignal(c_signal, distance_to_sipm);
 
+                TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));		
+                SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
+                fEventAction->AddVecCPMT( TowerID, c_signal );
+                //		    if ( TowerID != 0 ) { fEventAction->AddVecCPMT( TowerID, c_signal ); }
 
-
-
-
-
+                if(SiPMTower > -1)
+                { 
+                    SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+                    //zdep = fDetConstruction->GetSiPMID(step->GetTrack()->GetPosition().z() );
+                    fEventAction->AddVectorCher(SiPMTower*NoFibersTower+SiPMID, c_signal);
+                    //fEventAction->AddVecCerZdep( SiPMTower*NoFibersTower+SiPMID, c_signal*zdep);
+                }
+                step->GetTrack()->SetTrackStatus( fStopAndKill );
+            }
+            default:
+                ;
+                //step->GetTrack()->SetTrackStatus( fStopAndKill );
+            } //end of swich cases
+            
 
 
         } //end of optical photon
+        else return;
 
     } //end of Cherenkov fiber
+    else return;
    
 }
 

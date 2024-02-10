@@ -29,7 +29,7 @@ class HidraSimActionInitialization : public G4VUserActionInitialization {
     public:
         //Constructor
         //
-        HidraSimActionInitialization(HidraSimDetectorConstruction*, const G4bool FullOptic );
+        HidraSimActionInitialization(HidraSimDetectorConstruction*);
         virtual ~HidraSimActionInitialization();
 
         virtual void BuildForMaster() const;

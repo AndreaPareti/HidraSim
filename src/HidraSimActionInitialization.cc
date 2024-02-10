@@ -15,9 +15,9 @@
 
 //Constructor
 //
-HidraSimActionInitialization::HidraSimActionInitialization( HidraSimDetectorConstruction* detConstruction, const G4bool FullOptic )
+HidraSimActionInitialization::HidraSimActionInitialization( HidraSimDetectorConstruction* detConstruction)
     : G4VUserActionInitialization(),
-    fFullOptic( FullOptic ),
+    //fFullOptic( FullOptic ),
     fDetConstruction( detConstruction )		
 {}
 
@@ -42,7 +42,8 @@ void HidraSimActionInitialization::Build() const {
     auto eventAction = new HidraSimEventAction;
     SetUserAction(new HidraSimRunAction( eventAction ));
     SetUserAction(eventAction);
-    SetUserAction(new HidraSimSteppingAction(eventAction, fDetConstruction, fFullOptic));
+    //SetUserAction(new HidraSimSteppingAction(eventAction, fDetConstruction, fFullOptic));
+    SetUserAction(new HidraSimSteppingAction(eventAction, fDetConstruction));
 
 }  
 

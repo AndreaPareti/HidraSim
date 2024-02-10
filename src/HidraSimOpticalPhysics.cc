@@ -18,23 +18,15 @@
 
 // Constructor
 //
-HidraSimOpticalPhysics::HidraSimOpticalPhysics(const G4bool FullOptic, G4bool toggle) 
+HidraSimOpticalPhysics::HidraSimOpticalPhysics() 
     : G4VPhysicsConstructor("Optical"),
-      fFullOptic( FullOptic ) {
+    theWLSProcess(nullptr),
+    theCerenkovProcess(nullptr),
+    theScintProcess(nullptr),
+    theRayleighScattering(nullptr),
+    theMieHGScatteringProcess(nullptr),
+    theBoundaryProcess(nullptr) {}
     
-    // Initialize private members
-    //
-    theWLSProcess                = NULL;
-    theScintProcess              = NULL;
-    theCerenkovProcess           = NULL;
-    theBoundaryProcess           = NULL;
-    theAbsorptionProcess         = NULL;
-    theRayleighScattering        = NULL;
-    theMieHGScatteringProcess    = NULL;
-    AbsorptionOn                 = toggle;
-
-}
-
 // De-constructor
 //
 HidraSimOpticalPhysics::~HidraSimOpticalPhysics() {}
@@ -52,14 +44,13 @@ void HidraSimOpticalPhysics::ConstructProcess() {
    
     // Initialize optical processes
     //
-    //theWLSProcess             = new G4OpWLS();
-    //theWLSProcess->UseTimeProfile("delta");
-    //theWLSProcess->UseTimeProfile("exponential"); 
+    theWLSProcess             = new G4OpWLS();
+    theWLSProcess->UseTimeProfile("delta");
+    theWLSProcess->UseTimeProfile("exponential"); 
     
     theScintProcess             = new G4Scintillation();
     theScintProcess->SetScintillationYieldFactor(1.);
     //theScintProcess->SetTrackSecondariesFirst(true);
-    //theScintProcess->SetScintillationYieldFactor(1.);
     theScintProcess->SetScintillationExcitationRatio(0.0);
     theScintProcess->SetTrackSecondariesFirst(true);
     // Use Birks Correction in the Scintillation process
@@ -70,11 +61,9 @@ void HidraSimOpticalPhysics::ConstructProcess() {
     theCerenkovProcess->SetMaxNumPhotonsPerStep(1000.);
     //theCerenkovProcess->SetTrackSecondariesFirst(true);
     
-    theAbsorptionProcess        = new G4OpAbsorption();
-    
-    //theRayleighScattering     = new G4OpRayleigh();
-    
-    //theMieHGScatteringProcess = new G4OpMieHG();
+    theRayleighScattering     = new G4OpRayleigh();
+        
+    theMieHGScatteringProcess = new G4OpMieHG();
     
     theBoundaryProcess          = new G4OpBoundaryProcess();
    
@@ -85,13 +74,11 @@ void HidraSimOpticalPhysics::ConstructProcess() {
     // if does not exist rais a fatal exception
     //
     if (!pManager) {
-        G4cout<<"HidraSim->Optical Photon without a Process Manager"<<G4endl;
         G4Exception("OpticalPhysics::ConstructProcess()","",
                     FatalException,"Optical Photon without a Process Manager");
     }
     // Add processes to optical photon with optical photon process manager
     //
-    if (AbsorptionOn) pManager->AddDiscreteProcess(theAbsorptionProcess);
     //pManager->AddDiscreteProcess(theRayleighScattering);
     //pManager->AddDiscreteProcess(theMieHGScatteringProcess);
     //pManager->AddDiscreteProcess(theWLSProcess);
@@ -115,8 +102,6 @@ void HidraSimOpticalPhysics::ConstructProcess() {
         // If does not exist raise a fatal exception
         //
         if (!pManager) {
-            G4cout<< "HidraSim->Particle " <<
-                particleName << "without a Process Manager";
             G4Exception("OpticalPhysics::ConstructProcess()","",
                         FatalException,"No Process Manager for particle");
         }
@@ -127,16 +112,13 @@ void HidraSimOpticalPhysics::ConstructProcess() {
             pManager->SetProcessOrdering(theCerenkovProcess,idxPostStep);
         }
         // Add Scintillation process to each candidate
-        // Adding Scintillation process only if fFullOptic == true
+        // (only for debugging)
         //
-        if(theScintProcess->IsApplicable(*particle)){
-            if (fFullOptic) {
-                pManager->AddProcess(theScintProcess);
-                pManager->SetProcessOrderingToLast(theScintProcess,idxAtRest);
-                pManager->SetProcessOrderingToLast(theScintProcess,idxPostStep);
-            }
-            else {}
-        } 
+        /*if(theScintProcess->IsApplicable(*particle)){
+            pManager->AddProcess(theScintProcess);
+            pManager->SetProcessOrderingToLast(theScintProcess,idxAtRest);
+            pManager->SetProcessOrderingToLast(theScintProcess,idxPostStep);
+        }*/
     }//end while
 }
 

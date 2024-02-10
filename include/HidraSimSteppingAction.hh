@@ -35,8 +35,7 @@ class HidraSimSteppingAction : public G4UserSteppingAction {
         //Constructor
         //
         HidraSimSteppingAction(HidraSimEventAction* eventAction,
-				const HidraSimDetectorConstruction* detConstruction,
-                                const G4bool FullOptic );
+				const HidraSimDetectorConstruction* detConstruction);
         //De-constructor
         //
         virtual ~HidraSimSteppingAction();

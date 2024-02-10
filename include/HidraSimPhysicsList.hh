@@ -5,6 +5,8 @@
 // \start date: 7 July 2021
 //**************************************************
 
+
+
 //Prevent including header multiple times
 //
 #ifndef HidraSimPhysicsList_h
@@ -23,7 +25,9 @@ class HidraSimPhysicsList : public G4VModularPhysicsList{
     public:
         //Constructor
         //
-        HidraSimPhysicsList(G4String, const G4bool FullOptic );
+        //HidraSimPhysicsList(G4String, const G4bool FullOptic );
+        HidraSimPhysicsList();
+
         //De-constructor
         //
         virtual ~HidraSimPhysicsList();

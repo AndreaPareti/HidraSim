@@ -9,7 +9,9 @@
 //
 #include "HidraSimDetectorConstruction.hh"
 #include "HidraSimActionInitialization.hh"
-#include "HidraSimPhysicsList.hh"
+#include "HidraSimOpticalPhysics.hh"
+
+//#include "HidraSimPhysicsList.hh"
 
 // Includers from Geant4
 //
@@ -24,6 +26,7 @@
 #include "Randomize.hh"
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
+#include "G4PhysListFactory.hh"
 
 // G4err output for usage error
 //
@@ -32,9 +35,16 @@ namespace PrintUsageError {
     G4cerr << "->HidraSim usage: " << G4endl;
     G4cerr << "HidraSim [-m macro ] [-u UIsession] [-t nThreads] [-pl PhysicsList]" 
         << G4endl;
-    G4cerr << "          [-opt FullOptic]" << G4endl;
     }
 }
+
+// G4err output for PhysListFactory usage error
+//
+namespace PrintPLFactoryUsageError {
+void PLFactoryUsageError() {
+  G4cerr << "Wrong PLFactory usage: no name for selected PL. " << G4endl;
+}
+} // namespace PrintPLFactoryUsageError
 
 // main() function
 //
@@ -76,7 +86,7 @@ int main(int argc, char** argv) {
 
     //Print if FullOptic option is on
     //
-    if (FullOptic){ G4cout<<"HidraSim-> Run with full optical description"<<G4endl; } 
+    //if (FullOptic){ G4cout<<"HidraSim-> Run with full optical description"<<G4endl; } 
   
     // Detect interactive mode (if no macro provided) and define UI session
     //
@@ -98,12 +108,28 @@ int main(int argc, char** argv) {
 
     // Set mandatory initialization classes
     //
-    auto DetConstruction = new HidraSimDetectorConstruction();
+    auto DetConstruction = new HidraSimDetectorConstruction();          // Geometry
     runManager->SetUserInitialization(DetConstruction);
 
-    runManager->SetUserInitialization(new HidraSimPhysicsList(custom_pl, FullOptic ));
-  
-    auto actionInitialization = new HidraSimActionInitialization( DetConstruction, FullOptic );
+    //runManager->SetUserInitialization(new HidraSimPhysicsList(custom_pl, FullOptic ));
+    G4PhysListFactory PLFactory{}; //Physics List
+    if (!PLFactory.IsReferencePhysList(custom_pl)) { // if custom_pl is not a PLname exit
+        PrintPLFactoryUsageError::PLFactoryUsageError();
+        return 1;
+    }   
+    auto PhysicsList = PLFactory.GetReferencePhysList(custom_pl);
+    //Register optical physics 
+    //Turn on and off the absorption of optical photons in materials
+    // 
+    auto OpPhysics = new HidraSimOpticalPhysics;
+    PhysicsList->RegisterPhysics( OpPhysics );
+    runManager->SetUserInitialization(PhysicsList);
+
+    //runManager->SetUserInitialization(new HidraSimPhysicsList(custom_pl));
+
+
+
+    auto actionInitialization = new HidraSimActionInitialization( DetConstruction);
     runManager->SetUserInitialization(actionInitialization);
   
     // Initialize visualization

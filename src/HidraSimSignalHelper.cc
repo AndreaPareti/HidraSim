@@ -13,6 +13,9 @@
 
 //Includers from Geant4
 #include "G4Poisson.hh"
+#include "G4Tubs.hh"
+#include "G4NavigationHistory.hh"
+
 
 HidraSimSignalHelper* HidraSimSignalHelper::instance = 0;
 
@@ -41,17 +44,72 @@ G4double HidraSimSignalHelper::ApplyBirks( const G4double& de, const G4double& s
 //Define SmearSSignal() method
 //
 G4int HidraSimSignalHelper::SmearSSignal( const G4double& satde ) {
-		
-    return G4Poisson(satde*9.5);
-		
+    //return G4Poisson(satde*9.5);        // Original
+    return G4Poisson(satde*21.32);		// TB2023 
 }
 
 //Define SmearCSignal() method
 //
 G4int HidraSimSignalHelper::SmearCSignal( ){
-		
-    return G4Poisson(0.153);
+    //return G4Poisson(0.153);            // Original
+    return G4Poisson(0.243);            // TB2023
 
+}
+
+//Define GetDistanceToSiPM() method
+//
+G4double HidraSimSignalHelper::GetDistanceToSiPM(const G4Step* step) {
+
+    // Get the pre-step point
+    const G4StepPoint* preStepPoint = step->GetPreStepPoint();
+    // Get the global position of the pre-step point
+    G4ThreeVector globalPos = preStepPoint->GetPosition();
+    // Get the local position of the pre-step point in the current volume's coordinate system
+    G4ThreeVector localPos = preStepPoint->GetTouchableHandle()->GetHistory()->GetTopTransform().TransformPoint(globalPos);
+    // G4cout << "Local Position (X,Y,Z): (" << localPos.x()/CLHEP::mm << ", " << localPos.y()/CLHEP::mm << ", " << localPos.z()/CLHEP::mm << ") mm" << G4endl;
+
+    // Get the logical volume of the current step
+    G4LogicalVolume* currentVolume = preStepPoint->GetTouchableHandle()->GetVolume()->GetLogicalVolume();
+    // Get the solid associated with the logical volume
+    G4Tubs* solid = dynamic_cast<G4Tubs*>(currentVolume->GetSolid());
+    // Get the dimensions of the solid (size of the volume)
+    G4double size = solid->GetZHalfLength();
+
+    G4double distance_to_sipm = size - localPos.z();
+    return distance_to_sipm;
+
+}
+
+
+//Define AttenuateHelper() method
+G4int HidraSimSignalHelper::AttenuateHelper(const G4int& signal, const G4double& distance, const G4double& attenuation_length) {
+    double probability_of_survival = exp(-distance/attenuation_length);
+
+    G4int survived_photons = 0;
+    for (int i=0; i<signal; i++)
+    {
+        // Simulate drawing between 0 and 1 with probability x of getting 1
+        if (G4UniformRand() <= probability_of_survival) survived_photons++;
+    }
+
+    return survived_photons;
+
+}
+
+//Define AttenuateSSignal() method
+//
+G4int HidraSimSignalHelper::AttenuateSSignal(const G4int& signal, const G4double& distance) {
+
+    return AttenuateHelper(signal, distance, fSAttenuationLength);    
+
+}
+
+//Define AttenuateCSignal() method
+//
+G4int HidraSimSignalHelper::AttenuateCSignal(const G4int& signal, const G4double& distance) {
+
+    return AttenuateHelper(signal, distance, fCAttenuationLength);    
+    
 }
 
 //**************************************************
