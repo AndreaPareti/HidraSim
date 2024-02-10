@@ -1,11 +1,11 @@
 ##**************************************************
 ## \file GNUmakefile
-## \brief: GNUmakefile of G4DREMTubes project
+## \brief: GNUmakefile of G4HidraSim project
 ## \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
 ## \start date: 7 July 2021
 ##**************************************************
 
-name := DREMTubes
+name := HidraSim
 G4TARGET := $(name)
 G4EXLIB := true
 
