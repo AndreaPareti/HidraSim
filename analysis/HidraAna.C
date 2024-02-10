@@ -31,7 +31,7 @@ void HidraAna(double energy, const string intup){
   char cinfile[infile.size() + 1];
   strcpy(cinfile, infile.c_str());
   auto simfile = new TFile(cinfile, "READ");
-  auto *simtree = (TTree*)simfile->Get( "DREMTubesout" );
+  auto *simtree = (TTree*)simfile->Get( "HidraSimout" );
   std::ostringstream os;
   os << energy;
   std::string enstr = os.str();

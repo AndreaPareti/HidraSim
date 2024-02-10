@@ -1,6 +1,6 @@
 ##**************************************************
 ## \file CMakeLists.txt
-## \brief: CMakeLists of DREMTubes project
+## \brief: CMakeLists of HidraSim project
 ## \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
 ## \start date: 7 July 2021
 ##**************************************************
@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.8...3.18)
 if(${CMAKE_VERSION} VERSION_LESS 3.12)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
 endif()
-project(G4DREMTubes)
+project(G4HidraSim)
 
 # Find Geant4 package, activating all available UI and Vis drivers by default
 #
@@ -34,18 +34,18 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
 # Add the executable and link it to the Geant4 libraries
 #
-add_executable(DREMTubes DREMTubes.cc ${sources} ${headers})
-target_link_libraries(DREMTubes ${Geant4_LIBRARIES})
+add_executable(HidraSim HidraSim.cc ${sources} ${headers})
+target_link_libraries(HidraSim ${Geant4_LIBRARIES})
 
 # Copy all scripts to the build directory 
 #
-set(DREMTubes_SCRIPTS
-  DREMTubes_gui.mac
-  DREMTubes_init_vis.mac
-  DREMTubes_run.mac
+set(HidraSim_SCRIPTS
+  HidraSim_gui.mac
+  HidraSim_init_vis.mac
+  HidraSim_run.mac
   )
 
-foreach(_script ${DREMTubes_SCRIPTS})
+foreach(_script ${HidraSim_SCRIPTS})
   configure_file(
     ${PROJECT_SOURCE_DIR}/${_script}
     ${PROJECT_BINARY_DIR}/${_script}
@@ -55,10 +55,10 @@ endforeach()
 
 #For internal Geant4 use 
 #
-add_custom_target(G4DREMTubes DEPENDS G4EMTubes)
+add_custom_target(G4HidraSim DEPENDS HidraSim)
 
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
-install(TARGETS DREMTubes DESTINATION bin)
+install(TARGETS HidraSim DESTINATION bin)
 
 ##**************************************************
