@@ -10,6 +10,7 @@
 //Includers from project files
 //
 #include "HidraSimDetectorConstruction.hh"
+#include "HidraSimGeoMessenger.hh"
 
 //Includers from Geant4
 //
@@ -47,6 +48,74 @@
 #include "G4VSensitiveDetector.hh"
 #include "G4SDManager.hh"
 #include "HidraSimCalorimeterSD.hh"
+
+//Messenger constructor
+//
+HidraSimGeoMessenger::HidraSimGeoMessenger(HidraSimDetectorConstruction* DetConstruction)
+    : fDetConstruction(DetConstruction){
+    
+    //The Messenger directory and commands must be initialized
+    //within constructor
+    //
+    fMsgrDirectory = new G4UIdirectory("/tbgeo/");
+    fMsgrDirectory->SetGuidance("Set movable parameters in test-beam geometry.");
+
+    fXshiftcmd = new G4UIcmdWithADoubleAndUnit("/tbgeo/xshift", this);
+    fXshiftcmd->SetParameterName("xshift",/*omittable=*/false,/*currentAsDefault=*/true);
+    fXshiftcmd->SetGuidance("Shift test-beam platform x direction (default unit mm)");
+    fXshiftcmd->SetDefaultUnit("mm");
+    fXshiftcmd->SetDefaultValue(0.);
+    fYshiftcmd = new G4UIcmdWithADoubleAndUnit("/tbgeo/yshift", this);
+    fYshiftcmd->SetParameterName("yshift",/*omittable=*/false,/*currentAsDefault=*/true);
+    fYshiftcmd->SetGuidance("Shift test-beam platform y direction (default unit mm)");
+    fYshiftcmd->SetDefaultUnit("mm");
+    fYshiftcmd->SetDefaultValue(0.);
+    fOrzrotcmd = new G4UIcmdWithADoubleAndUnit("/tbgeo/horizrot", this);
+    fOrzrotcmd->SetParameterName("horizrot",/*omittable=*/false,/*currentAsDefault=*/true);
+    fOrzrotcmd->SetGuidance("Rotate platform (default deg)");
+    fOrzrotcmd->SetDefaultUnit("deg");
+    fOrzrotcmd->SetDefaultValue(0.);
+    fVerrotcmd = new G4UIcmdWithADoubleAndUnit("/tbgeo/vertrot", this);
+    fVerrotcmd->SetParameterName("vertrot",/*omittable=*/false,/*currentAsDefault=*/true);
+    fVerrotcmd->SetGuidance("Lift up calorimeter from back side (default deg)");
+    fVerrotcmd->SetDefaultUnit("deg");
+    fVerrotcmd->SetDefaultValue(0.);
+}
+
+//Messenger destructor
+//
+HidraSimGeoMessenger::~HidraSimGeoMessenger(){
+
+    //The Messenger fields should be deleted
+    //in destructor
+    delete fMsgrDirectory;
+    delete fXshiftcmd;
+    delete fYshiftcmd;
+    delete fOrzrotcmd;
+    delete fVerrotcmd;
+}
+
+//Messenger SetNewValue virtual method from base class
+//
+void HidraSimGeoMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
+
+    if(command == fXshiftcmd){
+        fDetConstruction->SetXshift(fXshiftcmd->GetNewDoubleValue(newValue));
+        G4cout<<"tbgeo: x-shifted test-beam setup by "<<fDetConstruction->GetXshift()<<" mm"<<G4endl;
+    }
+    else if(command == fYshiftcmd){
+        fDetConstruction->SetYshift(fYshiftcmd->GetNewDoubleValue(newValue));
+        G4cout<<"tbgeo: y-shifted test-beam setup by "<<fDetConstruction->GetYshift()<<" mm"<<G4endl;
+    }
+    else if(command == fOrzrotcmd){
+        fDetConstruction->SetOrzrot(fOrzrotcmd->GetNewDoubleValue(newValue));
+        G4cout<<"tbgeo: orz-rotated test-beam setup by "<<fDetConstruction->GetOrzrot()<<" rad"<<G4endl;
+    }
+    else if(command == fVerrotcmd){
+        fDetConstruction->SetVerrot(fVerrotcmd->GetNewDoubleValue(newValue));
+        G4cout<<"tbgeo: ver-rotated test-beam setup by "<<fDetConstruction->GetVerrot()<<" rad"<<G4endl;
+    }
+}
 //
 //  sqrt3 constants used in code
 //  reciprocal of sqrt3 given as number that divided 
@@ -62,6 +131,9 @@ HidraSimDetectorConstruction::HidraSimDetectorConstruction()
     fCheckOverlaps(false),
 		fLeakCntPV(nullptr),
     fWorldPV(nullptr){
+
+    fGeoMessenger = new HidraSimGeoMessenger(this);
+ 
 }
 
 //De-constructor
@@ -443,7 +515,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
 
     //Preshower
     //
-/*
+    /*
     auto PSSolid = new G4Box("Preshower", PSX/2., PSY/2., PSZ/2.);
 
     auto PSLV = new G4LogicalVolume(PSSolid, defaultMaterial, "Preshower");
@@ -480,18 +552,18 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     auto PSScinLV = new G4LogicalVolume(PSScinSolid, PSScinMaterial, "Preshower_scin");
 
     new G4PVPlacement( 0, 
-		       G4ThreeVector(0.,0.,PSZ/4.),
-                       PSScinLV,
-	               "Preshower_scin",
-                       PSLV,
-                       false,	
-                       0,
-                       fCheckOverlaps);	 
+          G4ThreeVector(0.,0.,PSZ/4.),
+                      PSScinLV,
+                "Preshower_scin",
+                      PSLV,
+                      false,	
+                      0,
+                      fCheckOverlaps);	 
 
     G4VisAttributes* PSScinVisAtt = new G4VisAttributes( G4Colour::Cyan() );
     PSScinVisAtt->SetVisibility(true);
     PSScinLV->SetVisAttributes( PSScinVisAtt );
-*/    
+    */    
    // Module equipped (with SiPM)
    //
    // Basic module structure: extrusion of an hexcell shape
@@ -569,14 +641,20 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     //
     G4RotationMatrix rotm  = G4RotationMatrix();
     // x(y)rot is rotation angle around axis x(y))
-    G4double xrot=2.5*deg;
-    G4double yrot=2.5*deg;
+    G4double zrot=90.*deg;
+    //G4double xrot=2.5*deg;
+    //G4double yrot=2.5*deg;
+    G4double xrot = fOrzrot;
+    G4double yrot = fVerrot;
+
     // showdep is assumed shower depth to optimise
     // shower containment. For default geometry and e.m. shower
     // it is approx 15 cm
     G4double showdep=14.5*cm;
     rotm.rotateX(xrot);  
     rotm.rotateY(yrot);
+    // rotate calorimeter around beam axis
+    if(irot){rotm.rotateZ(zrot);}
     G4ThreeVector position;
     G4double xcomp=(caloZ-showdep)*sin(yrot);
     G4double ycomp=-(caloZ-showdep)*sin(xrot);
@@ -584,6 +662,9 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     std::cout << " ycomp " << ycomp << std::endl;
     position.setX(xcomp);
     position.setY(ycomp);
+    //position.setX(fXshift);
+    //position.setY(fYshift);
+
     position.setZ(0.);
     G4Transform3D transform = G4Transform3D(rotm,position); 
 //
@@ -877,12 +958,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
                                                             moduleequippedLV,
                                                             false,
                                                             copynumber); //same copynumber of fibers 
-          
-                /*logic_OpSurface_defaultAir[NofFiberscolumn][NofFibersrow] =
-                    new G4LogicalBorderSurface("logic_OpSurface_defaultAir",
-                                               CalorimeterPV, 
-                                               physi_SiPM[column][row],
-                                               OpSurfacedefault);*/
+
             }
         };
     };
@@ -951,11 +1027,6 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
                                                         false,
                                                         copynumber); //same copynumber of fiber 
 
-                /*logic_OpSurface_defaultAir[NofFiberscolumn][NofFibersrow] =
-                    new G4LogicalBorderSurface("logic_OpSurface_defaultAir",
-                                               CalorimeterPV, 
-                                               physi_SiPM[column][row],
-                                               OpSurfacedefault);*/
             }      
         };
     };
@@ -1004,13 +1075,6 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructscinfiber(double toleran
                                                0,
                                                fCheckOverlaps);
 
-    //G4Tubs* Core_S_fiber = new G4Tubs("Core_S_fiber", 0., 
-    //                                  coreradius, coreZ/2, 0., 2.*pi);
-
-    //G4LogicalVolume* logic_Core_S_fiber = new G4LogicalVolume(Core_S_fiber,
-    //                                                          ScinMaterial,
-    //                                                          "Core_S_fiber");
-
     G4VisAttributes* ScincoreVisAtt = new G4VisAttributes(G4Colour(0.0,0.0,0.8)); //blue
     ScincoreVisAtt->SetVisibility(true);
     ScincoreVisAtt->SetForceWireframe(true);
@@ -1031,13 +1095,6 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructscinfiber(double toleran
                                                      0,
                                                      fCheckOverlaps);
  
-
-    //G4Tubs* Clad_S_fiber = new G4Tubs("Clad_S_fiber", claddingradiusmin, 
-    //    claddingradiusmax, claddingZ/2, 0., 2.*pi);
-
-    //G4LogicalVolume* logic_Clad_S_fiber = new G4LogicalVolume(Clad_S_fiber,
-    //                                                          CherMaterial,
-    //                                                          "Clad_S_fiber");
 
     G4VisAttributes* ScincladVisAtt = new G4VisAttributes(G4Colour(0.0,1.0,1.0));
     //light blue
@@ -1108,12 +1165,6 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructcherfiber(double toleran
                                                      0,
                                                      fCheckOverlaps);
 
-    //G4Tubs* Core_C_fiber = new G4Tubs("Core_C_fiber", 0., coreradius, coreZ/2, 0., 2.*pi);
-
-    //G4LogicalVolume* logic_Core_C_fiber = new G4LogicalVolume(Core_C_fiber,
-    //                                                          CherMaterial,
-    //                                                          "Core_C_fiber");
-
     G4VisAttributes* ChercoreVisAtt = new G4VisAttributes(G4Colour(1.0,0.0,0.0)); //red
     ChercoreVisAtt->SetVisibility(true);
     ChercoreVisAtt->SetForceWireframe(true);
@@ -1134,12 +1185,6 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructcherfiber(double toleran
                                                     0,
                                                     fCheckOverlaps);
 
-    //G4Tubs* Clad_C_fiber = new G4Tubs("Clad_C_fiber", claddingradiusmin,
-    //    claddingradiusmax, claddingZ/2, 0., 2.*pi);
-
-    //G4LogicalVolume* logic_Clad_C_fiber = new G4LogicalVolume(Clad_C_fiber,
-    //                                                          CladCherMaterial,
-    //                                                          "Clad_C_fiber");
 
     G4VisAttributes* ChercladVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
     //yellow 
