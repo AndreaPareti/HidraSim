@@ -53,11 +53,7 @@ class HidraSimSteppingAction : public G4UserSteppingAction {
         //
         void FastSteppingAction( const G4Step* step ); 
 
-        //Slow signal simulation (optical photon propagation)
-        //fFullOptic == true
-        //
-        void SlowSteppingAction( const G4Step* step );
-    
+   
     private:
 
         HidraSimEventAction*  fEventAction;  

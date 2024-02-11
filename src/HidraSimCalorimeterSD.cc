@@ -10,7 +10,6 @@
 #include "G4ios.hh"
 #include "HidraSimDetectorConstruction.hh"
 #include "HidraSimSignalHelper.hh"
-#include <set>
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -74,7 +73,7 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
   Fiber = volume->GetName();     
   G4int TowerID;
   G4int SiPMTower;
-  G4double signalhit;
+  G4int signalhit=0;
 
 
   // Scintillating fiber
@@ -84,6 +83,10 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
     TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));
     SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
   	signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
+    // Attenuate Signal
+    G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
+    signalhit = fSignalHelper->AttenuateSSignal(signalhit, distance_to_sipm);
+
     if (signalhit == 0.) {return false;}                       // if no photoelectron is produced, do not save hit
     if (SiPMTower >-1)                                        // save hits only in SiPM-mounted modules
     {
@@ -111,28 +114,6 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
       hit->SetPhe(signalhit);
     
 
-      // Add values
-      //hit->Add(signalhit);
-
-      // Get hit for total accounting
-      //auto hitTotal 
-      //  = (*fHitsCollection)[fHitsCollection->entries()-1];
-      //hitTotal->Add(edep); 
-      //hitTotal->Add(signalhit); 
-      //fEventAction->AddNewHit();
-      //fEventAction->InsertHitPheS(signalhit);
-      //G4cout << "New Hit added" << G4endl;
-
-      //G4int HitEventID = G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
-      //auto man = G4AnalysisManager::Instance();
-      //man->FillNtupleIColumn(2, 0, HitEventID);
-      //man->FillNtupleDColumn(2, 1, position.z());
-      //man->FillNtupleIColumn(2, 2, SiPMID);
-      //man->FillNtupleIColumn(2, 3, TowerID);
-      //man->FillNtupleDColumn(2, 4, signalhit);
-      //man->FillNtupleDColumn(2, 5, position.x());
-      //man->FillNtupleDColumn(2, 6, position.y());
-      //man->AddNtupleRow(2);   // add row to the hit ntuple
       fHitsCollection->insert(hit);
 
       return true;
@@ -165,8 +146,11 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
       {   
           case TotalInternalReflection:
           {       
-            G4double c_signal = fSignalHelper->SmearCSignal( ); // return random variable with poissonian distribution around 0.153
+            G4int c_signal = fSignalHelper->SmearCSignal( ); // return random variable with poissonian distribution around 0.153
             //G4int c_signal = 1;                                // No Smearing 
+            G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
+            // Attenuate Signal
+            c_signal = fSignalHelper->AttenuateCSignal(c_signal, distance_to_sipm);            
             if(c_signal==0){return false;}                        // if no photoelectron is produced, do not save Hit
             TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));		
             SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
@@ -177,15 +161,7 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
                 //G4int HitEventID = G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
                 //G4double z = fDetConstruction->GetSiPMID(step->GetTrack()->GetPosition().z() );
                 G4int SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-                
-                //auto man = G4AnalysisManager::Instance();
-                //man->FillNtupleIColumn(3, 0, HitEventID);
-                //man->FillNtupleDColumn(3, 1, position.z());
-                //man->FillNtupleIColumn(3, 2, SiPMID);
-                //man->FillNtupleIColumn(3, 3, TowerID);
-                //man->FillNtupleDColumn(3, 4, c_signal);
-                //man->AddNtupleRow(3);   // add row to the hit ntuple
-
+ 
                 auto hit  = new HidraSimCalorimeterHit();
 
                 if ( ! hit ) {
