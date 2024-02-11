@@ -99,16 +99,18 @@ G4int HidraSimSignalHelper::AttenuateHelper(const G4int& signal, const G4double&
 //Define AttenuateSSignal() method
 //
 G4int HidraSimSignalHelper::AttenuateSSignal(const G4int& signal, const G4double& distance) {
+	const G4double SAttenuationLength = 191.6*CLHEP::cm; // from test beam data
 
-    return AttenuateHelper(signal, distance, fSAttenuationLength);    
+    return AttenuateHelper(signal, distance, SAttenuationLength);    
 
 }
 
 //Define AttenuateCSignal() method
 //
 G4int HidraSimSignalHelper::AttenuateCSignal(const G4int& signal, const G4double& distance) {
+	const G4double CAttenuationLength = 388.9*CLHEP::cm; // from test beam data
 
-    return AttenuateHelper(signal, distance, fCAttenuationLength);    
+    return AttenuateHelper(signal, distance, CAttenuationLength);    
     
 }
 
