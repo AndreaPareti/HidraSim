@@ -11,6 +11,7 @@
 #include "HidraSimSignalHelper.hh"
 #include <vector>
 #include "g4root.hh"
+//#include "G4AnalysisManager.hh"
 #include "G4RunManager.hh"
 #include "G4OpticalPhoton.hh"
 #include "G4OpBoundaryProcess.hh"
@@ -43,11 +44,11 @@ class HidraSimCalorimeterSD : public G4VSensitiveDetector
 
   private:
     HidraSimCalorimeterHitsCollection* fHitsCollection;
-    HidraSimCalorimeterHitsCollection* fSciHitsCollection;
-    HidraSimCalorimeterHitsCollection* fCerHitsCollection;
+    //HidraSimCalorimeterHitsCollection* fSciHitsCollection;
+    //HidraSimCalorimeterHitsCollection* fCerHitsCollection;
 
     G4int collectionID;
-    G4int  fNofActiveFibers;
+    G4int fNofActiveFibers;
     HidraSimSignalHelper* fSignalHelper;
     //HidraSimEventAction*  fEventAction;  
     const HidraSimDetectorConstruction* fDetConstruction;

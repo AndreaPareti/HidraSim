@@ -13,6 +13,7 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
 endif()
 project(G4HidraSim)
 
+
 # Find Geant4 package, activating all available UI and Vis drivers by default
 #
 option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
@@ -22,10 +23,18 @@ else()
   find_package(Geant4 REQUIRED)
 endif()
 
+# Link ROOT Packages
+find_package(ROOT REQUIRED)
+set(CMAKE_CXX_FLAGS "${ROOT_CXX_FLAGS}")
+
+# Link SiPM sim
+find_package(sipm REQUIRED)
+
 # Setup Geant4 include directories and prohect include directories
 #
 include(${Geant4_USE_FILE})
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/include
+${ROOT_INCLUDE_DIRS})
 
 # Locate project source and headers
 #
@@ -35,8 +44,9 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 # Add the executable and link it to the Geant4 libraries
 #
 add_executable(HidraSim HidraSim.cc ${sources} ${headers})
-target_link_libraries(HidraSim ${Geant4_LIBRARIES})
-
+#target_link_libraries(HidraSim ${Geant4_LIBRARIES})
+#target_link_libraries(HidraSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sipm)
+target_link_libraries(HidraSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sipm)
 # Copy all scripts to the build directory 
 #
 set(HidraSim_SCRIPTS

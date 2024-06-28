@@ -74,7 +74,7 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
 3. cmake build directory and make (using geant4.10.07_p01)
    ```sh
    mkdir HidraSim-build; cd HidraSim-build/
-   cmake -DGeant4_DIR=/absolute_path_to/geant4.10.07_p01-install/lib/Geant4-10.7.1/ relative_path_to/HidraSim/
+   cmake -DGeant4_DIR=/absolute_path_to/geant4.10.07_p01-install/lib/Geant4-10.7.1/ relative_path_to/HidraSim/ -DCMAKE_CXX_STANDARD=14
    make
    ```
 4. execute (example with HidraSim_run.mac macro card, 2 thread, FTFP_BERT physics list and no optical propagation)

@@ -34,6 +34,10 @@
 #include <iomanip>
 #include <vector>
 
+// Include SiPM EndOfEvent action
+//#include "sipm/SiPMProperties.h"
+//#include "sipm/SiPMAnalogSignal.h"
+
 
 
 
@@ -159,9 +163,6 @@ void HidraSimEventAction::BeginOfEventAction(const G4Event*) {
     fHitPheSvector.assign(fHitPheCvector.size(), 0.);
     fHitZcoordSvector.assign(fHitZcoordCvector.size(), 0.);
     fHitSiPMIDSvector.assign(fHitSiPMIDCvector.size(), 0.);
-
-    //NofHitSInEvt = 0;
-    //HitEventID = 0;
 }
 
 
@@ -175,9 +176,6 @@ void HidraSimEventAction::BeginOfEventAction(const G4Event*) {
 void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
  
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-
-
-
   
   // Get hits collections IDs (only once)
   if ( fSfiberHCID == -1 ) {
@@ -187,48 +185,22 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
       = G4SDManager::GetSDMpointer()->GetCollectionID("CfiberHitsCollection");
   }
 
-
-
   // Get hits collections
   auto SfiberHC = GetHitsCollection(fSfiberHCID, event);
   auto CfiberHC = GetHitsCollection(fCfiberHCID, event);
   int SnOfHitsCollections = SfiberHC->entries();
   int CnOfHitsCollections = CfiberHC->entries();
 
-
-  //HidraSimCalorimeterHitsCollection* myShitCollection = 0;
-  //if(SfiberHC){
-  //  myShitCollection = (HidraSimCalorimeterhitsCollection*)(SfiberHC->GetHC(fSfiberHCID));
-  //}
-
-  //G4cout << "S fibers: number of hit collections: " << SnOfHitsCollections << G4endl;
-  //G4cout << "C fibers: number of hit collections: " << CnOfHitsCollections << G4endl;
-
- // Get hit with total values
-  //auto SfiberHit = (*SfiberHC)[SfiberHC->entries()-1];
-  //auto CfiberHit = (*CfiberHC)[CfiberHC->entries()-1];
- 
-  //if ( fSfiberHCID >= 0)
-  //{
-  //  G4THitsMap<G4double>* hitMapS = dynamic_cast<G4THitsMap<G4double>*>(SfiberHC);
-  //}
-
   std::vector<double> HitPheSvector, HitZcoordSvector, HitSiPMIDSvector;
   std::vector<double> HitPheCvector, HitZcoordCvector, HitSiPMIDCvector;
 
-  //G4cout << "Number of entries  in SfiberHitCollection: " << SfiberHC->size() << G4endl;
-  //G4double TotPheS = 0;
   // Get individual hits in S fibers
   for(int current_Shit=0; current_Shit<SnOfHitsCollections; current_Shit++)
   {
     auto ShitCollection = (*SfiberHC)[current_Shit];
-    //G4double HitTower = ShitCollection->GetTowerID();
-    G4double HitPhe = ShitCollection->GetPhe();
-    G4int HitFiber = ShitCollection->GetSiPMID();
-    G4double HitZ = ShitCollection->GetZcoord();
-    fHitPheSvector.push_back(HitPhe);
-    fHitZcoordSvector.push_back(HitZ);
-    fHitSiPMIDSvector.push_back(HitFiber);
+    fHitPheSvector.push_back(ShitCollection->GetPhe());
+    fHitZcoordSvector.push_back(ShitCollection->GetZcoord());
+    fHitSiPMIDSvector.push_back(ShitCollection->GetSiPMID());
     //G4cout << "Hit number: " << current_Shit << "\tphe" << HitPhe << "\tZcoord: " << HitZ << "\tSiPM: " << HitFiber << G4endl;
   }
   assert(fHitPheSvector.size() == fHitZcoordSvector.size());
@@ -237,16 +209,15 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   for(int current_Chit=0; current_Chit<CnOfHitsCollections; current_Chit++)
   {
     auto ChitCollection = (*CfiberHC)[current_Chit];
-    //G4double HitTower = ChitCollection->GetTowerID();
-    G4double HitPhe = ChitCollection->GetPhe();
-    G4int HitFiber = ChitCollection->GetSiPMID();
-    G4double HitZ = ChitCollection->GetZcoord();
-    fHitPheCvector.push_back(HitPhe);
-    fHitZcoordCvector.push_back(HitZ);
-    fHitSiPMIDCvector.push_back(HitFiber);
+    fHitPheCvector.push_back(ChitCollection->GetPhe());
+    fHitZcoordCvector.push_back(ChitCollection->GetZcoord());
+    fHitSiPMIDCvector.push_back(ChitCollection->GetSiPMID());
     //G4cout << "Hit number: " << current_Chit << "\tphe" << HitPhe << "\tZcoord: " << HitZ << "\tCiPM: " << HitFiber << G4endl;
   }
   assert(fHitPheCvector.size() == fHitZcoordCvector.size());
+
+
+
 
   // Print per event (modulo n)
   //
@@ -255,47 +226,38 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   //if ( ( printModulo > 0 ) && ( eventID % printModulo == 0 ) ) {
     G4cout << "---> End of event: " << eventID << G4endl;     
 
-    //PrintEventStatistics(
-    //  SfiberHit->GetPhe(), SfiberHit->GetZcoord(), SfiberHit->GetSiPMID(),
-    //  CfiberHit->GetPhe(), CfiberHit->GetZcoord(), CfiberHit->GetSiPMID());
+  //PrintEventStatistics(
+  //  SfiberHit->GetPhe(), SfiberHit->GetZcoord(), SfiberHit->GetSiPMID(),
+  //  CfiberHit->GetPhe(), CfiberHit->GetZcoord(), CfiberHit->GetSiPMID());
   //}  
-  
-
-    //Add all p.e. in Scin and Cher fibers before calibration
-    //
-    for (auto& n : VectorSignals) NofScinDet += n;
-    for (auto& n : VecSPMT) NofScinDet += n;
-    for (auto& n : VectorSignalsCher) NofCherDet += n;
-    for (auto& n : VecCPMT) NofCherDet += n;
-
-    //Fill ntuple event by event
-    //entries with vectors are automatically filled
-    //
-    G4cout << "Filling histos" << G4endl;
-    analysisManager->FillNtupleDColumn(1, 0, EnergyScin);
-    analysisManager->FillNtupleDColumn(1, 1, EnergyCher);
-    analysisManager->FillNtupleDColumn(1, 2, NofCherDet);
-    analysisManager->FillNtupleDColumn(1, 3, NofScinDet);
-    analysisManager->FillNtupleDColumn(1, 4, EnergyTot);
-    analysisManager->FillNtupleDColumn(1, 5, PrimaryParticleEnergy);
-    analysisManager->FillNtupleIColumn(1, 6, PrimaryPDGID);
-    analysisManager->FillNtupleDColumn(1, 7, EscapedEnergyl);
-    analysisManager->FillNtupleDColumn(1, 8, EscapedEnergyd);
-    analysisManager->FillNtupleDColumn(1, 9, PSEnergy);
-    analysisManager->FillNtupleDColumn(1, 10, PrimaryX);
-    analysisManager->FillNtupleDColumn(1, 11, PrimaryY);
-    //analysisManager->FillNtupleIColumn(1, 12, eventID);
-    //analysisManager->FillNtupleDColumn(1, 13, TotPheS);
-    //analysisManager->FillNtupleIColumn(1, 14, NofHitSInEvt);
 
 
-    analysisManager->AddNtupleRow(1);    // Remember this otherwise data is not printed on file
- 
-    //analysisManager->FillNtupleIColumn(0, HitEventID);
-    //analysisManager->AddNtupleRow(1);
- 
-    //analysisManager->FillNtupleDColumn(12, hitMapS);
+  //Add all p.e. in Scin and Cher fibers before calibration
+  //
+  for (auto& n : VectorSignals) NofScinDet += n;
+  for (auto& n : VecSPMT) NofScinDet += n;
+  for (auto& n : VectorSignalsCher) NofCherDet += n;
+  for (auto& n : VecCPMT) NofCherDet += n;
 
+  //Fill ntuple event by event
+  //entries with vectors are automatically filled
+  //
+  G4cout << "Filling histos" << G4endl;
+  analysisManager->FillNtupleDColumn(1, 0, EnergyScin);
+  analysisManager->FillNtupleDColumn(1, 1, EnergyCher);
+  analysisManager->FillNtupleDColumn(1, 2, NofCherDet);
+  analysisManager->FillNtupleDColumn(1, 3, NofScinDet);
+  analysisManager->FillNtupleDColumn(1, 4, EnergyTot);
+  analysisManager->FillNtupleDColumn(1, 5, PrimaryParticleEnergy);
+  analysisManager->FillNtupleIColumn(1, 6, PrimaryPDGID);
+  analysisManager->FillNtupleDColumn(1, 7, EscapedEnergyl);
+  analysisManager->FillNtupleDColumn(1, 8, EscapedEnergyd);
+  analysisManager->FillNtupleDColumn(1, 9, PSEnergy);
+  analysisManager->FillNtupleDColumn(1, 10, PrimaryX);
+  analysisManager->FillNtupleDColumn(1, 11, PrimaryY);
+
+
+  analysisManager->AddNtupleRow(1);    // Remember this otherwise data is not printed on file
 
 }
 

@@ -28,7 +28,7 @@ class HidraSimSignalHelper {
 	const G4double fCAttenuationLength = 388.9*CLHEP::cm; // from test beam data
 
 	//Private constructor (singleton)
-        //
+	//
 	HidraSimSignalHelper();
 
     public:
@@ -37,17 +37,34 @@ class HidraSimSignalHelper {
 
     	G4double ApplyBirks( const G4double& de, const G4double& steplength );
 
-	G4int SmearSSignal( const G4double& de );
+		G4int SmearSSignal( const G4double& de );
 
     	G4int SmearCSignal( );
 
+		G4int SmearSSignal_new( );
+
+		G4int SmearCSignal_new( );
+
     	G4double GetDistanceToSiPM(const G4Step* step);
 
-	G4int AttenuateHelper(const G4int& signal, const G4double& distance, const G4double& attenuation_length);
+		G4int AttenuateHelper(const G4int& signal, const G4double& distance, const G4double& attenuation_length);
 
-	G4int AttenuateSSignal(const G4int& signal, const G4double& distance);
+		G4int AttenuateSSignal(const G4int& signal, const G4double& distance);
 
-	G4int AttenuateCSignal(const G4int& signal, const G4double& distance);
+		G4int AttenuateCSignal(const G4int& signal, const G4double& distance);
+
+
+		G4int AttenuateSSignal_WL(const G4int& signal, const G4double& distance, const G4double& wl);
+
+		G4int AttenuateCSignal_WL(const G4int& signal, const G4double& distance, const G4double& wl);
+
+		G4double GetSPMTpde(const G4double& wl);
+
+		G4double GetCPMTpde(const G4double& wl);
+
+		G4double GetSsipmpde(const G4double& wl);
+
+		G4double GetCsipmpde(const G4double& wl);
 
 };
 

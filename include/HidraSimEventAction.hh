@@ -63,10 +63,10 @@ class HidraSimEventAction : public G4UserEventAction {
 
         //Fill vector of scintillating fibers with energy deposition
         //
-        void AddVectorScin(G4double de, G4int fiber); 
+        void AddVectorScin(G4int fiber, G4double de); 
         //Fill vector of cherenkov fibers with chernekov photoelectrons
         //
-        void AddVectorCher(G4int fiber, G4int n);
+        void AddVectorCher(G4int fiber, G4double de);
         //Fill vector of energy in each tower
 	    //
 	    void AddVecTowerE(G4int TowerID, G4double de);
@@ -106,6 +106,7 @@ class HidraSimEventAction : public G4UserEventAction {
         G4double  EscapedEnergyl; //Energy deposited in leakage absorber
         G4double  EscapedEnergyd; //Energy deposited in leakage absorber
 	    G4double  PSEnergy;
+
         //Vector of SiPMs filled with scintillating signals
     	//
         std::vector<G4double> VectorSignals;
@@ -170,12 +171,12 @@ inline void HidraSimEventAction::SavePrimaryEnergy(G4double primaryparticleenerg
     PrimaryParticleEnergy = primaryparticleenergy;
 }
 
-inline void HidraSimEventAction::AddVectorScin(G4double de, G4int fiber) {
+inline void HidraSimEventAction::AddVectorScin(G4int fiber, G4double de) {
     VectorSignals.at(fiber) += de;
 }
 
-inline void HidraSimEventAction::AddVectorCher(G4int fiber, G4int n) {
-    VectorSignalsCher.at(fiber) = VectorSignalsCher.at(fiber) + n;
+inline void HidraSimEventAction::AddVectorCher(G4int fiber, G4double de) {
+    VectorSignalsCher.at(fiber)  += de;
 }
 
 inline void HidraSimEventAction::AddVecTowerE(G4int TowerID, G4double de) {

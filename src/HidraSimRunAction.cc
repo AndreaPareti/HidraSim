@@ -60,10 +60,6 @@ HidraSimRunAction::HidraSimRunAction( HidraSimEventAction* eventAction )
     analysisManager->CreateNtupleDColumn("PSEnergy");                       //9
     analysisManager->CreateNtupleDColumn("PrimaryX");                       //10
     analysisManager->CreateNtupleDColumn("PrimaryY");                       //11
-    //analysisManager->CreateNtupleIColumn("EventID");                       //12
-    //analysisManager->CreateNtupleDColumn("HitPheS");                       //13
-    //analysisManager->CreateNtupleIColumn("NofHitSInEvt");                       //14
-
 
     analysisManager->CreateNtupleDColumn("VectorSignals", fEventAction->GetVectorSignals());
     analysisManager->CreateNtupleDColumn("VectorSignalsCher", fEventAction->GetVectorSignalsCher());
@@ -76,11 +72,9 @@ HidraSimRunAction::HidraSimRunAction( HidraSimEventAction* eventAction )
     analysisManager->CreateNtupleDColumn("HitPheCvector", fEventAction->GetHitPheCvector());
     analysisManager->CreateNtupleDColumn("HitZcoordCvector", fEventAction->GetHitZcoordCvector());
     analysisManager->CreateNtupleIColumn("HitSiPMIDCvector", fEventAction->GetHitSiPMIDCvector());
-
-
+    
     analysisManager->FinishNtuple(1);
 
-    
     //analysisManager->CreateNtuple("SfiberHits", "SfiberHits");
     //analysisManager->CreateNtupleIColumn("HitEventID");                    //0
     //analysisManager->CreateNtupleDColumn("HitZcoord");                     //1
