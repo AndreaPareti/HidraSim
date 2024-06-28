@@ -35,7 +35,6 @@ HidraSimCalorimeterSD::~HidraSimCalorimeterSD()
 
 void HidraSimCalorimeterSD::Initialize(G4HCofThisEvent* hce)
 {
-  //G4cout <<  "Initializing Hits collection " << collectionName[0] << " with Sensitive detector: " << SensitiveDetectorName << G4endl;
   // Create hits collection
   fHitsCollection = new HidraSimCalorimeterHitsCollection(SensitiveDetectorName, collectionName[0]); 
 
@@ -43,13 +42,14 @@ void HidraSimCalorimeterSD::Initialize(G4HCofThisEvent* hce)
   auto hcID 
     = G4SDManager::GetSDMpointer()->GetCollectionID(collectionName[0]);
   hce->AddHitsCollection( hcID, fHitsCollection ); 
+
   // Create hits
   // fNofActiveFibers for ActiveFibers + one more for total sums 
   //for (G4int i=0; i<fNofActiveFibers+1; i++ ) {
-  //  fHitsCollection->insert(new HidraSimCalorimeterHit());
+  //fHitsCollection->insert(new HidraSimCalorimeterHit());
   //}
   //for (G4int i=0; i<fNofActiveFibers; i++ ) {
-  //  fHitsCollection->insert(new HidraSimCalorimeterHit());
+  //fHitsCollection->insert(new HidraSimCalorimeterHit());
   //}
 }
 
@@ -62,7 +62,6 @@ void HidraSimCalorimeterSD::Initialize(G4HCofThisEvent* hce)
 G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step, 
                                      G4TouchableHistory*)
 {
-	//G4cout << "ProcessHits process has been called" << G4endl;
   // Get step info
   G4VPhysicalVolume* volume = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
   G4double edep = step->GetTotalEnergyDeposit();
@@ -73,125 +72,160 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
   Fiber = volume->GetName();     
   G4int TowerID;
   G4int SiPMTower;
-  G4int signalhit=0;
 
 
-  // Scintillating fiber
-  if ( strstr( Fiber.c_str(), S_fiber.c_str() ) )
-  { 
-  	if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 || step->GetStepLength() == 0. ) { return false;  } //not ionizing particle
-    TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));
-    SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
-  	signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
-    // Attenuate Signal
-    G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
-    signalhit = fSignalHelper->AttenuateSSignal(signalhit, distance_to_sipm);
+  /*****************************************************************/
+  /************************* Cerenkov ******************************/
+  /*****************************************************************/
 
-    if (signalhit == 0.) {return false;}                       // if no photoelectron is produced, do not save hit
-    if (SiPMTower >-1)                                        // save hits only in SiPM-mounted modules
+  if( (volume->GetName() == "Core_C_fiber") || (volume->GetName() == "Clad_C_fiber") )   // C fibers
+  {
+    // Select photons that have total internal reflection in C fibers
+    if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ) // check if particle is optical photon
     {
-      G4StepPoint *preStepPoint = step->GetPreStepPoint();
-      G4ThreeVector position = preStepPoint->GetPosition();
+          //int a = 0; 
+          G4OpBoundaryProcessStatus theStatus = Undefined;
+          G4ProcessManager* OpManager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
+          if (OpManager) 
+          {
+            G4int MAXofPostStepLoops = OpManager->GetPostStepProcessVector()->entries();
+            G4ProcessVector* fPostStepDoItVector = OpManager->GetPostStepProcessVector(typeDoIt);
 
-      G4int SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+            for ( G4int i=0; i<MAXofPostStepLoops; i++) 
+            {
+                G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
+                fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
+                if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break; }
+            }
+          } // return "theStatus" variable of optical photon
 
-      // Get calorimeter cell id 
-      //auto hit = (*fHitsCollection)[SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2];
-      auto hit  = new HidraSimCalorimeterHit();
+ 
+          // Total Internal Reflection Requirement case
+          switch ( theStatus )
+          {   
+              case TotalInternalReflection:
+              {          
+                G4int c_signal = fSignalHelper->SmearCSignal( ); // return random variable with poissonian distribution around 0.153
+                G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
+                // Attenuate Signal
+                c_signal = fSignalHelper->AttenuateCSignal(c_signal, distance_to_sipm);            
+                if(c_signal==0){return false;}                        // if no photoelectron is produced, do not save Hit
+                TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));		
+                SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
+                
+                if(SiPMTower > -1)
+                { 
+                    G4StepPoint *preStepPoint = step->GetPreStepPoint();
+                    G4ThreeVector position = preStepPoint->GetPosition();                
+                    G4int SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+                    auto hit  = new HidraSimCalorimeterHit();
+                    if ( ! hit ) {
+                      G4ExceptionDescription msg;
+                      msg << "Cannot access hit " ; 
+                      G4Exception("HidraSimCalorimeterSD::ProcessHits()",
+                        "MyCode0004", FatalException, msg);
+                    }         
 
-      if ( ! hit ) {
-        G4ExceptionDescription msg;
-        msg << "Cannot access hit " ; 
-        G4Exception("HidraSimCalorimeterSD::ProcessHits()",
-          "MyCode0004", FatalException, msg);
-      }         
+                    hit->SetZcoord(position.z());
+                    hit->SetTowerID(TowerID);
+                    hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2);      // Count fibers only in SiPM-mounted towers
+                    //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*TowerID/2);          // Count fibers in all towers
+                    hit->SetPhe(c_signal);
+                    // Add values
+                    fHitsCollection->insert(hit);
+
+                    return true;
+                }
+                    
+              }        
+              default:    // If not total internal reflection, exit 
+                return false;
+
+          } //end of switch cases
+        
+
+    } //end of check optical photon
+    return false;   // if not optical photon, exit
+  } // end of C fibers
+  
 
 
-      hit->SetZcoord(position.z());
-      hit->SetTowerID(TowerID);
-      hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2);      // Count fibers only in SiPM-mounted towers
-      //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*TowerID/2);          // Count fibers in all towers
-      hit->SetPhe(signalhit);
+
+  /*****************************************************************/
+  /*********************** Scintillation ***************************/
+  /*****************************************************************/
+  //if ( strstr( Fiber.c_str(), S_fiber.c_str() ) )
+  else if ( (volume->GetName() == "Core_S_fiber") || (volume->GetName() == "Clad_S_fiber") )
+  { 
+  	//if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 || step->GetStepLength() == 0. ) { return false;  } //not ionizing particle
+    if( (step->GetTrack()->GetDefinition()->GetPDGCharge() > 0) && (step->GetStepLength() > 0.) )
+    {      
+          TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));
+          SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
+          G4int signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
+          // Attenuate Signal
+          G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
+          signalhit = fSignalHelper->AttenuateSSignal(signalhit, distance_to_sipm);
+
+          if (signalhit == 0.) {return false;}                       // if no photoelectron is produced, do not save hit
+          
+
+          
+          if (SiPMTower > -1)                                        // save hits only in SiPM-mounted modules
+          {          
+            G4StepPoint *preStepPoint = step->GetPreStepPoint();
+            G4ThreeVector position = preStepPoint->GetPosition();
+            G4int SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+
+            // Get calorimeter cell id 
+            //auto hit = (*fHitsCollection)[SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2];
+            
+            auto hit  = new HidraSimCalorimeterHit();
+
+            if ( ! hit ) {
+              G4ExceptionDescription msg;
+              msg << "Cannot access hit " ; 
+              G4Exception("HidraSimCalorimeterSD::ProcessHits()",
+                "MyCode0004", FatalException, msg);
+            }         
+
+
+
+            
+            hit->SetZcoord(position.z());
+            hit->SetTowerID(TowerID);
+            hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2);      // Count fibers only in SiPM-mounted towers
+            //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*TowerID/2);          // Count fibers in all towers
+            hit->SetPhe(signalhit);
+          
+
+            fHitsCollection->insert(hit);
+            return true;
+          }
+          else{return false;}
+          
+    }
+    else
+    {
+      return false;
+    }
+
     
 
-      fHitsCollection->insert(hit);
 
-      return true;
-    }
+
+   // if scintillating fiber, but none of previous cases has been run, do not fill anything and return
+    return false; 
   } //end Scintillating fiber case
 
+  
 
-  //Cherenkov fiber/tube
-  else if ( strstr( Fiber.c_str(), C_fiber.c_str() ) )     
-  { 
-    // Select photons that have total internal reflection in C fibers
-    if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() )
-    {
-      G4OpBoundaryProcessStatus theStatus = Undefined;
-      G4ProcessManager* OpManager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
-      if (OpManager) 
-      {
-        G4int MAXofPostStepLoops = OpManager->GetPostStepProcessVector()->entries();
-        G4ProcessVector* fPostStepDoItVector = OpManager->GetPostStepProcessVector(typeDoIt);
-
-        for ( G4int i=0; i<MAXofPostStepLoops; i++) 
-        {
-            G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
-            fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
-            if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break; }
-        }
-      }
-      // Total Internal Reflection Requirement case
-      switch ( theStatus )
-      {   
-          case TotalInternalReflection:
-          {       
-            G4int c_signal = fSignalHelper->SmearCSignal( ); // return random variable with poissonian distribution around 0.153
-            //G4int c_signal = 1;                                // No Smearing 
-            G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
-            // Attenuate Signal
-            c_signal = fSignalHelper->AttenuateCSignal(c_signal, distance_to_sipm);            
-            if(c_signal==0){return false;}                        // if no photoelectron is produced, do not save Hit
-            TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));		
-            SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
-            if(SiPMTower > -1)
-            { 
-                G4StepPoint *preStepPoint = step->GetPreStepPoint();
-                G4ThreeVector position = preStepPoint->GetPosition();                
-                //G4int HitEventID = G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
-                //G4double z = fDetConstruction->GetSiPMID(step->GetTrack()->GetPosition().z() );
-                G4int SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
- 
-                auto hit  = new HidraSimCalorimeterHit();
-
-                if ( ! hit ) {
-                  G4ExceptionDescription msg;
-                  msg << "Cannot access hit " ; 
-                  G4Exception("HidraSimCalorimeterSD::ProcessHits()",
-                    "MyCode0004", FatalException, msg);
-                }         
-
-                hit->SetZcoord(position.z());
-                hit->SetTowerID(TowerID);
-                hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2);      // Count fibers only in SiPM-mounted towers
-                //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*TowerID/2);          // Count fibers in all towers
-                hit->SetPhe(c_signal);
-                // Add values
-                fHitsCollection->insert(hit);
-                return true;
-            }
-          }
-          default:
-          {
-            return false;
-          }
-      
-      } //end of swich cases
-    } //end of optical photon
-  } //end of Cherenkov fiber
-
+  // if volume is not S or C fiber, do not save anything
   else
-    return false;         // if volume is not S or C fiber, do not save anything
+  {
+    return false;
+  } 
+  
 }
 
 
@@ -202,8 +236,6 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
 
 void HidraSimCalorimeterSD::EndOfEvent(G4HCofThisEvent*)
 {
-
-
 
   if ( verboseLevel>1 ) { 
      G4int nofHitsCollections = fHitsCollection->entries();

@@ -114,11 +114,11 @@ void HidraSimOpticalPhysics::ConstructProcess() {
         // Add Scintillation process to each candidate
         // (only for debugging)
         //
-        /*if(theScintProcess->IsApplicable(*particle)){
+        if(theScintProcess->IsApplicable(*particle)){
             pManager->AddProcess(theScintProcess);
             pManager->SetProcessOrderingToLast(theScintProcess,idxAtRest);
             pManager->SetProcessOrderingToLast(theScintProcess,idxPostStep);
-        }*/
+        }
     }//end while
 }
 

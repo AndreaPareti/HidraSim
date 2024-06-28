@@ -265,6 +265,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
           3.026*eV, 3.102*eV, 3.181*eV, 3.265*eV, 
           3.353*eV, 3.446*eV, 3.545*eV, 3.649*eV,
           3.760*eV, 3.877*eV, 4.002*eV, 4.136*eV }; 
+
     G4double rindexScin[ENTRIES] =
         { 1.59, 1.59, 1.59, 1.59,
           1.59, 1.59, 1.59, 1.59,
@@ -375,15 +376,38 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     // Scintillating proprieties of the scintillating fiber material
     // Birks constant of the polystyrene
     //
-    G4double Scin_FAST[ENTRIES] = // Emission spectrum for the fast component 
-        { 0., 0., 0., 0.,
-          0., 0., 0., 0.,
-          0., 0., 0., 0.1,
-          0.2, 0.4, 0.6, 0.8,
-          1., 0.8, 0.6, 0.1,
-          0., 0., 0., 0.,
-          0., 0., 0., 0.,
-          0., 0., 0., 0. };
+    //G4double Scin_FAST[ENTRIES] = // Original Sim emission spectrum for the fast component 
+    //    { 0., 0., 0., 0.,
+    //      0., 0., 0., 0.,
+    //      0., 0., 0., 0.1,
+    //      0.2, 0.4, 0.6, 0.8,
+    //      1., 0.8, 0.6, 0.1,
+    //      0., 0., 0., 0.,
+    //      0., 0., 0., 0.,
+    //      0., 0., 0., 0. };
+
+    // Emission spectrum for the fast component taken from
+    // https://ethz.ch/content/dam/ethz/special-interest/phys/particle-physics/precisionphysicsatlowenergy-dam/TeachingContent/ASL/bicronfiber.pdf
+    /*
+    G4double Scin_FAST[ENTRIES] = 
+        {0., 0., 0., 0., 0.001,  
+          0.02, 0.05, 0.07, 0.1, 0.13, 
+          0.2, 0.23, 0.3, 0.4, 0.55, 
+          0.6, 0.8, 1., 0.95, 0.8, 
+          0.55, 0.1, 0.05, 0., 0.,
+          0., 0., 0., 0., 0., 
+          0., 0.};   
+    */         
+    // Emission spectrum as measured in lab
+    G4double Scin_FAST[ENTRIES] = 
+        {0.0, 0.0, 0.0, 0.15555555555555556, 0.2,
+                     0.2611111111111111, 0.3111111111111111, 0.4166666666666667, 0.5555555555555556, 0.6444444444444445, 
+                     0.75, 0.8666666666666667, 0.9305555555555556, 0.9583333333333334, 0.9888888888888889, 0.9388888888888889,
+                      0.7777777777777778, 0.4444444444444444, 0.05555555555555555, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                      0.0, 0.0, 0.0};   
+       
+
+
     G4double Scin_SLOW[ENTRIES] = // Emission spectrum for the slow component
         { 0., 0., 0., 0.,
           0., 0., 0., 0.,
@@ -398,8 +422,8 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
 
     MPTScin -> AddProperty("FASTCOMPONENT", photonEnergy, Scin_FAST, ENTRIES);
     MPTScin -> AddProperty("SLOWCOMPONENT", photonEnergy, Scin_SLOW, ENTRIES);
-    MPTScin -> AddConstProperty("SCINTILLATIONYIELD", 10000./MeV); 
-    // Typical is 10000./MeV (this is what makes full simulations long as hell)
+    //MPTScin -> AddConstProperty("SCINTILLATIONYIELD", 10000./MeV); // Typical is 10000./MeV (this is what makes full simulations long as hell)
+    MPTScin -> AddConstProperty("SCINTILLATIONYIELD", 8000./MeV);     // BCF-12 Saint Gobain Sheet
     MPTScin -> AddConstProperty("RESOLUTIONSCALE", 1.0); 
     // Broad the fluctuation of photons produced
     MPTScin -> AddConstProperty("FASTTIMECONSTANT", 2.8*ns);
@@ -641,11 +665,11 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     //
     G4RotationMatrix rotm  = G4RotationMatrix();
     // x(y)rot is rotation angle around axis x(y))
-    G4double zrot=90.*deg;
-    //G4double xrot=2.5*deg;
-    //G4double yrot=2.5*deg;
-    G4double xrot = fOrzrot;
-    G4double yrot = fVerrot;
+    //G4double zrot=90.*deg;
+    G4double xrot=2.5*deg;
+    G4double yrot=2.5*deg;
+    //G4double xrot = fOrzrot;
+    //G4double yrot = fVerrot;
 
     // showdep is assumed shower depth to optimise
     // shower containment. For default geometry and e.m. shower
@@ -654,7 +678,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     rotm.rotateX(xrot);  
     rotm.rotateY(yrot);
     // rotate calorimeter around beam axis
-    if(irot){rotm.rotateZ(zrot);}
+    //if(irot){rotm.rotateZ(zrot);}
     G4ThreeVector position;
     G4double xcomp=(caloZ-showdep)*sin(yrot);
     G4double ycomp=-(caloZ-showdep)*sin(xrot);
@@ -1267,19 +1291,16 @@ std::vector<G4TwoVector> HidraSimDetectorConstruction::calcmod(double radius, in
 //methods to make S and C fibers sensitive detectors
 void HidraSimDetectorConstruction::ConstructSDandField()
 {
-  // G4SDManager::GetSDMpointer()->SetVerboseLevel(1);
+  G4SDManager::GetSDMpointer()->SetVerboseLevel(1);
   // 
   // Sensitive detectors
   //
-  //auto SfiberSD 
-  //  = new HidraSimCalorimeterSD("SfiberSD", "SfiberHitsCollection", NofFibersrow*NofFiberscolumn/2);
-  //G4VSensitiveDetector *SfiberSD = new HidraSimCalorimeterSD("SfiberSD", "SfiberHitsCollection", NofFibersrow*NofFiberscolumn/2);
-  G4VSensitiveDetector *SfiberSD = new HidraSimCalorimeterSD("SfiberSD", "SfiberHitsCollection", G4int(NofFibersrow*NofFiberscolumn*NofModulesSiPM/2));
+  G4VSensitiveDetector *SfiberSD = new HidraSimCalorimeterSD("SfiberSD", "SfiberHitsCollection", G4int(NofFibersrow*NofFiberscolumn*NofModulesSiPM/2));   // original
+  //G4VSensitiveDetector *SfiberSD = new HidraSimCalorimeterSD("SfiberSD", "SfiberHitsCollection", 1);
   G4SDManager::GetSDMpointer()->AddNewDetector(SfiberSD);
 
-  //auto CfiberSD 
-  //  = new HidraSimCalorimeterSD("CfiberSD", "CfiberHitsCollection", NofFibersrow*NofFiberscolumn/2);
-  G4VSensitiveDetector *CfiberSD = new HidraSimCalorimeterSD("CfiberSD", "CfiberHitsCollection", G4int(NofFibersrow*NofFiberscolumn*NofModulesSiPM/2));
+  G4VSensitiveDetector *CfiberSD = new HidraSimCalorimeterSD("CfiberSD", "CfiberHitsCollection", G4int(NofFibersrow*NofFiberscolumn*NofModulesSiPM/2)); // original
+  //G4VSensitiveDetector *CfiberSD = new HidraSimCalorimeterSD("CfiberSD", "CfiberHitsCollection", 1); 
   G4SDManager::GetSDMpointer()->AddNewDetector(CfiberSD);
 
   SetSensitiveDetector("Core_S_fiber", SfiberSD); 
