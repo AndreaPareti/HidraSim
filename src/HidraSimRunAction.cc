@@ -12,7 +12,8 @@
 
 //Includers from Geant4
 //
-#include "g4root.hh"
+//#include "g4root.hh"
+#include "G4AnalysisManager.hh"
 #include "G4Run.hh"
 #include "G4RunManager.hh"
 #include "G4UnitsTable.hh"
@@ -35,6 +36,8 @@ HidraSimRunAction::HidraSimRunAction( HidraSimEventAction* eventAction )
     //Instantiate analysis manager
     //
     auto analysisManager = G4AnalysisManager::Instance();
+    analysisManager->SetDefaultFileType("root");
+
     analysisManager->SetVerboseLevel( 1 );
     analysisManager->SetNtupleMerging( 1 );
 
@@ -120,17 +123,25 @@ void HidraSimRunAction::BeginOfRunAction( const G4Run* Run )  {
     //Open output file, one per Run
     //
     auto analysisManager = G4AnalysisManager::Instance();
+    analysisManager->SetDefaultFileType("root");
+    //auto analysisManager = G4RootAnalysisManager::Instance();
+
     std::string runnumber = std::to_string( Run->GetRunID() );
     G4String outputfile = "HidraSimout_Run"+runnumber;
     analysisManager->OpenFile( outputfile );
+    //analysisManager->SetFileName(outputfile);
 }
 
 void HidraSimRunAction::EndOfRunAction( const G4Run* ) {
   
     auto analysisManager = G4AnalysisManager::Instance();
+    //auto analysisManager = G4RootAnalysisManager::Instance();
 
+    G4cout << " Writing output file" << G4endl;
     analysisManager->Write();
+    G4cout << "Output file written" << G4endl;
     analysisManager->CloseFile();
+    G4cout << "File closed " << G4endl; 
 
 }
 
