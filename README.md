@@ -87,6 +87,17 @@ Parser options
    * -pl Physics_List: select Geant4 physics list (example -pl FTFP_BERT)
    * -opt FullOptic: boolean variable to switch on (true) the optical photon propagation in fibers (example -opt true, default false)
 
+
+Note: the test-beam simulated platform can be shifted in x and y directions as in the actual configuration. The platform can also rotate around its center (the horizontal rotation). The housing containing the calorimeter can the lifted up from its back side creating a spin around its front face (the vertical rotation). By default, such parameters are set to zero. They are configurable via the UI macro card before the run is initialized as:
+   ```
+   /tbgeo/xshift <> [<Unit>]
+   /tbgeo/yshift <> [<Unit>]
+   /tbgeo/horizrot <> [<Unit>]
+   /tbgeo/vertrot <> [<Unit>]
+   ```
+
+
+
 ### Build, compile and execute on lxplus
 1. git clone the repo
    ```sh

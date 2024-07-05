@@ -1104,7 +1104,7 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructscinfiber(double toleran
     ScincoreVisAtt->SetForceWireframe(true);
     ScincoreVisAtt->SetForceSolid(true);
     logic_Core_S_fiber->SetVisAttributes(ScincoreVisAtt);
-    logic_Core_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    //logic_Core_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);
     G4ThreeVector vec_Core_S;
     vec_Core_S.setX(0.);
     vec_Core_S.setY(0.);
