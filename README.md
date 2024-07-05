@@ -74,7 +74,7 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
 3. cmake build directory and make (using geant4.10.07_p03)
    ```sh
    mkdir build && build
-   cmake -DGeant4_DIR=/absolute_path_to/geant4/10.7.p03/x86_64-centos7-gcc8-optdeb-MT/lib64/Geant4-10.7.3/ ../ -DCMAKE_CXX_STANDARD=17
+   cmake -DGeant4_DIR=/absolute_path_to/geant4.10.07_p03-install/lib/Geant4-10.7.3/ ../ -DCMAKE_CXX_STANDARD=17
    make -jN
    ```
 4. execute (example with HidraSim_run.mac macro card, 2 thread, FTFP_BERT physics list and no optical propagation)
