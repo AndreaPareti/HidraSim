@@ -65,17 +65,17 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
 ### Build, compile and execute on Mac/Linux
 1. git clone the repo
    ```sh
-   git clone https://github.com/lopezzot/HidraSim.git
+   git clone https://github.com/AndreaPareti/HidraSim.git
    ```
 2. source Geant4 env
    ```sh
-   source /relative_path_to/geant4.10.07_p01-install/bin/geant4.sh
+   source /relative_path_to/geant4.10.07_p03-install/bin/geant4.sh
    ```
-3. cmake build directory and make (using geant4.10.07_p01)
+3. cmake build directory and make (using geant4.10.07_p03)
    ```sh
-   mkdir HidraSim-build; cd HidraSim-build/
-   cmake -DGeant4_DIR=/absolute_path_to/geant4.10.07_p01-install/lib/Geant4-10.7.1/ relative_path_to/HidraSim/ -DCMAKE_CXX_STANDARD=14
-   make
+   mkdir build && build
+   cmake -DGeant4_DIR=/absolute_path_to/geant4.10.07_p03-install/lib/Geant4-10.7.3/ ../ -DCMAKE_CXX_STANDARD=17
+   make -jN
    ```
 4. execute (example with HidraSim_run.mac macro card, 2 thread, FTFP_BERT physics list and no optical propagation)
    ```sh
@@ -90,17 +90,16 @@ Parser options
 ### Build, compile and execute on lxplus
 1. git clone the repo
    ```sh
-   git clone git clone https://github.com/lopezzot/HidraSim.git
+   git clone https://github.com/AndreaPareti/HidraSim.git
    ```
-2. cmake, build directory and make (using geant4.10.07_p01, check for gcc and cmake dependencies for other versions)
+2. cmake, build directory and make (using geant4.10.07_p03, check for gcc and cmake dependencies for other versions)
    ```sh
-   mkdir HidraSim-build; cd HidraSim-build/
-   source /cvmfs/sft.cern.ch/lcg/contrib/gcc/8.3.0/x86_64-centos7/setup.sh 
-   source /cvmfs/geant4.cern.ch/geant4/10.7.p01/x86_64-centos7-gcc8-optdeb-MT/CMake-setup.sh 
-   export CXX=`which g++`
-   export CC=`which gcc`
-   cmake3 -DGeant4_DIR= /cvmfs/geant4.cern.ch/geant4/10.7.p01/x86_64-centos7-gcc8-optdeb-MT/lib64/Geant4-10.7.1 ../../HidraSim/
-   make
+   in HidraSim directory:
+   mkdir build && cd build 
+   source /cvmfs/geant4.cern.ch/geant4/10.7.p03/x86_64-centos7-gcc8-optdeb-MT/CMake-setup.sh
+   source /cvmfs/sft.cern.ch/lcg/contrib/gcc/13.1.0/x86_64-el9-gcc13-opt/setup.sh
+   source /cvmfs/sft.cern.ch/lcg/app/releases/ROOT/6.30.06/x86_64-almalinux8.9-gcc85-opt/bin/thisroot.sh   
+   make -jN
    ```
 3. execute (example with HidraSim_run.mac macro card, 2 threads and FTFP_BERT physics list)
    ```sh
