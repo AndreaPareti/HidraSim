@@ -667,30 +667,31 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     G4RotationMatrix rotm  = G4RotationMatrix();
     // x(y)rot is rotation angle around axis x(y))
     //G4double zrot=90.*deg;
-    G4double xrot=2.5*deg;
-    G4double yrot=2.5*deg;
-    //G4double xrot = fOrzrot;
-    //G4double yrot = fVerrot;
+    //G4double xrot=2.5*deg;
+    //G4double yrot=2.5*deg;
+    G4double xrot = fOrzrot;
+    G4double yrot = fVerrot;
 
     // showdep is assumed shower depth to optimise
     // shower containment. For default geometry and e.m. shower
     // it is approx 15 cm
-    G4double showdep=14.5*cm;
+    //G4double showdep=14.5*cm;
     rotm.rotateX(xrot);  
     rotm.rotateY(yrot);
     // rotate calorimeter around beam axis
     //if(irot){rotm.rotateZ(zrot);}
     G4ThreeVector position;
-    G4double xcomp=(caloZ-showdep)*sin(yrot);
-    G4double ycomp=-(caloZ-showdep)*sin(xrot);
-    std::cout << " xcomp " << xcomp << std::endl;
-    std::cout << " ycomp " << ycomp << std::endl;
-    position.setX(xcomp);
-    position.setY(ycomp);
-    //position.setX(fXshift);
-    //position.setY(fYshift);
+    //G4double xcomp=(caloZ-showdep)*sin(yrot);
+    //G4double ycomp=-(caloZ-showdep)*sin(xrot);
+    //std::cout << " xcomp " << xcomp << std::endl;
+    //std::cout << " ycomp " << ycomp << std::endl;
+    //position.setX(xcomp);
+    //position.setY(ycomp);
+    position.setX(fXshift);
+    position.setY(fYshift);
 
     position.setZ(0.);
+
     G4Transform3D transform = G4Transform3D(rotm,position); 
 //
 //  Build closed tube for detailed leakage study
@@ -731,8 +732,11 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     LkVisAttd->SetForceSolid(true);
     leakageabsorberdLV->SetVisAttributes(LkVisAttd);
     G4ThreeVector positiond;
-    positiond.setX(caloZ*sin(xrot)+xcomp);
-    positiond.setY(-caloZ*sin(yrot)+ycomp);
+    //positiond.setX(caloZ*sin(xrot)+xcomp);
+    //positiond.setY(-caloZ*sin(yrot)+ycomp);
+    positiond.setX(caloZ*sin(xrot));
+    positiond.setY(-caloZ*sin(yrot));
+
     positiond.setZ(caloZ+disc_th/2);
     G4Transform3D transformd = G4Transform3D(rotm,positiond); 
     new G4PVPlacement( transformd,
