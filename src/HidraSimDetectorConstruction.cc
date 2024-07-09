@@ -539,13 +539,14 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
 
     //Preshower
     //
-    /*
+    
     auto PSSolid = new G4Box("Preshower", PSX/2., PSY/2., PSZ/2.);
 
     auto PSLV = new G4LogicalVolume(PSSolid, defaultMaterial, "Preshower");
 
     new G4PVPlacement( 0, 
-		       G4ThreeVector(0.,0.,-335.*cm),
+		       //G4ThreeVector(0.,0.,-335.*cm),
+		       G4ThreeVector(0.,0.,-moduleZ/2 - 15.5*cm),
 		       PSLV,
 		       "Preshower",
 		       worldLV,
@@ -587,7 +588,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     G4VisAttributes* PSScinVisAtt = new G4VisAttributes( G4Colour::Cyan() );
     PSScinVisAtt->SetVisibility(true);
     PSScinLV->SetVisAttributes( PSScinVisAtt );
-    */    
+       
    // Module equipped (with SiPM)
    //
    // Basic module structure: extrusion of an hexcell shape
