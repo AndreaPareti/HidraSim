@@ -66,6 +66,14 @@ class HidraSimSignalHelper {
 
 		G4double GetCsipmpde(const G4double& wl);
 
+		G4double GetSpmtCorr(const G4double& wl);
+
+		G4double GetCpmtCorr(const G4double& wl);
+
+		G4double GetSsipmCorr(const G4double& wl);
+
+		G4double GetCsipmCorr(const G4double& wl);
+
 };
 
 #endif
