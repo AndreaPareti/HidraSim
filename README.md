@@ -110,6 +110,8 @@ Note: the test-beam simulated platform can be shifted in x and y directions as i
    source /cvmfs/geant4.cern.ch/geant4/10.7.p03/x86_64-centos7-gcc8-optdeb-MT/CMake-setup.sh
    source /cvmfs/sft.cern.ch/lcg/contrib/gcc/13.1.0/x86_64-el9-gcc13-opt/setup.sh
    source /cvmfs/sft.cern.ch/lcg/app/releases/ROOT/6.30.06/x86_64-almalinux8.9-gcc85-opt/bin/thisroot.sh   
+   cmake -DGeant4_DIR=/cvmfs/geant4.cern.ch/geant4.10.07_p03-install/lib/Geant4-10.7.3/ ../ -DCMAKE_CXX_STANDARD=17
+
    make -jN
    ```
 3. execute (example with HidraSim_run.mac macro card, 2 threads and FTFP_BERT physics list)
