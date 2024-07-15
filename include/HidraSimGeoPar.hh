@@ -60,7 +60,7 @@
     */
        
     
-    
+    /*
     // 80 miniM, 90 degrees rotated
     const G4int NofmodulesX = 5;
     const G4int NofmodulesY = 20;
@@ -97,7 +97,7 @@
     const G4int NoModulesActive=80;
     const G4double moduleZ = (2500.)*mm;
     const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
-    
+    */
 
 
 /*
@@ -120,38 +120,23 @@
 
 
     // 1 miniM
-/*
-   const G4int modflag[100]={
-                            -1, 10, 30, 50, -1,
-                            -1, 11, 31, 51, -1, 
-                            -1, 12, 32, 52, -1,
-                            -1, 13, 33, 53, -1, 
-                            -1, 14, 34, 54, -1, 
-                            0, 15, 35, 55, 70, 
-                            1, 16, 36, 56, 71, 
-                            2, 17, 37, 57, 72, 
-                            3, 18, 38, 58, 73, 
-                            4, 19, 39, 59, 74, 
-                            5, 20, 40, 60, 75, 
-                            6, 21, 41, 61, 76, 
-                            7, 22, 42, 62, 77, 
-                            8, 23, 43, 63, 78, 
-                            9, 24, 44, 64, 79, 
-                            -1, 25, 45, 65, -1, 
-                            -1, 26, 46, 66, -1
-                            -1, 27, 47, 67, -1, 
-                            -1, 28, 48, 68, -1, 
-                            -1, 29, 49, 69, -1
-    };
-    const G4int NofmodulesX = 1;
+
+
+    const G4int NofmodulesX = 1; 
     const G4int NofmodulesY = 1;
-    const G4int modflag[1]={1};
-    const G4int NoModulesSiPM=10;
-    const G4int SiPMMod[1]={1};
+    const G4int modflag[1]={0}; 
+    const G4int NofModulesSiPM=1;
+    const G4int SiPMMod[1]={0};
     const G4int NofFiberscolumn = 64;
     const G4int NofFibersrow = 16;
     const G4int NoModulesActive=1;
-*/
+    const G4double moduleZ = (2500.)*mm;
+    const G4bool irot=false;
+    const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
+
+
+
+
 /*
     const G4int NofmodulesX = 2;
     const G4int NofmodulesY = 1;

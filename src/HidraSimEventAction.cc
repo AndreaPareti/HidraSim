@@ -56,6 +56,10 @@ HidraSimEventAction::HidraSimEventAction()
     PrimaryY(0),
     EscapedEnergy(0.),
     EscapedEnergyl(0.),
+    EscapedEnergylleft(0.),
+    EscapedEnergylup(0.),
+    EscapedEnergyldown(0.),
+    EscapedEnergylright(0.),    
     EscapedEnergyd(0.),
     PSEnergy(0.),
     VectorSignals(0.),
@@ -136,6 +140,10 @@ void HidraSimEventAction::BeginOfEventAction(const G4Event*) {
     PrimaryParticleEnergy = 0.;
     EscapedEnergy = 0.;
     EscapedEnergyl = 0.;
+    EscapedEnergylup = 0.;
+    EscapedEnergyldown = 0.;
+    EscapedEnergylright = 0.;
+    EscapedEnergylleft = 0.;    
     EscapedEnergyd = 0.;
     PSEnergy = 0.;
 
@@ -251,10 +259,14 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   analysisManager->FillNtupleDColumn(1, 5, PrimaryParticleEnergy);
   analysisManager->FillNtupleIColumn(1, 6, PrimaryPDGID);
   analysisManager->FillNtupleDColumn(1, 7, EscapedEnergyl);
-  analysisManager->FillNtupleDColumn(1, 8, EscapedEnergyd);
-  analysisManager->FillNtupleDColumn(1, 9, PSEnergy);
-  analysisManager->FillNtupleDColumn(1, 10, PrimaryX);
-  analysisManager->FillNtupleDColumn(1, 11, PrimaryY);
+  analysisManager->FillNtupleDColumn(1, 8, EscapedEnergylup);
+  analysisManager->FillNtupleDColumn(1, 9, EscapedEnergyldown);
+  analysisManager->FillNtupleDColumn(1, 10, EscapedEnergylright);
+  analysisManager->FillNtupleDColumn(1, 11, EscapedEnergylleft);  
+  analysisManager->FillNtupleDColumn(1, 12, EscapedEnergyd);
+  analysisManager->FillNtupleDColumn(1, 13, PSEnergy);
+  analysisManager->FillNtupleDColumn(1, 14, PrimaryX);
+  analysisManager->FillNtupleDColumn(1, 15, PrimaryY);
 
 
   analysisManager->AddNtupleRow(1);    // Remember this otherwise data is not printed on file

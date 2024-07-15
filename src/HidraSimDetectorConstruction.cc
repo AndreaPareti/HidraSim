@@ -539,7 +539,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
 
     //Preshower
     //
-    
+/*    
     auto PSSolid = new G4Box("Preshower", PSX/2., PSY/2., PSZ/2.);
 
     auto PSLV = new G4LogicalVolume(PSSolid, defaultMaterial, "Preshower");
@@ -588,7 +588,14 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     G4VisAttributes* PSScinVisAtt = new G4VisAttributes( G4Colour::Cyan() );
     PSScinVisAtt->SetVisibility(true);
     PSScinLV->SetVisAttributes( PSScinVisAtt );
-       
+    */   
+
+
+
+
+
+
+
    // Module equipped (with SiPM)
    //
    // Basic module structure: extrusion of an hexcell shape
@@ -672,6 +679,12 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     G4double xrot = fOrzrot;
     G4double yrot = fVerrot;
 
+
+    //fXshift = 5.*cm;
+    //fYshift = -5.*cm;
+    //xrot = 2.5*deg;
+    //yrot= 2.5*deg;
+
     // showdep is assumed shower depth to optimise
     // shower containment. For default geometry and e.m. shower
     // it is approx 15 cm
@@ -681,25 +694,28 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     // rotate calorimeter around beam axis
     //if(irot){rotm.rotateZ(zrot);}
     G4ThreeVector position;
-    //G4double xcomp=(caloZ-showdep)*sin(yrot);
-    //G4double ycomp=-(caloZ-showdep)*sin(xrot);
-    //std::cout << " xcomp " << xcomp << std::endl;
-    //std::cout << " ycomp " << ycomp << std::endl;
-    //position.setX(xcomp);
-    //position.setY(ycomp);
+    //G4double fXshift=(caloZ-showdep)*sin(yrot);
+    //G4double fYshift=-(caloZ-showdep)*sin(xrot);
+    //std::cout << " fXshift " << fXshift << std::endl;
+    //std::cout << " fYshift " << fYshift << std::endl;
+    //position.setX(fXshift);
+    //position.setY(fYshift);
+
+ 
     position.setX(fXshift);
     position.setY(fYshift);
-
     position.setZ(0.);
 
     G4Transform3D transform = G4Transform3D(rotm,position); 
 //
 //  Build closed tube for detailed leakage study
-//
+//  Commented for stody on lateral leakage direction of one minimodule
+
     G4double leakradint=sqrt(caloX*caloX+caloY*caloY)*1.1;	// Added *1.2 wrt Giacomo's
     G4double leakradout=leakradint+20*cm;
     G4double tube_dPhi = 2.* M_PI * rad;
     G4double disc_th = 20.*cm;
+    /*
     G4VSolid* leakageabsorberl = new G4Tubs("leakageabsorberl",
         leakradint, leakradout, caloZ, 0., tube_dPhi );
 
@@ -719,9 +735,62 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
                                     false,          
                                     0,               
                                     fCheckOverlaps);
+*/
+
+    // build rectangular leakage counter
+    G4ThreeVector leak_upPos; leak_upPos.setX(fXshift); leak_upPos.setY(fYshift+moduleY+0.5*cm); leak_upPos.setZ(0);
+    G4Transform3D transform_leakUp = G4Transform3D(rotm, leak_upPos);
+    G4VSolid* leak_up = new G4Box("leak_up", moduleX*0.8, moduleY*0.5, caloZ);
+    G4LogicalVolume* leak_upLV = new G4LogicalVolume(leak_up, defaultMaterial, "leak_up");
+    G4VisAttributes* leak_upVisAtt = new G4VisAttributes(G4Colour(0.0,0.85,0.0));
+    leak_upVisAtt->SetVisibility(true);
+    leak_upVisAtt->SetForceWireframe(true);
+    leak_upVisAtt->SetForceSolid(true);
+    leak_upLV->SetVisAttributes(leak_upVisAtt);
+    new G4PVPlacement(transform_leakUp, leak_upLV, "leak_up", worldLV, false, 0, fCheckOverlaps);
+    //leak_upLV->SetVisAttributes(G4VisAttributes::Invisible);
+
+    G4ThreeVector leak_downPos; leak_downPos.setX(fXshift); leak_downPos.setY(fYshift-moduleY-0.5*cm); leak_downPos.setZ(0);
+    G4Transform3D transform_leakdown = G4Transform3D(rotm, leak_downPos);
+    G4VSolid* leak_down = new G4Box("leak_down", moduleX*0.8, moduleY*0.5, caloZ);
+    G4LogicalVolume* leak_downLV = new G4LogicalVolume(leak_down, defaultMaterial, "leak_down");
+    G4VisAttributes* leak_downVisAtt = new G4VisAttributes(G4Colour(0.0,0.7,0.0));
+    leak_downVisAtt->SetVisibility(true);
+    leak_downVisAtt->SetForceWireframe(true);
+    leak_downVisAtt->SetForceSolid(true);
+    leak_downLV->SetVisAttributes(leak_downVisAtt);
+    new G4PVPlacement(transform_leakdown, leak_downLV, "leak_down", worldLV, false, 0, fCheckOverlaps);
+    //leak_downLV->SetVisAttributes(G4VisAttributes::Invisible);
+
+    G4ThreeVector leak_rightPos; leak_rightPos.setX(fXshift+0.7*moduleX); leak_rightPos.setY(fYshift); leak_rightPos.setZ(0);
+    G4Transform3D transform_leakright = G4Transform3D(rotm, leak_rightPos);
+    G4VSolid* leak_right = new G4Box("leak_right", moduleX*0.15, 0.6*moduleY+0.09*cm, caloZ);
+    G4LogicalVolume* leak_rightLV = new G4LogicalVolume(leak_right, defaultMaterial, "leak_right");
+    G4VisAttributes* leak_rightVisAtt = new G4VisAttributes(G4Colour(0.8,0,0.0));
+    leak_rightVisAtt->SetVisibility(true);
+    leak_rightVisAtt->SetForceWireframe(true);
+    leak_rightVisAtt->SetForceSolid(true);
+    leak_rightLV->SetVisAttributes(leak_rightVisAtt);
+    new G4PVPlacement(transform_leakright, leak_rightLV, "leak_right", worldLV, false, 0, fCheckOverlaps);
+    //leak_rightLV->SetVisAttributes(G4VisAttributes::Invisible);
+
+
+    G4ThreeVector leak_leftPos; leak_leftPos.setX(fXshift-0.7*moduleX); leak_leftPos.setY(fYshift); leak_leftPos.setZ(0);
+    G4Transform3D transform_leakleft = G4Transform3D(rotm, leak_leftPos);
+    G4VSolid* leak_left = new G4Box("leak_left", moduleX*0.15, 0.6*moduleY+0.09*cm, caloZ);
+    G4LogicalVolume* leak_leftLV = new G4LogicalVolume(leak_left, defaultMaterial, "leak_left");
+    G4VisAttributes* leak_leftVisAtt = new G4VisAttributes(G4Colour(0.8,0,0.0));
+    leak_leftVisAtt->SetVisibility(true);
+    leak_leftVisAtt->SetForceWireframe(true);
+    leak_leftVisAtt->SetForceSolid(true);
+    leak_leftLV->SetVisAttributes(leak_leftVisAtt);
+    new G4PVPlacement(transform_leakleft, leak_leftLV, "leak_left", worldLV, false, 0, fCheckOverlaps);
+    //leak_leftLV->SetVisAttributes(G4VisAttributes::Invisible);
+
+
 
     G4VSolid* leakageabsorberd = new G4Tubs("leakageabsorberd",
-        0, leakradout, disc_th/2, 0., tube_dPhi );
+        0, leakradout*3, disc_th/2, 0., tube_dPhi );
 
     G4LogicalVolume* leakageabsorberdLV = new G4LogicalVolume(leakageabsorberd,
                                                              defaultMaterial,  
@@ -732,13 +801,12 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     LkVisAttd->SetForceSolid(true);
     leakageabsorberdLV->SetVisAttributes(LkVisAttd);
     G4ThreeVector positiond;
-    //positiond.setX(caloZ*sin(xrot)+xcomp);
-    //positiond.setY(-caloZ*sin(yrot)+ycomp);
-    positiond.setX(caloZ*sin(xrot));
-    positiond.setY(-caloZ*sin(yrot));
-
-    positiond.setZ(caloZ+disc_th/2);
-    G4Transform3D transformd = G4Transform3D(rotm,positiond); 
+    //positiond.setX(caloZ*sin(xrot)+fXshift);
+    //positiond.setY(-caloZ*sin(yrot)+fYshift);
+    positiond.setX(fXshift);
+    positiond.setY(fYshift);
+    positiond.setZ(caloZ+disc_th/2+5*cm);
+    G4Transform3D transformd = G4Transform3D(G4RotationMatrix(),positiond); 
     new G4PVPlacement( transformd,
                        leakageabsorberdLV,
                        "leakageabsorberd",

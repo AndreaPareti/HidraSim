@@ -2,8 +2,8 @@
 #/run/numberOfWorkers 4
 # Select test-beam platform shift and rotation (with units)
 #
-/tbgeo/xshift 20.0 mm
-/tbgeo/yshift 20.0 mm
+/tbgeo/xshift +50.0 mm
+/tbgeo/yshift -50.0 mm
 /tbgeo/horizrot 2.5 deg
 /tbgeo/vertrot 2.5 deg
 #
@@ -24,7 +24,7 @@
 
 #Run 0
 /gps/energy 10. GeV
-/run/beamOn 10
+/run/beamOn 100
 
 
 

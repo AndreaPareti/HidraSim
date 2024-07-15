@@ -48,6 +48,10 @@ class HidraSimEventAction : public G4UserEventAction {
         void SavePrimaryEnergy(G4double primaryparticleenergy);
         void AddEscapedEnergy(G4double escapedenergy);
         void AddEscapedEnergyl(G4double escapedenergy);
+        void AddEscapedEnergylup(G4double escapedenergy);
+        void AddEscapedEnergyldown(G4double escapedenergy);
+        void AddEscapedEnergylright(G4double escapedenergy);
+        void AddEscapedEnergylleft(G4double escapedenergy);        
         void AddEscapedEnergyd(G4double escapedenergy);
         void AddPSEnergy(G4double de);
 
@@ -104,6 +108,10 @@ class HidraSimEventAction : public G4UserEventAction {
         G4double  PrimaryY; //Primary particle energy
         G4double  EscapedEnergy; //Energy deposited in leakage absorber
         G4double  EscapedEnergyl; //Energy deposited in leakage absorber
+        G4double  EscapedEnergylleft; //Energy deposited in leakage absorber
+        G4double  EscapedEnergylup; //Energy deposited in leakage absorber
+        G4double  EscapedEnergyldown; //Energy deposited in leakage absorber
+        G4double  EscapedEnergylright; //Energy deposited in leakage absorber
         G4double  EscapedEnergyd; //Energy deposited in leakage absorber
 	    G4double  PSEnergy;
 
@@ -154,6 +162,20 @@ inline void HidraSimEventAction::AddEscapedEnergy(G4double escapedenergy){
 inline void HidraSimEventAction::AddEscapedEnergyl(G4double escapedenergy){
     EscapedEnergyl += escapedenergy;
 }
+
+inline void HidraSimEventAction::AddEscapedEnergylup(G4double escapedenergy){
+    EscapedEnergylup += escapedenergy;
+}
+inline void HidraSimEventAction::AddEscapedEnergyldown(G4double escapedenergy){
+    EscapedEnergyldown += escapedenergy;
+}
+inline void HidraSimEventAction::AddEscapedEnergylright(G4double escapedenergy){
+    EscapedEnergylright += escapedenergy;
+}
+inline void HidraSimEventAction::AddEscapedEnergylleft(G4double escapedenergy){
+    EscapedEnergylleft += escapedenergy;
+}
+
 inline void HidraSimEventAction::AddEscapedEnergyd(G4double escapedenergy){
     EscapedEnergyd += escapedenergy;
 }

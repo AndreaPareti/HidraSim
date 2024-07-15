@@ -56,10 +56,14 @@ HidraSimRunAction::HidraSimRunAction( HidraSimEventAction* eventAction )
     analysisManager->CreateNtupleDColumn("PrimaryParticleEnergy");          //5
     analysisManager->CreateNtupleIColumn("PrimaryPDGID");                   //6
     analysisManager->CreateNtupleDColumn("EscapedEnergyl");                  //7
-    analysisManager->CreateNtupleDColumn("EscapedEnergyd");                  //8
-    analysisManager->CreateNtupleDColumn("PSEnergy");                       //9
-    analysisManager->CreateNtupleDColumn("PrimaryX");                       //10
-    analysisManager->CreateNtupleDColumn("PrimaryY");                       //11
+    analysisManager->CreateNtupleDColumn("EscapedEnergylup");                  //8
+    analysisManager->CreateNtupleDColumn("EscapedEnergyldown");                  //9
+    analysisManager->CreateNtupleDColumn("EscapedEnergylright");                  //10
+    analysisManager->CreateNtupleDColumn("EscapedEnergylleft");                  //11    
+    analysisManager->CreateNtupleDColumn("EscapedEnergyd");                  //12
+    analysisManager->CreateNtupleDColumn("PSEnergy");                       //13
+    analysisManager->CreateNtupleDColumn("PrimaryX");                       //14
+    analysisManager->CreateNtupleDColumn("PrimaryY");                       //15
 
     analysisManager->CreateNtupleDColumn("VectorSignals", fEventAction->GetVectorSignals());
     analysisManager->CreateNtupleDColumn("VectorSignalsCher", fEventAction->GetVectorSignalsCher());

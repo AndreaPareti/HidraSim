@@ -75,6 +75,22 @@ void HidraSimSteppingAction::AuxSteppingAction( const G4Step* step ) {
         fEventAction->AddEscapedEnergyl(step->GetTrack()->GetKineticEnergy());
         step->GetTrack()->SetTrackStatus(fStopAndKill);
     } 
+    if ( volume->GetName() == "leak_up"){
+        fEventAction->AddEscapedEnergylup(step->GetTrack()->GetKineticEnergy());
+        step->GetTrack()->SetTrackStatus(fStopAndKill);
+    } 
+    if ( volume->GetName() == "leak_down"){
+        fEventAction->AddEscapedEnergyldown(step->GetTrack()->GetKineticEnergy());
+        step->GetTrack()->SetTrackStatus(fStopAndKill);
+    }
+    if ( volume->GetName() == "leak_right"){
+        fEventAction->AddEscapedEnergylright(step->GetTrack()->GetKineticEnergy());
+        step->GetTrack()->SetTrackStatus(fStopAndKill);
+    } 
+    if ( volume->GetName() == "leak_left"){
+        fEventAction->AddEscapedEnergylleft(step->GetTrack()->GetKineticEnergy());
+        step->GetTrack()->SetTrackStatus(fStopAndKill);
+    }                      
     if ( volume->GetName() == "leakageabsorberd" ){
         fEventAction->AddEscapedEnergyd(step->GetTrack()->GetKineticEnergy());
         step->GetTrack()->SetTrackStatus(fStopAndKill);
