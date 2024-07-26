@@ -155,12 +155,12 @@ G4int HidraSimSignalHelper::SmearCSignal( ){
 }
 
 // Dummy functions to recover #phe from TB 
-G4int HidraSimSignalHelper::SmearSSignal_new( ) {
+G4int HidraSimSignalHelper::SmearSSignalOpticalPhoton( ) {
     return G4Poisson(0.165);        
     //return G4Poisson(satde*21.32);		// TB2023 
 }
 
-G4int HidraSimSignalHelper::SmearCSignal_new( ) {
+G4int HidraSimSignalHelper::SmearCSignalOpticalPhoton( ) {
     return G4Poisson(0.850);        // try to recover #phe from tb
 }
 
@@ -209,7 +209,7 @@ G4int HidraSimSignalHelper::AttenuateHelper(const G4int& signal, const G4double&
 //
 G4int HidraSimSignalHelper::AttenuateSSignal(const G4int& signal, const G4double& distance) {
 	//const G4double SAttenuationLength = 191.6*CLHEP::cm; // from test beam data
-	const G4double SAttenuationLength = 600.0*CLHEP::cm; // from Bedeschi Datasheet
+	const G4double SAttenuationLength = 700.0*CLHEP::cm; // from Bedeschi Datasheet
 	//const G4double SAttenuationLength = attenuation->Eval(att_length[8])*CLHEP::cm; // from Bedeschi Datasheet
 
 
@@ -224,7 +224,7 @@ G4int HidraSimSignalHelper::AttenuateSSignal(const G4int& signal, const G4double
 G4int HidraSimSignalHelper::AttenuateCSignal(const G4int& signal, const G4double& distance) {
 	//const G4double CAttenuationLength = 388.9*CLHEP::cm; // from test beam data
 	//const G4double CAttenuationLength = 2000.0*CLHEP::cm; // from test beam data
-	const G4double CAttenuationLength = 600.0*CLHEP::cm; // from test beam data
+	const G4double CAttenuationLength = 700.0*CLHEP::cm; // from test beam data
 
 	//const G4double CAttenuationLength = 1.*CLHEP::km; // 
 
@@ -234,12 +234,12 @@ G4int HidraSimSignalHelper::AttenuateCSignal(const G4int& signal, const G4double
 
 //Define AttenuateSSignal() method
 //
-G4int HidraSimSignalHelper::AttenuateSSignal_WL(const G4int& signal, const G4double& distance, const G4double& wavelength) {
+G4int HidraSimSignalHelper::AttenuateSSignalOverWL(const G4int& signal, const G4double& distance, const G4double& wavelength) {
 	const G4double SAttenuationLength = attenuation_Sfibres->Eval(wavelength)*CLHEP::cm; // from Bedeschi Datasheet
     return AttenuateHelper(signal, distance, SAttenuationLength);    
 }
 
-G4int HidraSimSignalHelper::AttenuateCSignal_WL(const G4int& signal, const G4double& distance, const G4double& wavelength) {
+G4int HidraSimSignalHelper::AttenuateCSignalOverWL(const G4int& signal, const G4double& distance, const G4double& wavelength) {
 	const G4double CAttenuationLength = attenuation_Cfibres->Eval(wavelength)*CLHEP::cm; // from ESKA Datasheet
     return AttenuateHelper(signal, distance, CAttenuationLength);    
 }
@@ -261,19 +261,19 @@ G4double HidraSimSignalHelper::GetCsipmpde(const G4double& wavelength){
 }
 
 
-G4double HidraSimSignalHelper::GetSpmtCorr(const G4double& wavelength){
+G4double HidraSimSignalHelper::GetSpmtCorrection(const G4double& wavelength){
     return pmtS_graph->Eval(wavelength);
 }
 
-G4double HidraSimSignalHelper::GetCpmtCorr(const G4double& wavelength){
+G4double HidraSimSignalHelper::GetCpmtCorrection(const G4double& wavelength){
     return pmtC_graph->Eval(wavelength);
 }
 
-G4double HidraSimSignalHelper::GetSsipmCorr(const G4double& wavelength){
+G4double HidraSimSignalHelper::GetSsipmCorrection(const G4double& wavelength){
     return sipmS_graph->Eval(wavelength);
 }
 
-G4double HidraSimSignalHelper::GetCsipmCorr(const G4double& wavelength){
+G4double HidraSimSignalHelper::GetCsipmCorrection(const G4double& wavelength){
     return sipmC_graph->Eval(wavelength);
 }
 

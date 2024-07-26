@@ -41,9 +41,9 @@ class HidraSimSignalHelper {
 
     	G4int SmearCSignal( );
 
-		G4int SmearSSignal_new( );
+		G4int SmearSSignalOpticalPhoton( );
 
-		G4int SmearCSignal_new( );
+		G4int SmearCSignalOpticalPhoton( );
 
     	G4double GetDistanceToSiPM(const G4Step* step);
 
@@ -54,9 +54,9 @@ class HidraSimSignalHelper {
 		G4int AttenuateCSignal(const G4int& signal, const G4double& distance);
 
 
-		G4int AttenuateSSignal_WL(const G4int& signal, const G4double& distance, const G4double& wl);
+		G4int AttenuateSSignalOverWL(const G4int& signal, const G4double& distance, const G4double& wl);
 
-		G4int AttenuateCSignal_WL(const G4int& signal, const G4double& distance, const G4double& wl);
+		G4int AttenuateCSignalOverWL(const G4int& signal, const G4double& distance, const G4double& wl);
 
 		G4double GetSPMTpde(const G4double& wl);
 
@@ -66,13 +66,13 @@ class HidraSimSignalHelper {
 
 		G4double GetCsipmpde(const G4double& wl);
 
-		G4double GetSpmtCorr(const G4double& wl);
+		G4double GetSpmtCorrection(const G4double& wl);
 
-		G4double GetCpmtCorr(const G4double& wl);
+		G4double GetCpmtCorrection(const G4double& wl);
 
-		G4double GetSsipmCorr(const G4double& wl);
+		G4double GetSsipmCorrection(const G4double& wl);
 
-		G4double GetCsipmCorr(const G4double& wl);
+		G4double GetCsipmCorrection(const G4double& wl);
 
 };
 

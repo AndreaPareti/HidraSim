@@ -40,7 +40,7 @@
 
 
 
-    /*
+    
     // TB 24
     const G4int NofmodulesX = 3;
     const G4int NofmodulesY = 12;
@@ -57,18 +57,14 @@
     const G4bool irot=false;
     const G4double moduleZ = (2500.)*mm;
     const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
-    */
+    
        
     
-    
+    /*
     // 80 miniM, 90 degrees rotated
     const G4int NofmodulesX = 5;
     const G4int NofmodulesY = 20;
-    //const G4int modflag[100]={-1,-1,-1,-1,-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,
-    //                          10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,
-    //                          30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,
-    //                          50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,
-    //                          -1,-1,-1,-1,-1,70,71,72,73,74,75,76,77,78,79,-1,-1,-1,-1,-1};
+
     const G4int modflag[100]={-1, 0, 1, 2, -1,
                               -1, 3, 4, 5, -1, 
                               -1, 6, 7, 8, -1, 
@@ -97,6 +93,7 @@
     const G4int NoModulesActive=80;
     const G4double moduleZ = (2500.)*mm;
     const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
+    */
     
 
 

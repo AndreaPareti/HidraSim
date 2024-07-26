@@ -186,10 +186,10 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
                         //signalhit = fSignalHelper->SmearCSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
 
                         // Generate signal with smearing
-                        signalhit = fSignalHelper->SmearSSignal_new( );  // single optical photon
+                        signalhit = fSignalHelper->SmearSSignalOpticalPhoton( );  // single optical photon
 
                         // Attenuate signal depending on current longitudinal position  (independent of PMT/SiPM module)
-                        double attenuated_signalhit = fSignalHelper->AttenuateSSignal_WL(signalhit, distance_to_sipm, lambda);
+                        double attenuated_signalhit = fSignalHelper->AttenuateSSignalOverWL(signalhit, distance_to_sipm, lambda);
                         //double post_signalhit = fSignalHelper->AttenuateSSignal(signalhit, distance_to_sipm);
 
                         // If no signal is produced, skip optical filter & optical det efficiencies and exit
@@ -199,14 +199,14 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
                         // For PMTs
                         //double PMTpde = fSignalHelper->GetSPMTpde(lambda);
                         // Correction factor to correct for optical filter and PMT efficiency
-                        double PMTcorrection = fSignalHelper->GetSpmtCorr(lambda);
+                        double PMTcorrection = fSignalHelper->GetSpmtCorrection(lambda);
                         fEventAction->AddVecSPMT( TowerID, attenuated_signalhit*PMTcorrection); 
                         //G4cout << lambda << "\t" << distance_to_sipm << "\t" << signalhit << "\t" << attenuated_signalhit << "\t" << attenuated_signalhit*PMTcorrection << G4endl;
 
 
                         if(SiPMTower > -1){ 
                                 SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-                                double SiPMcorrection = fSignalHelper->GetSsipmCorr(lambda);
+                                double SiPMcorrection = fSignalHelper->GetSsipmCorrection(lambda);
                                 //G4cout << "S fibre: " << signalhit << "\tafter attenuation: " << post_signalhit << "\tpde: " << SiPMpde << "\tResulting signal: " << SiPMpde*post_signalhit << G4endl;
                                 fEventAction->AddVectorScin(SiPMTower*NoFibersTower+SiPMID, attenuated_signalhit*SiPMcorrection); 
                         }
@@ -298,10 +298,10 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
                     TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));		
                     SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
                     // Generate signal with smearing 
-                    G4int c_signal = fSignalHelper->SmearCSignal_new( );  // single optical photon
+                    G4int c_signal = fSignalHelper->SmearCSignalOpticalPhoton( );  // single optical photon
 
                     // Attenuate signal depending on current longitudinal position (independent of PMT/SiPM module)
-                    G4int attenuated_signalhit = fSignalHelper->AttenuateCSignal_WL(c_signal, distance_to_sipm, lambda);
+                    G4int attenuated_signalhit = fSignalHelper->AttenuateCSignalOverWL(c_signal, distance_to_sipm, lambda);
                     //G4cout << "Signal before att: " << c_signal << "\t after: " << post_signalhit << G4endl;
 
                     // If no signal is produced, skip optical filter & optical det efficiencies and exit
@@ -310,14 +310,14 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
                     // For PMTs
                     //double PMTpde = fSignalHelper->GetSPMTpde(lambda);
                     // Correction factor to correct for optical filter and PMT efficiency
-                    double PMTcorrection = fSignalHelper->GetCpmtCorr(lambda);
+                    double PMTcorrection = fSignalHelper->GetCpmtCorrection(lambda);
                     fEventAction->AddVecCPMT( TowerID, attenuated_signalhit*PMTcorrection); 
                     //G4cout << lambda << "\t" << distance_to_sipm << "\t" << signalhit << "\t" << post_signalhit << "\t" << pde << G4endl;
 
 
                     if(SiPMTower > -1){ 
                             SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-                            G4double SiPMcorrection = fSignalHelper->GetSsipmCorr(lambda);
+                            G4double SiPMcorrection = fSignalHelper->GetSsipmCorrection(lambda);
                             //G4cout << "C fibre: " << c_signal << "\tafter attenuation: " << post_signalhit << "\tpde: " << SiPMpde << "\tResulting signal: " << SiPMpde*post_signalhit << G4endl;
                             //G4cout << "Wavelength: " << lambda << "\tPDE: " << SiPMpde << G4endl;
                             //fEventAction->AddVectorCher( SiPMTower*NoFibersTower+SiPMID, SiPMpde*post_signalhit); 
