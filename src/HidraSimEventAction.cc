@@ -13,6 +13,7 @@
 #include "HidraSimRunAction.hh"
 #include "HidraSimDetectorConstruction.hh"
 #include "G4HCofThisEvent.hh"
+//#include "HidraSimGeoPar.hh"
 
 //includers for calorimeter hits
 #include "G4SDManager.hh"
@@ -63,6 +64,7 @@ HidraSimEventAction::HidraSimEventAction()
     VecSPMT(0.),
     VecCPMT(0.),
     VecTowerE(0.),
+    VecLeakCounter(0.),
     fSfiberHCID(-1),
     fCfiberHCID(-1)
     {
@@ -144,6 +146,7 @@ void HidraSimEventAction::BeginOfEventAction(const G4Event*) {
     VecSPMT.clear();
     VecCPMT.clear();
     VecTowerE.clear();
+    VecLeakCounter.clear();
     fHitPheSvector.clear();
     fHitZcoordSvector.clear();
     fHitSiPMIDSvector.clear();
@@ -157,6 +160,7 @@ void HidraSimEventAction::BeginOfEventAction(const G4Event*) {
     VecSPMT.assign(NoModulesActive, 0.);
     VecCPMT.assign(NoModulesActive, 0.);
     VecTowerE.assign(NoModulesActive, 0.);
+    VecLeakCounter.assign(4*NofLeakCounterLayers+1, 0.);
     fHitPheSvector.assign(fHitPheSvector.size(), 0.);
     fHitZcoordSvector.assign(fHitZcoordSvector.size(), 0.);
     fHitSiPMIDSvector.assign(fHitSiPMIDSvector.size(), 0.);

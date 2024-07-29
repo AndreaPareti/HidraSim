@@ -90,15 +90,22 @@ void HidraSimSteppingAction::AuxSteppingAction( const G4Step* step ) {
 				  edep );
     }
     	
-    if ( volume->GetName() == "Preshower_scin" || volume->GetName() == "Preshower_pb" ){
+    if ( volume->GetName() == "Preshower_scin" || volume->GetName() == "Preshower_pb"){
         fEventAction->AddPSEnergy( edep );
+    }
+
+    if(volume->GetName() == "leakbox"){
+        G4int LCID = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(0);
+        fEventAction->AddVecLeakCounter(LCID, edep); 
+
     }
     
     if ( volume != fDetConstruction->GetWorldPV() &&
          volume != fDetConstruction->GetLeakCntlPV() &&
          volume != fDetConstruction->GetLeakCntdPV() &&
          volume->GetName() != "Preshower_scin" &&
-         volume->GetName() != "Preshower_pb" ) { fEventAction->Addenergy(edep); }
+         volume->GetName() != "Preshower_pb" &&
+         volume->GetName() != "leakbox") { fEventAction->Addenergy(edep);}
    
     if ( step->GetTrack()->GetTrackID() == 1 &&
         step->GetTrack()->GetCurrentStepNumber() == 1){

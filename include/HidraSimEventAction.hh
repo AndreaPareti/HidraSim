@@ -59,6 +59,7 @@ class HidraSimEventAction : public G4UserEventAction {
 	    std::vector<G4double>& GetVecTowerE() {return VecTowerE;}
 	    std::vector<G4double>& GetVecSPMT() {return VecSPMT;}
 	    std::vector<G4double>& GetVecCPMT() {return VecCPMT;}
+	    std::vector<G4double>& GetVecLeakCounter() {return VecLeakCounter;}
 
 
         //Fill vector of scintillating fibers with energy deposition
@@ -76,6 +77,8 @@ class HidraSimEventAction : public G4UserEventAction {
     	//Fill vector of signals in Cherenkov PMTs
         //
 	    void AddVecCPMT(G4int PMTID, G4double de);
+        //
+	    void AddVecLeakCounter(G4int LCID, G4double de);
         //
         //
         // insert funtions per hits
@@ -123,6 +126,9 @@ class HidraSimEventAction : public G4UserEventAction {
 	    //
     	std::vector<G4double> VecTowerE;
         //
+   	    std::vector<G4double> VecLeakCounter;
+        //
+
         // insert members per hits
         std::vector<double> fHitPheSvector;
         std::vector<double> fHitZcoordSvector;
@@ -189,6 +195,10 @@ inline void HidraSimEventAction::AddVecSPMT(G4int PMTID, G4double de) {
 
 inline void HidraSimEventAction::AddVecCPMT(G4int PMTID, G4double de) {
     VecCPMT.at(PMTID) += de;
+}
+
+inline void HidraSimEventAction::AddVecLeakCounter(G4int LCID, G4double de) {
+    VecLeakCounter.at(LCID) += de;
 }
 
 inline void HidraSimEventAction::AddScin(G4double de){
