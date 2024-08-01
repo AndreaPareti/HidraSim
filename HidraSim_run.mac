@@ -2,8 +2,8 @@
 #/run/numberOfWorkers 4
 # Select test-beam platform shift and rotation (with units)
 #
-/tbgeo/xshift 20.0 mm
-/tbgeo/yshift 20.0 mm
+/tbgeo/xshift 47.10 mm
+/tbgeo/yshift -47.10 mm
 /tbgeo/horizrot 2.5 deg
 /tbgeo/vertrot 2.5 deg
 #

@@ -24,8 +24,8 @@ else()
 endif()
 
 # Link ROOT Packages
-find_package(ROOT REQUIRED)
-set(CMAKE_CXX_FLAGS "${ROOT_CXX_FLAGS}")
+#find_package(ROOT REQUIRED)
+#set(CMAKE_CXX_FLAGS "${ROOT_CXX_FLAGS}")
 
 # Link SiPM sim
 #find_package(sipm REQUIRED)
@@ -46,7 +46,7 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 add_executable(HidraSim HidraSim.cc ${sources} ${headers})
 #target_link_libraries(HidraSim ${Geant4_LIBRARIES})
 #target_link_libraries(HidraSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sipm)
-target_link_libraries(HidraSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+target_link_libraries(HidraSim ${Geant4_LIBRARIES})
 # Copy all scripts to the build directory 
 #
 set(HidraSim_SCRIPTS

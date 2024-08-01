@@ -50,8 +50,8 @@
                              12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
                              24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35};
     
-    const G4int NofModulesSiPM=0;
-    const G4int SiPMMod[1]={16};
+    const G4int NofModulesSiPM=2;
+    const G4int SiPMMod[2]={17,18};
     const G4int NofFiberscolumn = 64;
     const G4int NofFibersrow = 16;
     const G4int NoModulesActive=36;
