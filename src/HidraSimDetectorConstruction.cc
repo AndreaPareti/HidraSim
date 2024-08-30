@@ -557,7 +557,10 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
 		       //G4ThreeVector(0.,0.,-335.*cm),
 		       //G4ThreeVector(0.,0.,-moduleZ/2 - 15.5*cm),
            // This should be corrected with TB setup; note that PS position should be outside calo box, otherwise data is not saved           
-		       G4ThreeVector(0.,0.,-caloZ - 2*tailCatcherDist), 
+		       //G4ThreeVector(0.,0.,-caloZ - 60*cm), 
+		       //G4ThreeVector(0.,0.,-caloZ - 150.*cm), 
+		       G4ThreeVector(0.,0.,-caloZ - 70.*cm), 
+
 		       PSLV,
 		       "Preshower",
 		       worldLV,
@@ -614,7 +617,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
                                                             defaultMaterial,
                                                             "moduleequipped"); 
 
-    G4VSolid* CalorimeterS = new G4Box("CalorimeterS",(caloX + leakBoxX/2),(caloY + leakBoxZ/2), caloZ+leakBoxY+tailCatcherDist);
+    G4VSolid* CalorimeterS = new G4Box("CalorimeterS",(caloX + leakBoxX/2),(caloY + leakBoxZ/2), caloZ);
 
     G4LogicalVolume* CalorimeterLV = new G4LogicalVolume( CalorimeterS,
                                                           defaultMaterial,
@@ -685,10 +688,11 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     G4RotationMatrix rotm  = G4RotationMatrix();
     // x(y)rot is rotation angle around axis x(y))
     //G4double zrot=90.*deg;
-    //G4double xrot=2.5*deg;
-    //G4double yrot=2.5*deg;
-    G4double xrot = fOrzrot;
-    G4double yrot = fVerrot;
+    //G4double xrot=5.*deg;
+    //G4double yrot=5.*deg;
+    // Negative sign to make angles same as TB platform
+    G4double xrot = - fOrzrot;
+    G4double yrot = - fVerrot;
 
     // showdep is assumed shower depth to optimise
     // shower containment. For default geometry and e.m. shower
@@ -1098,7 +1102,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
   for(int leakCounter = 0; leakCounter<NofLeakCounterLayers; leakCounter++)
   {
     //G4ThreeVector leakupPosition; leakupPosition.setX(fXshift); leakupPosition.setY(fYshift+caloY+leakBoxY+1.*cm); leakupPosition.setZ(-caloZ/2 - leakBoxZ/2 + leakBoxZ*leakCounter*2);
-    G4ThreeVector leakupPosition; leakupPosition.setX(fXshift); leakupPosition.setY(fYshift+caloY+leakBoxY+1.*cm); leakupPosition.setZ(-caloZ/2 - leakBoxZ/2 + caloZ/3*leakCounter*2);
+    G4ThreeVector leakupPosition; leakupPosition.setX(fXshift); leakupPosition.setY(fYshift+caloY+leakBoxY+1.*cm); leakupPosition.setZ(-caloZ/2 - leakBoxZ/2 + caloZ/NofLeakCounterLayers*leakCounter*2);
     G4Transform3D transform_leakupBox = G4Transform3D(rotm, leakupPosition);
     G4LogicalVolume* leakupBoxLV = new G4LogicalVolume(leakBoxS, ScinMaterial, "leakbox");
     G4VisAttributes* leakupBoxVisAtt = new G4VisAttributes(G4Colour(0.9,0,0.0));
@@ -1109,7 +1113,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     //new G4PVPlacement(transform_leakupBox, leakupBoxLV, "leakupBox", CalorimeterLV, false, 0, fCheckOverlaps);
     new G4PVPlacement(0, leakupPosition, leakupBoxLV, "leakbox", CalorimeterLV, false, 4*leakCounter, fCheckOverlaps);
 
-    G4ThreeVector leakrightPosition; leakrightPosition.setX(fXshift+caloX+leakBoxY+1.*cm); leakrightPosition.setY(fYshift); leakrightPosition.setZ(-caloZ/2 - leakBoxZ/2 + caloZ/3*leakCounter*2);
+    G4ThreeVector leakrightPosition; leakrightPosition.setX(fXshift+caloX+leakBoxY+1.*cm); leakrightPosition.setY(fYshift); leakrightPosition.setZ(-caloZ/2 - leakBoxZ/2 + caloZ/NofLeakCounterLayers*leakCounter*2);
     //G4Transform3D transform_leakrightBox = G4Transform3D(siderotm, leakrightPosition);
     G4Transform3D transform_leakrightBox = G4Transform3D(G4RotationMatrix(0., 0., 90*deg), leakrightPosition);
     G4LogicalVolume* leakrightBoxLV = new G4LogicalVolume(leakBoxS, ScinMaterial, "leakbox");
@@ -1120,7 +1124,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     leakrightBoxLV->SetVisAttributes(leakrightBoxVisAtt);
     new G4PVPlacement(transform_leakrightBox, leakrightBoxLV, "leakbox", CalorimeterLV, false, 4*leakCounter+1, fCheckOverlaps);
 
-    G4ThreeVector leakdownPosition; leakdownPosition.setX(fXshift); leakdownPosition.setY(fYshift-caloY-leakBoxY-1.*cm); leakdownPosition.setZ(-caloZ/2 - leakBoxZ/2 + caloZ/3*leakCounter*2);
+    G4ThreeVector leakdownPosition; leakdownPosition.setX(fXshift); leakdownPosition.setY(fYshift-caloY-leakBoxY-1.*cm); leakdownPosition.setZ(-caloZ/2 - leakBoxZ/2 + caloZ/NofLeakCounterLayers*leakCounter*2);
     G4Transform3D transform_leakdownBox = G4Transform3D(rotm, leakdownPosition);
     G4LogicalVolume* leakdownBoxLV = new G4LogicalVolume(leakBoxS, ScinMaterial, "leakbox");
     G4VisAttributes* leakdownBoxVisAtt = new G4VisAttributes(G4Colour(0.9,0,0.0));
@@ -1130,7 +1134,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     leakdownBoxLV->SetVisAttributes(leakdownBoxVisAtt);
     new G4PVPlacement(0, leakdownPosition, leakdownBoxLV, "leakbox", CalorimeterLV, false, 4*leakCounter+2, fCheckOverlaps);
 
-    G4ThreeVector leakleftPosition; leakleftPosition.setX(fXshift-caloX-leakBoxY-1.*cm); leakleftPosition.setY(fYshift); leakleftPosition.setZ(-caloZ/2 - leakBoxZ/2 + caloZ/3*leakCounter*2);
+    G4ThreeVector leakleftPosition; leakleftPosition.setX(fXshift-caloX-leakBoxY-1.*cm); leakleftPosition.setY(fYshift); leakleftPosition.setZ(-caloZ/2 - leakBoxZ/2 + caloZ/NofLeakCounterLayers*leakCounter*2);
     //G4Transform3D transform_leakleftBox = G4Transform3D(siderotm, leakleftPosition);
     G4Transform3D transform_leakleftBox = G4Transform3D(G4RotationMatrix(0., 0., 90*deg), leakleftPosition);
     G4LogicalVolume* leakleftBoxLV = new G4LogicalVolume(leakBoxS, ScinMaterial, "leakbox");
@@ -1153,7 +1157,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
   tailCatcherBoxVisAtt->SetForceSolid(true);
   tailCatcherBoxLV->SetVisAttributes(tailCatcherBoxVisAtt);
   //new G4PVPlacement(transform_tailCatcherBox, tailCatcherBoxLV, "tailCatcherBox", CalorimeterLV, false, 0, fCheckOverlaps);
-  new G4PVPlacement(transform_tailCatcherBox, tailCatcherBoxLV, "leakbox", CalorimeterLV, false, 4*NofLeakCounterLayers, fCheckOverlaps);
+  new G4PVPlacement(transform_tailCatcherBox, tailCatcherBoxLV, "leakbox", worldLV, false, 4*NofLeakCounterLayers, fCheckOverlaps);
 
 
 

@@ -157,6 +157,8 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
 
         if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() )
         {
+            // Maybe set optical filter before asking for total internal reflection?
+            
             // Check if optical photon has total internal reflection            
             G4OpBoundaryProcessStatus theStatus = Undefined;
 
@@ -167,6 +169,7 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
                 G4int MAXofPostStepLoops = OpManager->GetPostStepProcessVector()->entries();
                 G4ProcessVector* fPostStepDoItVector = OpManager->GetPostStepProcessVector(typeDoIt);
 
+                // maybe can ask for ~few internal reflections instead of whole fiber
                 for ( G4int i=0; i<MAXofPostStepLoops; i++)
                 {
                     G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];

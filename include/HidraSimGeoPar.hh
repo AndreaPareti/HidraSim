@@ -39,7 +39,7 @@
 
 
 
-    const G4int NofLeakCounterLayers = 3;
+    const G4int NofLeakCounterLayers = 4;
 
     
     // TB 24
