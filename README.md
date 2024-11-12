@@ -95,6 +95,10 @@ Note: the test-beam simulated platform can be shifted in x and y directions as i
    /tbgeo/horizrot <> [<Unit>]
    /tbgeo/vertrot <> [<Unit>]
    ```
+It is also possible to include or remove ancillary detectors (preshower, leakage counters and tail catcher) by setting true the boolean variables in HidraSimGeoPar.hh
+In the same file the prototype geometrical parameters can be changed as desired. Once the setup has been chosen, it is sufficient to recompile the simulation by running make.
+Note that an additional "truth" cylindrical leakage counter, that also includes a back plug, can be added while being turned off in default simulation.
+Tracks entering these volumes are killed and their truth energy is collected for more detailed leakage studies. 
 
 
 
@@ -109,7 +113,7 @@ Note: the test-beam simulated platform can be shifted in x and y directions as i
    mkdir build && cd build 
    source /cvmfs/geant4.cern.ch/geant4/10.7.p03/x86_64-centos7-gcc8-optdeb-MT/CMake-setup.sh
    source /cvmfs/sft.cern.ch/lcg/contrib/gcc/13.1.0/x86_64-el9-gcc13-opt/setup.sh
-   source /cvmfs/sft.cern.ch/lcg/app/releases/ROOT/6.30.06/x86_64-almalinux8.9-gcc85-opt/bin/thisroot.sh   
+   cmake3 -DGeant4_DIR=/cvmfs/geant4.cern.ch/geant4/10.7.p03/x86_64-centos7-gcc8-optdeb-MT/lib64/Geant4-10.7.p03 ../   
    make -jN
    ```
 3. execute (example with HidraSim_run.mac macro card, 2 threads and FTFP_BERT physics list)
