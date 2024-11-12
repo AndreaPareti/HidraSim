@@ -1,4 +1,16 @@
+/***************************************************/
+/* Select prototype geometry and ancillaries setup */
+/***************************************************/
+
 #include "G4SystemOfUnits.hh"
+
+    // Ancillaries
+    const G4int NofLeakCounterLayers = 4;
+    const G4bool PreShowerIn = true;
+    const G4bool LeakageCounterIn = true;
+    const G4bool TailCatcherIn = true;
+    const G4bool TruthLeakageIn = false;
+
 // TB2021 
 /*
     const G4int NofmodulesX = 3; 
@@ -34,15 +46,14 @@
     //const G4bool irot=false;
     const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
     */
+    
 
 
 
-
-
-    const G4int NofLeakCounterLayers = 4;
 
     
     // TB 24
+    
     const G4int NofmodulesX = 3;
     const G4int NofmodulesY = 12;
     // This one is DRAGO (if irot is true)
@@ -50,14 +61,18 @@
                              12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
                              24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35};
     
-    const G4int NofModulesSiPM=2;
-    const G4int SiPMMod[2]={17,18};
+    const G4int NofModulesSiPM=36;
+    //const G4int SiPMMod[5]={15, 16, 17, 18, 19};
+    const G4int SiPMMod[NofModulesSiPM]={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                             12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+                             24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35};
     const G4int NofFiberscolumn = 64;
     const G4int NofFibersrow = 16;
     const G4int NoModulesActive=36;
     const G4bool irot=false;
     const G4double moduleZ = (2500.)*mm;
     const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
+    
     
     
        
@@ -95,6 +110,7 @@
     const G4double moduleZ = (2500.)*mm;
     const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
     */
+    
     
     
 

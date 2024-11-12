@@ -80,13 +80,13 @@ void HidraSimSteppingAction::AuxSteppingAction( const G4Step* step ) {
         step->GetTrack()->SetTrackStatus(fStopAndKill);
     } 
 
-    if ( volume->GetName() == "Clad_S_fiber" ||
-         volume->GetName() == "Core_S_fiber" ||
-	 volume->GetName() == "Abs_Scin_fiber"  ||
-	 volume->GetName() == "Clad_C_fiber" ||
-	 volume->GetName() == "Core_C_fiber" ||
-         volume->GetName() == "Abs_Cher_fiber"  ) {
-        fEventAction->AddVecTowerE(fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3)),
+    if (    volume->GetName() == "Clad_S_fiber" ||
+            volume->GetName() == "Core_S_fiber" ||
+            volume->GetName() == "Abs_Scin_fiber"  ||
+            volume->GetName() == "Clad_C_fiber" ||
+            volume->GetName() == "Core_C_fiber" ||
+            volume->GetName() == "Abs_Cher_fiber"  ) {
+            fEventAction->AddVecTowerE(fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3)),
 				  edep );
     }
     	
@@ -145,13 +145,127 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
     G4int TowerID;
     G4int SiPMID = 999999;
     G4int SiPMTower;
-    G4int signalhit = 0;
+    G4double signalhit = 0;
     //G4double zdep = 0.;
 
     /**************************/
     /** SCINTILLATING FIBRES **/
     /**************************/
 
+    if ( strstr( Fiber.c_str(), S_fiber.c_str() ) )
+    {
+        if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() )
+        {
+            step->GetTrack()->SetTrackStatus( fStopAndKill ); 
+	    }
+
+        if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 || step->GetStepLength() == 0. ) { return; } //not ionizing particle		 
+        TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));
+        SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
+        fEventAction->AddScin(edep);
+        signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
+
+        G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
+
+        signalhit = fSignalHelper->AttenuateSSignal(signalhit, distance_to_sipm);
+        fEventAction->AddVecSPMT( TowerID, signalhit ); 
+
+        if(SiPMTower > -1)
+        { 
+            SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+            fEventAction->AddVectorScin( SiPMTower*NoFibersTower + SiPMID , signalhit ); 
+            //fEventAction->AddVectorScin( SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2, signalhit ); 
+            //fEventAction->AddVectorScin( SiPMID , signalhit ); 
+
+
+
+        }
+    }
+    // End Scintillating Fibers case
+
+
+    /*********************/
+    /** CERENKOV FIBRES **/
+    /*********************/
+    else if ( strstr( Fiber.c_str(), C_fiber.c_str() ) )     //Cherenkov fiber/tube
+    { 
+        fEventAction->AddCher(edep);
+
+        if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() )
+        {
+                        
+            G4OpBoundaryProcessStatus theStatus = Undefined;
+
+            G4ProcessManager* OpManager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
+
+            if (OpManager) 
+            {
+                G4int MAXofPostStepLoops = OpManager->GetPostStepProcessVector()->entries();
+                G4ProcessVector* fPostStepDoItVector = OpManager->GetPostStepProcessVector(typeDoIt);
+
+                for ( G4int i=0; i<MAXofPostStepLoops; i++)
+                {
+                    G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
+                    fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
+                    if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break; }
+                }
+            }
+            
+            // Total Internal Reflection Requirement case
+            switch ( theStatus )
+            {
+                            
+                case TotalInternalReflection:
+                {
+                    G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
+                    G4double c_signal = fSignalHelper->SmearCSignal( );
+                    // Attenuate Signal
+                    c_signal = fSignalHelper->AttenuateCSignal(c_signal, distance_to_sipm);
+
+                    G4int TowerID = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3);		
+                    SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
+
+                    fEventAction->AddVecCPMT( TowerID, c_signal );
+
+                    if(SiPMTower > -1)
+                    { // in sipm-readout tower
+                        G4int SiPMID = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
+                        fEventAction->AddVectorCher(SiPMTower*NoFibersTower+SiPMID, c_signal);
+                        //fEventAction->AddVectorCher(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2, c_signal);
+                        //fEventAction->AddVectorCher(SiPMID , c_signal);
+                        
+                    }
+                    step->GetTrack()->SetTrackStatus( fStopAndKill );
+                }
+                default: 
+                    step->GetTrack()->SetTrackStatus( fStopAndKill );
+	        } //end of swich cases
+        } //end of optical photon
+
+        else return;
+
+    } //end of Cherenkov fiber
+    else return;
+
+
+}
+
+
+//******************************************/
+/*       SteppingAction.cc ends here       */
+//******************************************/
+
+
+
+
+
+
+
+
+
+
+// Store here temporarily stepping action including photon wavelenght behaviour 
+/*
     if ( strstr( Fiber.c_str(), S_fiber.c_str() ) )         
     { 
 
@@ -237,60 +351,18 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
         if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 || step->GetStepLength() == 0. ) { return; } //not ionizing particle
         fEventAction->AddScin(edep);
 
-        /*
-        G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
-        
-        TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));
-        SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
-        signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
-        // Attenuate Signal
-        signalhit = fSignalHelper->AttenuateSSignal(signalhit, distance_to_sipm);
-        fEventAction->AddVecSPMT( TowerID, signalhit ); 
 
 
-        if(SiPMTower > -1){ 
-                SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-                //zdep = fDetConstruction->GetSiPMID(step->GetTrack()->GetPosition().z() );
-                fEventAction->AddVectorScin( signalhit, SiPMTower*NoFibersTower+SiPMID ); 
-                //fEventAction->AddVecSciZdep( SiPMTower*NoFibersTower+SiPMID, signalhit*zdep);
-
-        }
-
-        */
     }   // ### END OF SCINTILLATING FIBRES ###
 
+*/
 
 
-    /*********************/
-    /** CERENKOV FIBRES **/
-    /*********************/
-    else if ( strstr( Fiber.c_str(), C_fiber.c_str() ) )     //Cherenkov fiber/tube
-    { 
-        fEventAction->AddCher(edep);
 
-        if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() )
-        {
-                        
-            G4OpBoundaryProcessStatus theStatus = Undefined;
 
-            G4ProcessManager* OpManager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
+// Store here temporarily C photon stepping action including photon wavelength behaviour
+/*
 
-            if (OpManager) 
-            {
-                G4int MAXofPostStepLoops = OpManager->GetPostStepProcessVector()->entries();
-                G4ProcessVector* fPostStepDoItVector = OpManager->GetPostStepProcessVector(typeDoIt);
-
-                for ( G4int i=0; i<MAXofPostStepLoops; i++)
-                {
-                    G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
-                    fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
-                    if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break; }
-                }
-            }
-            
-            // Total Internal Reflection Requirement case
-            switch ( theStatus ){
-                                    
             case TotalInternalReflection:
             {
                 double phEne = step->GetTrack()->GetKineticEnergy();
@@ -337,15 +409,6 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
                 }
                 step->GetTrack()->SetTrackStatus( fStopAndKill ); // (do not propagate optical photons)
 
-
-                //if(SiPMTower > -1)
-                //{ 
-                //    SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-                //    //zdep = fDetConstruction->GetSiPMID(step->GetTrack()->GetPosition().z() );
-                //    fEventAction->AddVectorCher(SiPMTower*NoFibersTower+SiPMID, c_signal);
-                //    //fEventAction->AddVecCerZdep( SiPMTower*NoFibersTower+SiPMID, c_signal*zdep);
-                //}
-                //step->GetTrack()->SetTrackStatus( fStopAndKill );   // Kill photon to not propagate it inside fibres
             }
             default:
                 ;
@@ -355,14 +418,4 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
 
 
         } //end of optical photon
-        else return;
-
-    } //end of Cherenkov fiber
-    else return;
-    //G4cout << "Fast Stepping Action ended well! " << G4endl;
-
-
-}
-
-
-//**************************************************
+        */

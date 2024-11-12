@@ -19,7 +19,9 @@ HidraSimCalorimeterHit::HidraSimCalorimeterHit()
    fSiPMID(0),
    fZcoord(0.),
    fPhe(0.),
-   fEdep(0.)
+   fEdep(0.),
+   fPheVec(),
+   fZVec()
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -36,6 +38,8 @@ HidraSimCalorimeterHit::HidraSimCalorimeterHit(const HidraSimCalorimeterHit& fib
   fZcoord = fiberHit.fZcoord;
   fPhe = fiberHit.fPhe;
   fEdep = fiberHit.fEdep;
+  fPheVec = fiberHit.fPheVec;
+  fZVec = fiberHit.fZVec;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -47,6 +51,8 @@ const HidraSimCalorimeterHit& HidraSimCalorimeterHit::operator=(const HidraSimCa
   fPhe = right.fPhe;
   fEdep = right.fEdep;
   fTowerID = right.fTowerID;
+  fPheVec = right.fPheVec;
+  fZVec = right.fZVec;  
 
   return *this;
 }

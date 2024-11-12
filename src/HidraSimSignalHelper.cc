@@ -15,7 +15,6 @@
 #include "G4Poisson.hh"
 #include "G4Tubs.hh"
 #include "G4NavigationHistory.hh"
-//#include "TGraph.h"
 
 
 
@@ -42,6 +41,133 @@ G4double linearInterpolate(const std::vector<G4double>& x, const std::vector<G4d
 }
 
 
+
+
+HidraSimSignalHelper* HidraSimSignalHelper::instance = 0;
+
+//Define (private) constructor (singleton)
+//
+HidraSimSignalHelper::HidraSimSignalHelper(){}
+
+//Define Instance() method
+//
+HidraSimSignalHelper* HidraSimSignalHelper::Instance(){
+    if (instance==0){
+        instance = new HidraSimSignalHelper;
+    }
+    return HidraSimSignalHelper::instance;
+}
+
+//Define ApplyBirks() method
+//
+G4double HidraSimSignalHelper::ApplyBirks( const G4double& de, const G4double& steplength ) {
+		
+    const G4double k_B = 0.126; //Birks constant
+    return (de/steplength) / ( 1+k_B*(de/steplength) ) * steplength;
+
+}
+
+//Define SmearSSignal() method
+//
+G4int HidraSimSignalHelper::SmearSSignal( const G4double& satde ) {
+    return G4Poisson(satde*9.5);        // Original
+    //return G4Poisson(satde*21.32);		// TB2023 
+}
+
+//Define SmearCSignal() method
+//
+G4int HidraSimSignalHelper::SmearCSignal( ){
+    return G4Poisson(0.153);            // Original
+    //return G4Poisson(0.243);            // TB2023
+
+}
+
+// Dummy functions to recover #phe from TB 
+G4int HidraSimSignalHelper::SmearSSignalOpticalPhoton( ) {
+    return G4Poisson(0.165);        
+    //return G4Poisson(satde*21.32);		// TB2023 
+}
+
+G4int HidraSimSignalHelper::SmearCSignalOpticalPhoton( ) {
+    return G4Poisson(0.850);        // try to recover #phe from tb
+}
+
+
+//Define GetDistanceToSiPM() method
+//
+G4double HidraSimSignalHelper::GetDistanceToSiPM(const G4Step* step) {
+
+    // Get the pre-step point
+    const G4StepPoint* preStepPoint = step->GetPreStepPoint();
+    // Get the global position of the pre-step point
+    G4ThreeVector globalPos = preStepPoint->GetPosition();
+    // Get the local position of the pre-step point in the current volume's coordinate system
+    G4ThreeVector localPos = preStepPoint->GetTouchableHandle()->GetHistory()->GetTopTransform().TransformPoint(globalPos);
+    // G4cout << "Local Position (X,Y,Z): (" << localPos.x()/CLHEP::mm << ", " << localPos.y()/CLHEP::mm << ", " << localPos.z()/CLHEP::mm << ") mm" << G4endl;
+
+    // Get the logical volume of the current step
+    G4LogicalVolume* currentVolume = preStepPoint->GetTouchableHandle()->GetVolume()->GetLogicalVolume();
+    // Get the solid associated with the logical volume
+    G4Tubs* solid = dynamic_cast<G4Tubs*>(currentVolume->GetSolid());
+    // Get the dimensions of the solid (size of the volume)
+    G4double size = solid->GetZHalfLength();
+
+    G4double distance_to_sipm = size - localPos.z();
+    return distance_to_sipm;
+
+}
+
+
+//Define AttenuateHelper() method
+G4int HidraSimSignalHelper::AttenuateHelper(const G4int& signal, const G4double& distance, const G4double& attenuation_length) {
+    double probability_of_survival = exp(-distance/attenuation_length);
+
+    G4int survived_photons = 0;
+    for (int i=0; i<signal; i++)
+    {
+        // Simulate drawing between 0 and 1 with probability x of getting 1
+        if (G4UniformRand() <= probability_of_survival) survived_photons++;
+    }
+
+    return survived_photons;
+
+}
+
+//Define AttenuateSSignal() method
+//
+G4int HidraSimSignalHelper::AttenuateSSignal(const G4int& signal, const G4double& distance) {
+	//const G4double SAttenuationLength = 191.6*CLHEP::cm; // from test beam data
+	const G4double SAttenuationLength = 700.0*CLHEP::cm; // from Bedeschi Datasheet
+	//const G4double SAttenuationLength = attenuation->Eval(att_length[8])*CLHEP::cm; // from Bedeschi Datasheet
+
+
+	//const G4double SAttenuationLength = 1.*CLHEP::km; // 
+
+    return AttenuateHelper(signal, distance, SAttenuationLength);    
+
+}
+
+//Define AttenuateCSignal() method
+//
+G4int HidraSimSignalHelper::AttenuateCSignal(const G4int& signal, const G4double& distance) {
+	//const G4double CAttenuationLength = 388.9*CLHEP::cm; // from test beam data
+	//const G4double CAttenuationLength = 2000.0*CLHEP::cm; // from test beam data
+	const G4double CAttenuationLength = 700.0*CLHEP::cm; // from test beam data
+
+	//const G4double CAttenuationLength = 1.*CLHEP::km; // 
+
+    return AttenuateHelper(signal, distance, CAttenuationLength);    
+    
+}
+
+
+
+/*******************************************************************************************************/
+// Not used in current simulation
+
+
+
+/*
 // Considered wavelengths for optical photons
 std::vector<G4double> wavelengths = {299.8065764 , 309.84507746, 319.83492391, 329.78723404,
                                     339.81912853, 349.78843441, 359.83749275, 369.81807337,
@@ -125,125 +251,11 @@ std::vector<G4double> sipmC_correction = {0.1  , 0.14 , 0.16 , 0.17 , 0.2  , 0.2
                                             0.32 , 0.32 , 0.31 , 0.305, 0.3  , 0.29 , 0.28 , 0.27 , 0.26 ,
                                             0.25 , 0.24 , 0.235, 0.23 , 0.22};
 
+*/
 
 
-HidraSimSignalHelper* HidraSimSignalHelper::instance = 0;
 
-//Define (private) constructor (singleton)
-//
-HidraSimSignalHelper::HidraSimSignalHelper(){}
-
-//Define Instance() method
-//
-HidraSimSignalHelper* HidraSimSignalHelper::Instance(){
-    if (instance==0){
-        instance = new HidraSimSignalHelper;
-    }
-    return HidraSimSignalHelper::instance;
-}
-
-//Define ApplyBirks() method
-//
-G4double HidraSimSignalHelper::ApplyBirks( const G4double& de, const G4double& steplength ) {
-		
-    const G4double k_B = 0.126; //Birks constant
-    return (de/steplength) / ( 1+k_B*(de/steplength) ) * steplength;
-
-}
-
-//Define SmearSSignal() method
-//
-G4int HidraSimSignalHelper::SmearSSignal( const G4double& satde ) {
-    return G4Poisson(satde*9.5);        // Original
-    //return G4Poisson(satde*21.32);		// TB2023 
-}
-
-//Define SmearCSignal() method
-//
-G4int HidraSimSignalHelper::SmearCSignal( ){
-   // return G4Poisson(0.153);            // Original
-    return G4Poisson(0.243);            // TB2023
-
-}
-
-// Dummy functions to recover #phe from TB 
-G4int HidraSimSignalHelper::SmearSSignalOpticalPhoton( ) {
-    return G4Poisson(0.165);        
-    //return G4Poisson(satde*21.32);		// TB2023 
-}
-
-G4int HidraSimSignalHelper::SmearCSignalOpticalPhoton( ) {
-    return G4Poisson(0.850);        // try to recover #phe from tb
-}
-
-
-//Define GetDistanceToSiPM() method
-//
-G4double HidraSimSignalHelper::GetDistanceToSiPM(const G4Step* step) {
-
-    // Get the pre-step point
-    const G4StepPoint* preStepPoint = step->GetPreStepPoint();
-    // Get the global position of the pre-step point
-    G4ThreeVector globalPos = preStepPoint->GetPosition();
-    // Get the local position of the pre-step point in the current volume's coordinate system
-    G4ThreeVector localPos = preStepPoint->GetTouchableHandle()->GetHistory()->GetTopTransform().TransformPoint(globalPos);
-    // G4cout << "Local Position (X,Y,Z): (" << localPos.x()/CLHEP::mm << ", " << localPos.y()/CLHEP::mm << ", " << localPos.z()/CLHEP::mm << ") mm" << G4endl;
-
-    // Get the logical volume of the current step
-    G4LogicalVolume* currentVolume = preStepPoint->GetTouchableHandle()->GetVolume()->GetLogicalVolume();
-    // Get the solid associated with the logical volume
-    G4Tubs* solid = dynamic_cast<G4Tubs*>(currentVolume->GetSolid());
-    // Get the dimensions of the solid (size of the volume)
-    G4double size = solid->GetZHalfLength();
-
-    G4double distance_to_sipm = size - localPos.z();
-    return distance_to_sipm;
-
-}
-
-
-//Define AttenuateHelper() method
-G4int HidraSimSignalHelper::AttenuateHelper(const G4int& signal, const G4double& distance, const G4double& attenuation_length) {
-    double probability_of_survival = exp(-distance/attenuation_length);
-
-    G4int survived_photons = 0;
-    for (int i=0; i<signal; i++)
-    {
-        // Simulate drawing between 0 and 1 with probability x of getting 1
-        if (G4UniformRand() <= probability_of_survival) survived_photons++;
-    }
-
-    return survived_photons;
-
-}
-
-//Define AttenuateSSignal() method
-//
-G4int HidraSimSignalHelper::AttenuateSSignal(const G4int& signal, const G4double& distance) {
-	//const G4double SAttenuationLength = 191.6*CLHEP::cm; // from test beam data
-	const G4double SAttenuationLength = 700.0*CLHEP::cm; // from Bedeschi Datasheet
-	//const G4double SAttenuationLength = attenuation->Eval(att_length[8])*CLHEP::cm; // from Bedeschi Datasheet
-
-
-	//const G4double SAttenuationLength = 1.*CLHEP::km; // 
-
-    return AttenuateHelper(signal, distance, SAttenuationLength);    
-
-}
-
-//Define AttenuateCSignal() method
-//
-G4int HidraSimSignalHelper::AttenuateCSignal(const G4int& signal, const G4double& distance) {
-	//const G4double CAttenuationLength = 388.9*CLHEP::cm; // from test beam data
-	//const G4double CAttenuationLength = 2000.0*CLHEP::cm; // from test beam data
-	const G4double CAttenuationLength = 700.0*CLHEP::cm; // from test beam data
-
-	//const G4double CAttenuationLength = 1.*CLHEP::km; // 
-
-    return AttenuateHelper(signal, distance, CAttenuationLength);    
-    
-}
-
+/*
 //Define AttenuateSSignal() method
 //
 G4int HidraSimSignalHelper::AttenuateSSignalOverWL(const G4int& signal, const G4double& distance, const G4double& wavelength) {
@@ -293,6 +305,7 @@ G4double HidraSimSignalHelper::GetSsipmCorrection(const G4double& wavelength){
 G4double HidraSimSignalHelper::GetCsipmCorrection(const G4double& wavelength){
     return linearInterpolate(wavelengths, sipmC_correction, wavelength);
 }
+*/
 
 
-//**************************************************
+

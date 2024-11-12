@@ -44,8 +44,6 @@ class HidraSimCalorimeterSD : public G4VSensitiveDetector
 
   private:
     HidraSimCalorimeterHitsCollection* fHitsCollection;
-    //HidraSimCalorimeterHitsCollection* fSciHitsCollection;
-    //HidraSimCalorimeterHitsCollection* fCerHitsCollection;
 
     G4int collectionID;
     G4int fNofActiveFibers;

@@ -39,6 +39,7 @@ class HidraSimCalorimeterHit : public G4VHit
     void SetZcoord(G4double dz);
     void SetPhe(G4double dPhe);
     void SetEdep(G4double DEdep);
+    void AppendHit(G4double dPhe, G4double dZ);
 
 
     // get methods
@@ -47,6 +48,8 @@ class HidraSimCalorimeterHit : public G4VHit
     G4double GetZcoord();
     G4double GetPhe();
     G4double GetEdep();
+    std::vector<G4double> GetPheVec();
+    std::vector<G4double> GetZVec();
       
   private:
     G4int fSiPMID;        ///<ID of the hit fiber
@@ -54,6 +57,8 @@ class HidraSimCalorimeterHit : public G4VHit
     G4double fZcoord;        ///< Z coordinate of the Hit
     G4double fPhe;           // Photoelectrons associated to the hit
     G4double fEdep;          // Truth energy deposited in the hit
+    std::vector<G4double> fPheVec; // vector of photoelectrons produced in fibers
+    std::vector<G4double> fZVec; // vector of z positions at which photoelectrons are produced in the fiber
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -107,6 +112,14 @@ inline G4double HidraSimCalorimeterHit::GetEdep() {
   return fEdep; 
 }
 
+inline std::vector<G4double> HidraSimCalorimeterHit::GetPheVec(){
+  return fPheVec;
+}
+
+inline std::vector<G4double> HidraSimCalorimeterHit::GetZVec(){
+  return fZVec;
+}
+
 // Define Setters
 inline void HidraSimCalorimeterHit::SetSiPMID(G4int dSiPMID) {
   fSiPMID = dSiPMID;
@@ -126,6 +139,11 @@ inline void HidraSimCalorimeterHit::SetPhe(G4double dPhe) {
 
 inline void HidraSimCalorimeterHit::SetEdep(G4double dEdep) {
   fEdep = dEdep;
+}
+
+inline void HidraSimCalorimeterHit::AppendHit(G4double dPhe, G4double dZ){
+  fPheVec.push_back(dPhe);
+  fZVec.push_back(dZ);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
