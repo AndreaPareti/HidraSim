@@ -205,60 +205,69 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   for(int current_Shit=0; current_Shit<SnOfHitsCollections; current_Shit++)
   {
     auto ShitCollection = (*SfiberHC)[current_Shit];
-    fHitPheSvector.push_back(ShitCollection->GetPhe());
-    fHitZcoordSvector.push_back(ShitCollection->GetZcoord());
-    fHitSiPMIDSvector.push_back(ShitCollection->GetSiPMID());
     
     std::vector<G4double> fiberPheVec = ShitCollection->GetPheVec();
     std::vector<G4double> fiberZVec = ShitCollection->GetZVec();
     std::vector<G4double> SfiberTimes;
 
-    if(fiberPheVec.size()>0){
-      G4cout << "S Fiber n " << current_Shit << "\tID: " << ShitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
+    if(fiberPheVec.size()>0)
+    {
+      //G4cout << "S Fiber n " << current_Shit << "\tID: " << ShitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
       for(int i=0; i<fiberPheVec.size(); i++){
         G4int NofPhe = fiberPheVec.at(i);
         for(int j=0; j<NofPhe; j++){
         G4double distance_to_sipm = moduleZ/2 - fiberZVec.at(i);
         G4double time = distance_to_sipm/vS;
-        G4cout << "Position: " << fiberZVec.at(i) << "\tDistance to SiPM: " << distance_to_sipm << "\tTime: " << time <<  "\n";
+        //G4cout << "Position: " << fiberZVec.at(i) << "\tDistance to SiPM: " << distance_to_sipm << "\tTime: " << time <<  "\n";
         SfiberTimes.push_back(time);  // Array of photon timings to input to SimSiPM
         }
       }
-      G4cout << G4endl;
-      
-    }
+      //G4cout << G4endl;
 
+      if(SfiberTimes.size() > 0){
+        // Dummy information to be changed after SiPM sim
+        fHitPheSvector.push_back(SfiberTimes.size());     // fill with total number of phe
+        fHitZcoordSvector.push_back(SfiberTimes.at(0));   // fill with arrival time of first phe
+        fHitSiPMIDSvector.push_back(current_Shit);        // fiber ID
+      }
+    }
   }
-  assert(fHitPheSvector.size() == fHitZcoordSvector.size());
 
   // Get individual hits in C fibers
   for(int current_Chit=0; current_Chit<CnOfHitsCollections; current_Chit++)
   {
     auto ChitCollection = (*CfiberHC)[current_Chit];
-    fHitPheCvector.push_back(ChitCollection->GetPhe());
-    fHitZcoordCvector.push_back(ChitCollection->GetZcoord());
-    fHitSiPMIDCvector.push_back(ChitCollection->GetSiPMID());
+    //fHitPheCvector.push_back(ChitCollection->GetPhe());
+    //fHitZcoordCvector.push_back(ChitCollection->GetZcoord());
+    //fHitSiPMIDCvector.push_back(ChitCollection->GetSiPMID());
 
     std::vector<G4double> fiberPheVec = ChitCollection->GetPheVec();
     std::vector<G4double> fiberZVec = ChitCollection->GetZVec();
     std::vector<G4double> CfiberTimes;
 
-    if(fiberPheVec.size()>0){
-      G4cout << "C Fiber n " << current_Chit << "\tID: " << ChitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
+    if(fiberPheVec.size()>0)
+    {
+      //G4cout << "C Fiber n " << current_Chit << "\tID: " << ChitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
         for(int i=0; i<fiberPheVec.size(); i++){
           G4int NofPhe = fiberPheVec.at(i);
           for(int j=0; j<NofPhe; j++){
           G4double distance_to_sipm = moduleZ/2 - fiberZVec.at(i);
           G4double time = distance_to_sipm/vC;
-          G4cout << "Position: " << fiberZVec.at(i) << "\tDistance to SiPM: " << distance_to_sipm << "\tTime: " << time <<  "\n";
+          //G4cout << "Position: " << fiberZVec.at(i) << "\tDistance to SiPM: " << distance_to_sipm << "\tTime: " << time <<  "\n";
           CfiberTimes.push_back(time);  // Array of photon timings to input to SimSiPM
           }
         }
-        G4cout << G4endl;
-    
+        //G4cout << G4endl;
+
+
+      if(CfiberTimes.size()>0){
+        // Dummy information to be changed after SiPM sim
+        fHitPheCvector.push_back(CfiberTimes.size());     // fill with total number of phe
+        fHitZcoordCvector.push_back(CfiberTimes.at(0));   // fill with arrival time of first phe
+        fHitSiPMIDCvector.push_back(current_Chit);        // fiber ID
+      }
     }
   }
-  assert(fHitPheCvector.size() == fHitZcoordCvector.size());
   
 
 
