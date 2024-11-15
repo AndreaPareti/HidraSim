@@ -94,7 +94,7 @@ class HidraSimDetectorConstruction : public G4VUserDetectorConstruction {
 	G4int GetTowerID( const G4int& cpno ) const;
     G4int GetSiPMID(const G4int& cpno ) const; 
 	G4int GetSiPMTower(const G4int& town ) const;
-       
+    G4int GetLeakCntID( const G4int& lcno ) const;  
         //
 	//  Build contour in x-y plane of a module as 
 	//  an hexcell shape
@@ -149,6 +149,11 @@ inline G4int HidraSimDetectorConstruction::GetSiPMTower( const G4int& town ) con
       if(town==SiPMMod[i])SiPMTower=i;
     }
     return SiPMTower;		
+}
+
+inline G4int HidraSimDetectorConstruction::GetLeakCntID( const G4int& lcno ) const {
+// kept for compatibility with old simulation. Dummy for now
+    return lcno;		
 }
 
 inline const G4VPhysicalVolume* HidraSimDetectorConstruction::GetLeakCntPV() const {

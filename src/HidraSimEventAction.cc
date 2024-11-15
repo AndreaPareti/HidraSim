@@ -13,6 +13,7 @@
 #include "HidraSimRunAction.hh"
 #include "HidraSimDetectorConstruction.hh"
 #include "G4HCofThisEvent.hh"
+//#include "HidraSimGeoPar.hh"
 
 //includers for calorimeter hits
 #include "G4SDManager.hh"
@@ -33,6 +34,7 @@
 //
 #include <iomanip>
 #include <vector>
+#include<numeric>
 
 // Include SiPM EndOfEvent action
 //#include "sipm/SiPMProperties.h"
@@ -63,6 +65,7 @@ HidraSimEventAction::HidraSimEventAction()
     VecSPMT(0.),
     VecCPMT(0.),
     VecTowerE(0.),
+    VecLeakCounter(0.),
     fSfiberHCID(-1),
     fCfiberHCID(-1)
     {
@@ -93,32 +96,6 @@ HidraSimEventAction::GetHitsCollection(G4int hcID,
 }    
 
 
-
-//void HidraSimEventAction::PrintEventStatistics(
-//                              G4double SPhe, G4double SZcoord, G4int SSiPMID,
-//                              G4double CPhe, G4double CZcoord, G4int CSiPMID) const
-//{
-  // print event statistics
-  /*G4cout
-     << "   Sfiber Total Photoelectrons: " 
-     << std::setw(7) << G4BestUnit(SPhe, "eplus")
-     << "       Sfiber Z coord: " 
-     << std::setw(7) << G4BestUnit(SZcoord, "Length")
-     << G4endl
-     << "        S fiber ID: " 
-     << std::setw(7) << G4BestUnit(SSiPMID, "eplus")
-     << "       Cfiber total eergty: " 
-     << std::setw(7) << G4BestUnit(CPhe, "eplus")
-     << G4endl;*/
-//     G4cout << std::setw(7) << "Total photoelectrons in S fibers: " << SPhe << G4endl;
-//     G4cout << std::setw(7) << "Depth: " << SZcoord << G4endl;
-//}
-
-
-
-
-
-
 //Define BeginOfEventAction() and EndOfEventAction() methods
 //
 void HidraSimEventAction::BeginOfEventAction(const G4Event*) {  
@@ -144,6 +121,7 @@ void HidraSimEventAction::BeginOfEventAction(const G4Event*) {
     VecSPMT.clear();
     VecCPMT.clear();
     VecTowerE.clear();
+    VecLeakCounter.clear();
     fHitPheSvector.clear();
     fHitZcoordSvector.clear();
     fHitSiPMIDSvector.clear();
@@ -157,6 +135,7 @@ void HidraSimEventAction::BeginOfEventAction(const G4Event*) {
     VecSPMT.assign(NoModulesActive, 0.);
     VecCPMT.assign(NoModulesActive, 0.);
     VecTowerE.assign(NoModulesActive, 0.);
+    VecLeakCounter.assign(4*NofLeakCounterLayers+1, 0.);
     fHitPheSvector.assign(fHitPheSvector.size(), 0.);
     fHitZcoordSvector.assign(fHitZcoordSvector.size(), 0.);
     fHitSiPMIDSvector.assign(fHitSiPMIDSvector.size(), 0.);
@@ -185,6 +164,34 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
       = G4SDManager::GetSDMpointer()->GetCollectionID("CfiberHitsCollection");
   }
 
+  //get hits collections IDs
+  G4HCofThisEvent* hce = event->GetHCofThisEvent();
+  //if (!hce) return;
+
+  if (hce) {
+        // Get the number of hit collections
+        G4int numberOfHitCollections = hce->GetNumberOfCollections();
+        //G4cout << "Number of hit collections: " << numberOfHitCollections << G4endl;
+
+        // Optionally, loop over hit collections and print their names
+        //for (G4int i = 0; i < numberOfHitCollections; i++) {
+        //    G4VHitsCollection* hitsCollection = hce->GetHC(i);
+        //    if (hitsCollection) {
+        //        G4cout << "Hit collection " << i << " name: " << hitsCollection->GetName() << G4endl;
+        //    }
+        //}
+    } else {
+       G4cout << "No hit collections in this event." << G4endl;
+    }
+
+
+
+  G4double rindexScin = 1.59;
+  G4double rindexCher = 1.49;
+  G4double c = 0.2998; // speed of light in mm / ps
+  G4double vS = c/rindexScin;   // photon velocity in S fibers
+  G4double vC = c/rindexCher;
+
   // Get hits collections
   auto SfiberHC = GetHitsCollection(fSfiberHCID, event);
   auto CfiberHC = GetHitsCollection(fCfiberHCID, event);
@@ -198,24 +205,70 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   for(int current_Shit=0; current_Shit<SnOfHitsCollections; current_Shit++)
   {
     auto ShitCollection = (*SfiberHC)[current_Shit];
-    fHitPheSvector.push_back(ShitCollection->GetPhe());
-    fHitZcoordSvector.push_back(ShitCollection->GetZcoord());
-    fHitSiPMIDSvector.push_back(ShitCollection->GetSiPMID());
-    //G4cout << "Hit number: " << current_Shit << "\tphe" << HitPhe << "\tZcoord: " << HitZ << "\tSiPM: " << HitFiber << G4endl;
+    
+    std::vector<G4double> fiberPheVec = ShitCollection->GetPheVec();
+    std::vector<G4double> fiberZVec = ShitCollection->GetZVec();
+    std::vector<G4double> SfiberTimes;
+
+    if(fiberPheVec.size()>0)
+    {
+      //G4cout << "S Fiber n " << current_Shit << "\tID: " << ShitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
+      for(int i=0; i<fiberPheVec.size(); i++){
+        G4int NofPhe = fiberPheVec.at(i);
+        for(int j=0; j<NofPhe; j++){
+        G4double distance_to_sipm = moduleZ/2 - fiberZVec.at(i);
+        G4double time = distance_to_sipm/vS;
+        //G4cout << "Position: " << fiberZVec.at(i) << "\tDistance to SiPM: " << distance_to_sipm << "\tTime: " << time <<  "\n";
+        SfiberTimes.push_back(time);  // Array of photon timings to input to SimSiPM
+        }
+      }
+      //G4cout << G4endl;
+
+      if(SfiberTimes.size() > 0){
+        // Dummy information to be changed after SiPM sim
+        fHitPheSvector.push_back(SfiberTimes.size());     // fill with total number of phe
+        fHitZcoordSvector.push_back(SfiberTimes.at(0));   // fill with arrival time of first phe
+        fHitSiPMIDSvector.push_back(current_Shit);        // fiber ID
+      }
+    }
   }
-  assert(fHitPheSvector.size() == fHitZcoordSvector.size());
 
   // Get individual hits in C fibers
   for(int current_Chit=0; current_Chit<CnOfHitsCollections; current_Chit++)
   {
     auto ChitCollection = (*CfiberHC)[current_Chit];
-    fHitPheCvector.push_back(ChitCollection->GetPhe());
-    fHitZcoordCvector.push_back(ChitCollection->GetZcoord());
-    fHitSiPMIDCvector.push_back(ChitCollection->GetSiPMID());
-    //G4cout << "Hit number: " << current_Chit << "\tphe" << HitPhe << "\tZcoord: " << HitZ << "\tCiPM: " << HitFiber << G4endl;
-  }
-  assert(fHitPheCvector.size() == fHitZcoordCvector.size());
+    //fHitPheCvector.push_back(ChitCollection->GetPhe());
+    //fHitZcoordCvector.push_back(ChitCollection->GetZcoord());
+    //fHitSiPMIDCvector.push_back(ChitCollection->GetSiPMID());
 
+    std::vector<G4double> fiberPheVec = ChitCollection->GetPheVec();
+    std::vector<G4double> fiberZVec = ChitCollection->GetZVec();
+    std::vector<G4double> CfiberTimes;
+
+    if(fiberPheVec.size()>0)
+    {
+      //G4cout << "C Fiber n " << current_Chit << "\tID: " << ChitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
+        for(int i=0; i<fiberPheVec.size(); i++){
+          G4int NofPhe = fiberPheVec.at(i);
+          for(int j=0; j<NofPhe; j++){
+          G4double distance_to_sipm = moduleZ/2 - fiberZVec.at(i);
+          G4double time = distance_to_sipm/vC;
+          //G4cout << "Position: " << fiberZVec.at(i) << "\tDistance to SiPM: " << distance_to_sipm << "\tTime: " << time <<  "\n";
+          CfiberTimes.push_back(time);  // Array of photon timings to input to SimSiPM
+          }
+        }
+        //G4cout << G4endl;
+
+
+      if(CfiberTimes.size()>0){
+        // Dummy information to be changed after SiPM sim
+        fHitPheCvector.push_back(CfiberTimes.size());     // fill with total number of phe
+        fHitZcoordCvector.push_back(CfiberTimes.at(0));   // fill with arrival time of first phe
+        fHitSiPMIDCvector.push_back(current_Chit);        // fiber ID
+      }
+    }
+  }
+  
 
 
 
@@ -224,12 +277,8 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   auto eventID = event->GetEventID();
   //auto printModulo = G4RunManager::GetRunManager()->GetPrintProgress();
   //if ( ( printModulo > 0 ) && ( eventID % printModulo == 0 ) ) {
-    G4cout << "---> End of event: " << eventID << G4endl;     
+  G4cout << "---> End of event: " << eventID << G4endl;     
 
-  //PrintEventStatistics(
-  //  SfiberHit->GetPhe(), SfiberHit->GetZcoord(), SfiberHit->GetSiPMID(),
-  //  CfiberHit->GetPhe(), CfiberHit->GetZcoord(), CfiberHit->GetSiPMID());
-  //}  
 
 
   //Add all p.e. in Scin and Cher fibers before calibration

@@ -66,6 +66,7 @@ HidraSimRunAction::HidraSimRunAction( HidraSimEventAction* eventAction )
     analysisManager->CreateNtupleDColumn("VecTowerE", fEventAction->GetVecTowerE());
     analysisManager->CreateNtupleDColumn("VecSPMT", fEventAction->GetVecSPMT());
     analysisManager->CreateNtupleDColumn ("VecCPMT", fEventAction->GetVecCPMT());
+    analysisManager->CreateNtupleDColumn ("VecLeakCounter", fEventAction->GetVecLeakCounter());
     analysisManager->CreateNtupleDColumn("HitPheSvector", fEventAction->GetHitPheSvector());
     analysisManager->CreateNtupleDColumn("HitZcoordSvector", fEventAction->GetHitZcoordSvector());
     analysisManager->CreateNtupleIColumn("HitSiPMIDSvector", fEventAction->GetHitSiPMIDSvector());

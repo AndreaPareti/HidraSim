@@ -22,6 +22,7 @@ HidraSimCalorimeterSD::HidraSimCalorimeterSD(
    fHitsCollection(nullptr),
    fNofActiveFibers(nofActiveFibers)
 {
+  G4cout << "Creating SD with name: " << name << "\t and hits collection: " << hitsCollectionName << G4endl;
   collectionName.insert(hitsCollectionName);
 }
 
@@ -38,19 +39,16 @@ void HidraSimCalorimeterSD::Initialize(G4HCofThisEvent* hce)
   // Create hits collection
   fHitsCollection = new HidraSimCalorimeterHitsCollection(SensitiveDetectorName, collectionName[0]); 
 
+
   // Add this collection in hce
   auto hcID 
     = G4SDManager::GetSDMpointer()->GetCollectionID(collectionName[0]);
   hce->AddHitsCollection( hcID, fHitsCollection ); 
 
-  // Create hits
-  // fNofActiveFibers for ActiveFibers + one more for total sums 
-  //for (G4int i=0; i<fNofActiveFibers+1; i++ ) {
-  //fHitsCollection->insert(new HidraSimCalorimeterHit());
-  //}
-  //for (G4int i=0; i<fNofActiveFibers; i++ ) {
-  //fHitsCollection->insert(new HidraSimCalorimeterHit());
-  //}
+  // Create and register the first hit collection
+  for(G4int fiber=0; fiber<fNofActiveFibers; fiber++){   
+        fHitsCollection->insert(new HidraSimCalorimeterHit());
+  }      
 }
 
 
@@ -73,6 +71,7 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
   G4int TowerID;
   G4int SiPMTower;
 
+  //G4cout << "\tStarted processing hits\n" << G4endl;
 
   /*****************************************************************/
   /************************* Cerenkov ******************************/
@@ -118,7 +117,11 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
                     G4StepPoint *preStepPoint = step->GetPreStepPoint();
                     G4ThreeVector position = preStepPoint->GetPosition();                
                     G4int SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-                    auto hit  = new HidraSimCalorimeterHit();
+                    //auto hit  = new HidraSimCalorimeterHit();
+                    // Get hit accounting data for this cell
+                    //auto hit = (*fHitsCollection)[SiPMID];                    
+                    auto hit = (*fHitsCollection)[NofFibersrow*NofFiberscolumn*SiPMTower/2 + SiPMID];                    
+
                     if ( ! hit ) {
                       G4ExceptionDescription msg;
                       msg << "Cannot access hit " ; 
@@ -126,13 +129,17 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
                         "MyCode0004", FatalException, msg);
                     }         
 
-                    hit->SetZcoord(position.z());
-                    hit->SetTowerID(TowerID);
-                    hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2);      // Count fibers only in SiPM-mounted towers
+                    //hit->SetZcoord(position.z());
+                    //hit->SetTowerID(TowerID);
+                    //hit->SetSiPMID(SiPMID);
+                    //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2);      // Count fibers only in SiPM-mounted towers
                     //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*TowerID/2);          // Count fibers in all towers
-                    hit->SetPhe(c_signal);
+                    //hit->SetPhe(c_signal);
+                    hit->AppendHit(c_signal, position.z());
+                    
                     // Add values
-                    fHitsCollection->insert(hit);
+                    //fHitsCollection->insert(hit);
+                    //fHitsCollection[SiPMID]->insert(hit);
 
                     return true;
                 }
@@ -180,7 +187,10 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
             // Get calorimeter cell id 
             //auto hit = (*fHitsCollection)[SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2];
             
-            auto hit  = new HidraSimCalorimeterHit();
+            //auto hit  = new HidraSimCalorimeterHit();
+            // Get hit accounting data for this cell
+            //auto hit = (*fHitsCollection)[SiPMID];
+            auto hit = (*fHitsCollection)[NofFibersrow*NofFiberscolumn*SiPMTower/2 + SiPMID];
 
             if ( ! hit ) {
               G4ExceptionDescription msg;
@@ -192,14 +202,18 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
 
 
             
-            hit->SetZcoord(position.z());
-            hit->SetTowerID(TowerID);
-            hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2);      // Count fibers only in SiPM-mounted towers
+            //hit->SetZcoord(position.z());
+            //hit->SetTowerID(TowerID);
+            //hit->SetSiPMID(SiPMID);
+            //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2);      // Count fibers only in SiPM-mounted towers
             //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*TowerID/2);          // Count fibers in all towers
-            hit->SetPhe(signalhit);
+            //hit->SetPhe(signalhit);
+
+            //G4cout << "Appending hit: sipmID: " << SiPMID << "\t phe: " << signalhit << G4endl; 
+            hit->AppendHit(signalhit, position.z());
           
 
-            fHitsCollection->insert(hit);
+            //fHitsCollection[SiPMID].insert(hit);
             return true;
           }
           else{return false;}
@@ -210,11 +224,9 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
       return false;
     }
 
-    
 
 
-
-   // if scintillating fiber, but none of previous cases has been run, do not fill anything and return
+    // if scintillating fiber, but none of previous cases has been run, do not fill anything and return
     return false; 
   } //end Scintillating fiber case
 
