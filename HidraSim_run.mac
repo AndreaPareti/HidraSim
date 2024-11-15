@@ -16,7 +16,8 @@
 /vis/filtering/trajectories/create/particleFilter
 /vis/filtering/trajectories/particleFilter-0/add e-
 /vis/filtering/trajectories/particleFilter-0/add e+
-/gps/particle mu+
+/gps/particle e+
+#/gps/particle mu+
 #/gps/particle gamma
 #/gps/particle pi0
 /gps/direction 0 0 1
