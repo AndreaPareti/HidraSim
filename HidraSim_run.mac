@@ -3,10 +3,12 @@
 # Select test-beam platform shift and rotation (with units)
 #
 # Module height: 28.3 mm; width: 128 mm
+# Default coordinates are set to shoot at T00 
+# (TB24) central tower
 #
 /tbgeo/xshift +61.20 mm
 /tbgeo/yshift +32.90 mm
-/tbgeo/horizrot 90 deg
+/tbgeo/horizrot 2.5 deg
 /tbgeo/vertrot 2.5 deg
 #
 #
@@ -14,15 +16,14 @@
 /vis/filtering/trajectories/create/particleFilter
 /vis/filtering/trajectories/particleFilter-0/add e-
 /vis/filtering/trajectories/particleFilter-0/add e+
-/gps/particle e+
+/gps/particle mu+
 #/gps/particle gamma
 #/gps/particle pi0
 /gps/direction 0 0 1
 /gps/position 0 0 -200 cm
-#/gps/position 0 0 -700 cm
 /gps/pos/type Plane
 /gps/pos/shape Circle
-/gps/pos/radius 1. cm
+/gps/pos/radius 2. cm
 
 #Run 0
 #/gps/energy 20. GeV
@@ -30,7 +31,7 @@
 
 
 #Run 0
-/gps/energy 10. GeV
-/run/beamOn 100
+/gps/energy 120. GeV
+/run/beamOn 1000
 
 
