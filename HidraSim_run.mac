@@ -25,13 +25,9 @@
 /gps/pos/shape Circle
 /gps/pos/radius 2. cm
 
-#Run 0
-#/gps/energy 20. GeV
-#/run/beamOn 20000
-
 
 #Run 0
-/gps/energy 120. GeV
-/run/beamOn 1000
+/gps/energy 10. GeV
+/run/beamOn 100
 
 
