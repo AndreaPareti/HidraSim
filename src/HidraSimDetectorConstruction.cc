@@ -548,62 +548,63 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
 
     //Preshower
     //
-    
-    auto PSSolid = new G4Box("Preshower", PSX/2., PSY/2., PSZ/2.);
+    if(PreShowerIn)
+    {
+      auto PSSolid = new G4Box("Preshower", PSX/2., PSY/2., PSZ/2.);
 
-    auto PSLV = new G4LogicalVolume(PSSolid, defaultMaterial, "Preshower");
+      auto PSLV = new G4LogicalVolume(PSSolid, defaultMaterial, "Preshower");
 
-    new G4PVPlacement( 0, 
-		       //G4ThreeVector(0.,0.,-335.*cm),
-		       //G4ThreeVector(0.,0.,-moduleZ/2 - 15.5*cm),
-           // This should be corrected with TB setup; note that PS position should be outside calo box, otherwise data is not saved           
-		       //G4ThreeVector(0.,0.,-caloZ - 60*cm), 
-		       //G4ThreeVector(0.,0.,-caloZ - 150.*cm), 
-		       G4ThreeVector(0.,0.,-caloZ - 70.*cm), 
+      new G4PVPlacement( 0, 
+            //G4ThreeVector(0.,0.,-335.*cm),
+            //G4ThreeVector(0.,0.,-moduleZ/2 - 15.5*cm),
+            // This should be corrected with TB setup; note that PS position should be outside calo box, otherwise data is not saved           
+            //G4ThreeVector(0.,0.,-caloZ - 60*cm), 
+            //G4ThreeVector(0.,0.,-caloZ - 150.*cm), 
+            G4ThreeVector(0.,0.,-caloZ - 70.*cm), 
 
-		       PSLV,
-		       "Preshower",
-		       worldLV,
-		       false,
-		       0,
-		       fCheckOverlaps);	 
+            PSLV,
+            "Preshower",
+            worldLV,
+            false,
+            0,
+            fCheckOverlaps);	 
 
-    auto PSLeadSolid = new G4Box("Preshower_pb", PSX/2., PSY/2., PSZ/4.);
+      auto PSLeadSolid = new G4Box("Preshower_pb", PSX/2., PSY/2., PSZ/4.);
 
-    auto PSLeadLV = new G4LogicalVolume(PSLeadSolid, LeadMaterial, "Preshower_pb");
+      auto PSLeadLV = new G4LogicalVolume(PSLeadSolid, LeadMaterial, "Preshower_pb");
 
-    new G4PVPlacement( 0, 
-		       G4ThreeVector(0.,0.,-PSZ/4.),
-		       PSLeadLV,
-		       "Preshower_pb",
-		       PSLV,
-		       false,
-		       0,
-		       fCheckOverlaps);	 
+      new G4PVPlacement( 0, 
+            G4ThreeVector(0.,0.,-PSZ/4.),
+            PSLeadLV,
+            "Preshower_pb",
+            PSLV,
+            false,
+            0,
+            fCheckOverlaps);	 
 
-    G4VisAttributes* PbVisAtt = new G4VisAttributes( G4Colour::Grey() );
-    PbVisAtt->SetVisibility(true);
-    PbVisAtt->SetForceSolid(true);
-    PSLeadLV->SetVisAttributes( PbVisAtt );
+      G4VisAttributes* PbVisAtt = new G4VisAttributes( G4Colour::Grey() );
+      PbVisAtt->SetVisibility(true);
+      PbVisAtt->SetForceSolid(true);
+      PSLeadLV->SetVisAttributes( PbVisAtt );
 
-    auto PSScinSolid = new G4Box("Preshower_scin", PSX/2., PSY/2., PSZ/4.);
+      auto PSScinSolid = new G4Box("Preshower_scin", PSX/2., PSY/2., PSZ/4.);
 
-    auto PSScinLV = new G4LogicalVolume(PSScinSolid, PSScinMaterial, "Preshower_scin");
+      auto PSScinLV = new G4LogicalVolume(PSScinSolid, PSScinMaterial, "Preshower_scin");
 
-    new G4PVPlacement( 0, 
-          G4ThreeVector(0.,0.,PSZ/4.),
-                      PSScinLV,
-                "Preshower_scin",
-                      PSLV,
-                      false,	
-                      0,
-                      fCheckOverlaps);	 
+      new G4PVPlacement( 0, 
+            G4ThreeVector(0.,0.,PSZ/4.),
+                        PSScinLV,
+                  "Preshower_scin",
+                        PSLV,
+                        false,	
+                        0,
+                        fCheckOverlaps);	 
 
-    G4VisAttributes* PSScinVisAtt = new G4VisAttributes( G4Colour::Cyan() );
-    PSScinVisAtt->SetVisibility(true);
-    PSScinLV->SetVisAttributes( PSScinVisAtt );
-
-    // End Preshower
+      G4VisAttributes* PSScinVisAtt = new G4VisAttributes( G4Colour::Cyan() );
+      PSScinVisAtt->SetVisibility(true);
+      PSScinLV->SetVisAttributes( PSScinVisAtt );
+      // End Preshower
+    }
 
 
 
@@ -723,8 +724,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     //
     //  Build closed tube for detailed leakage study
     //
-    // Commented leakage counters to allow for 90 degree rotation 
-    
+    // Commented leakage counters to allow for 90 degree rotation   
     if(TruthLeakageIn)
     {
       //G4double leakradint=sqrt(caloX*caloX+caloY*caloY)*2.1;	// Added *1.2 wrt Giacomo's
@@ -1172,18 +1172,18 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
 
 
   if(TailCatcherIn){
-  G4ThreeVector tailCatcherPosition; tailCatcherPosition.setX(fXshift); tailCatcherPosition.setY(fYshift); tailCatcherPosition.setZ(caloZ + leakBoxY/2 + tailCatcherDist);
-  G4RotationMatrix tailrotm;
-  tailrotm.rotateX(90*deg);  
-  G4Transform3D transform_tailCatcherBox = G4Transform3D(tailrotm, tailCatcherPosition);
-  G4LogicalVolume* tailCatcherBoxLV = new G4LogicalVolume(leakBoxS, ScinMaterial, "leakbox");
-  G4VisAttributes* tailCatcherBoxVisAtt = new G4VisAttributes(G4Colour(0.9,0,0.0));
-  tailCatcherBoxVisAtt->SetVisibility(true);
-  tailCatcherBoxVisAtt->SetForceWireframe(true);
-  tailCatcherBoxVisAtt->SetForceSolid(true);
-  tailCatcherBoxLV->SetVisAttributes(tailCatcherBoxVisAtt);
-  //new G4PVPlacement(transform_tailCatcherBox, tailCatcherBoxLV, "tailCatcherBox", CalorimeterLV, false, 0, fCheckOverlaps);
-  new G4PVPlacement(transform_tailCatcherBox, tailCatcherBoxLV, "leakbox", worldLV, false, 4*NofLeakCounterLayers, fCheckOverlaps);
+    G4ThreeVector tailCatcherPosition; tailCatcherPosition.setX(fXshift); tailCatcherPosition.setY(fYshift); tailCatcherPosition.setZ(caloZ + leakBoxY/2 + tailCatcherDist);
+    G4RotationMatrix tailrotm;
+    tailrotm.rotateX(90*deg);  
+    G4Transform3D transform_tailCatcherBox = G4Transform3D(tailrotm, tailCatcherPosition);
+    G4LogicalVolume* tailCatcherBoxLV = new G4LogicalVolume(leakBoxS, ScinMaterial, "leakbox");
+    G4VisAttributes* tailCatcherBoxVisAtt = new G4VisAttributes(G4Colour(0.9,0,0.0));
+    tailCatcherBoxVisAtt->SetVisibility(true);
+    tailCatcherBoxVisAtt->SetForceWireframe(true);
+    tailCatcherBoxVisAtt->SetForceSolid(true);
+    tailCatcherBoxLV->SetVisAttributes(tailCatcherBoxVisAtt);
+    //new G4PVPlacement(transform_tailCatcherBox, tailCatcherBoxLV, "tailCatcherBox", CalorimeterLV, false, 0, fCheckOverlaps);
+    new G4PVPlacement(transform_tailCatcherBox, tailCatcherBoxLV, "leakbox", worldLV, false, 4*NofLeakCounterLayers, fCheckOverlaps);
   }
 
 

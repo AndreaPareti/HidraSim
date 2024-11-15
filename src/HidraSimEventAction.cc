@@ -171,7 +171,7 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   if (hce) {
         // Get the number of hit collections
         G4int numberOfHitCollections = hce->GetNumberOfCollections();
-        G4cout << "Number of hit collections: " << numberOfHitCollections << G4endl;
+        //G4cout << "Number of hit collections: " << numberOfHitCollections << G4endl;
 
         // Optionally, loop over hit collections and print their names
         //for (G4int i = 0; i < numberOfHitCollections; i++) {
