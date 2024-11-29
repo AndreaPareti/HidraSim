@@ -116,6 +116,9 @@ void HidraAna(double energy, const string intup){
   double bmax=energy+0.4*sqrt(energy)*10.;
   double bmin_val = (0 > bmin) ? 0 : bmin; // Get the maximum value
 
+  // for muons
+  //bmin_val = 0;
+
   int blow = int(bmin)+100;
   auto sciene = new TH1F("sciene", "Reco E_{S}; E [GeV]; Counts",100, bmin_val,bmax); 
   auto cerene = new TH1F("cerene", "Reco E_{C}; E [GeV]; Counts",100, bmin_val,bmax); 
@@ -234,8 +237,8 @@ void HidraAna(double energy, const string intup){
       unsigned int towID = static_cast<unsigned int>( N/(NofFiberscolumn*NofFibersrow/2) );
       unsigned int SiPMID = N%(NofFiberscolumn*NofFibersrow/2);
       unsigned int colID = static_cast<unsigned int>(SiPMID/(NofFibersrow/2));
-      unsigned int rowID = 2*static_cast<unsigned int>(SiPMID%(NofFibersrow/2)) + 1; 
-      SipmMapC->Fill( modcol[towID]*NofFiberscolumn + colID, modrow[towID]*NofFibersrow+rowID, content); 
+      unsigned int rowID = 2*static_cast<unsigned int>(SiPMID%(NofFibersrow/2)); 
+      SipmMapC->Fill( modcol[towID]*NofFiberscolumn + colID, modrow[towID]*NofFibersrow+rowID+1, content); 
     }    
 
     double tot_leakCount=0;
@@ -245,7 +248,7 @@ void HidraAna(double energy, const string intup){
 
     }  
     LeakCounterSum->Fill(tot_leakCount/1000);
-    TailCatcher->Fill(LeakCounter->at(16)/1000);
+    TailCatcher->Fill(LeakCounter->back()/1000);
 
     alb_energy = (venergy-edep-totleak)/energy/1000;    
     sciene->Fill(totsci);    
@@ -290,7 +293,7 @@ void HidraAna(double energy, const string intup){
     double CerBarX=0.;
     double CerBarY=0;
 
-    LeakProfile->Fill(edep/1000, (tot_leakCount+LeakCounter->at(16))/1000 );
+    LeakProfile->Fill(edep/1000, (tot_leakCount+LeakCounter->back())/1000 );
 
 
   //break;
@@ -328,7 +331,7 @@ void HidraAna(double energy, const string intup){
   // Fit total S energy
   TF1 *fit_sciene; double peak_sciene, epeak_sciene, rms_sciene, erms_sciene;
   TFitResultPtr is_sciene_fit = sciene->Fit("gaus","QS","", bmin_val, bmax); 
-  if(is_sciene_fit->IsValid()){
+  if(is_sciene_fit.Get() != nullptr){
     fit_sciene = sciene->GetFunction("gaus");
     peak_sciene = fit_sciene->GetParameter(1);
     epeak_sciene = fit_sciene->GetParError(1);
@@ -339,7 +342,7 @@ void HidraAna(double energy, const string intup){
   // Fit total C energy
   TF1 *fit_cerene; double peak_cerene, epeak_cerene, rms_cerene, erms_cerene;
   TFitResultPtr is_cerene_fit = cerene->Fit("gaus","QS","", bmin_val, bmax); 
-  if(is_cerene_fit->IsValid()){
+  if(is_cerene_fit.Get() != nullptr){
     fit_cerene = cerene->GetFunction("gaus");
     peak_cerene = fit_cerene->GetParameter(1);
     epeak_cerene = fit_cerene->GetParError(1);
@@ -350,7 +353,7 @@ void HidraAna(double energy, const string intup){
   // Fit combined energy (S+C)/2
   TF1 *fit_totene; double peak_totene, epeak_totene, rms_totene, erms_totene;
   TFitResultPtr is_totene_fit = totene->Fit("gaus","QS","", bmin_val, bmax); 
-  if(is_totene_fit->IsValid()){
+  if(is_totene_fit.Get() != nullptr){
     fit_totene = totene->GetFunction("gaus");
     peak_totene = fit_totene->GetParameter(1);
     epeak_totene = fit_totene->GetParError(1);
@@ -361,7 +364,7 @@ void HidraAna(double energy, const string intup){
   // Fit dual-readout 
   TF1 *fit_drene; double peak_drene, epeak_drene, rms_drene, erms_drene;
   TFitResultPtr is_drene_fit = drene->Fit("gaus","QS","", bmin_val, bmax); 
-  if(is_drene_fit->IsValid()){
+  if(is_drene_fit.Get() != nullptr){
     fit_drene = drene->GetFunction("gaus");
     peak_drene = fit_drene->GetParameter(1);
     epeak_drene = fit_drene->GetParError(1);
@@ -373,7 +376,7 @@ void HidraAna(double energy, const string intup){
   // Fit S, C and DR but corrected for estimated containment for pions
   TF1 *fit_scienec; double peak_scienec, epeak_scienec, rms_scienec, erms_scienec;
   TFitResultPtr is_scienec_fit = scienec->Fit("gaus","Q S","", bmin_val, bmax); 
-  if(is_scienec_fit->IsValid()){
+  if(is_scienec_fit.Get() != nullptr){
     fit_scienec = scienec->GetFunction("gaus");
     peak_scienec = fit_scienec->GetParameter(1);
     epeak_scienec = fit_scienec->GetParError(1);
@@ -384,7 +387,7 @@ void HidraAna(double energy, const string intup){
 
   TF1 *fit_C; double peak_C, epeak_C, rms_C, erms_C;
   TFitResultPtr is_C_fit = cerenec->Fit("gaus","Q S","", bmin_val, bmax); 
-  if(is_C_fit->IsValid()){
+  if(is_C_fit.Get() != nullptr){
   fit_C = cerenec->GetFunction("gaus");
   peak_C = fit_C->GetParameter(1);
   epeak_C = fit_C->GetParError(1);
@@ -395,7 +398,7 @@ void HidraAna(double energy, const string intup){
 
   TF1 *fit_drenec; double peak_drenec, epeak_drenec, rms_drenec, erms_drenec;
   TFitResultPtr is_drenec_fit = drenec->Fit("gaus","Q S","", bmin_val, bmax); 
-  if(is_drenec_fit->IsValid()){
+  if(is_drenec_fit.Get() != nullptr){
   fit_drenec = drenec->GetFunction("gaus");
   peak_drenec = fit_drenec->GetParameter(1);
   epeak_drenec = fit_drenec->GetParError(1);

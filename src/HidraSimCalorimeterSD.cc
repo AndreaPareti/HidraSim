@@ -129,13 +129,14 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
                         "MyCode0004", FatalException, msg);
                     }         
 
-                    //hit->SetZcoord(position.z());
-                    //hit->SetTowerID(TowerID);
-                    //hit->SetSiPMID(SiPMID);
-                    //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2);      // Count fibers only in SiPM-mounted towers
-                    //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*TowerID/2);          // Count fibers in all towers
-                    //hit->SetPhe(c_signal);
-                    hit->AppendHit(c_signal, position.z());
+  
+
+                    // Get distance from SiPM
+                    G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
+
+                    hit->AppendHit(c_signal, distance_to_sipm);
+          
+
                     
                     // Add values
                     //fHitsCollection->insert(hit);
@@ -199,18 +200,11 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
                 "MyCode0004", FatalException, msg);
             }         
 
+            // Get distance from SiPM
+            G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
 
 
-            
-            //hit->SetZcoord(position.z());
-            //hit->SetTowerID(TowerID);
-            //hit->SetSiPMID(SiPMID);
-            //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2);      // Count fibers only in SiPM-mounted towers
-            //hit->SetSiPMID(SiPMID+NofFibersrow*NofFiberscolumn*TowerID/2);          // Count fibers in all towers
-            //hit->SetPhe(signalhit);
-
-            //G4cout << "Appending hit: sipmID: " << SiPMID << "\t phe: " << signalhit << G4endl; 
-            hit->AppendHit(signalhit, position.z());
+            hit->AppendHit(signalhit, distance_to_sipm);
           
 
             //fHitsCollection[SiPMID].insert(hit);

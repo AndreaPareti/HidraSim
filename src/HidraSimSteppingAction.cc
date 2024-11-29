@@ -143,7 +143,7 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
     std::string C_fiber = "C_fiber";
     Fiber = volume->GetName(); 
     G4int TowerID;
-    G4int SiPMID = 999999;
+    G4int SiPMID = -1;
     G4int SiPMTower;
     G4double signalhit = 0;
     //G4double zdep = 0.;
@@ -173,7 +173,9 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
         if(SiPMTower > -1)
         { 
             SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-            fEventAction->AddVectorScin( SiPMTower*NoFibersTower + SiPMID , signalhit ); 
+            //fEventAction->AddVectorScin( SiPMTower*NoFibersTower + SiPMID , signalhit ); 
+            fEventAction->AddVectorScin( TowerID*NoFibersTower + SiPMID , signalhit ); 
+
             //fEventAction->AddVectorScin( SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2, signalhit ); 
             //fEventAction->AddVectorScin( SiPMID , signalhit ); 
 
@@ -226,11 +228,15 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
                     SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
 
                     fEventAction->AddVecCPMT( TowerID, c_signal );
+                    if(step->GetPreStepPoint()->GetPhysicalVolume()->GetName() == "leakbox"){G4cout << "Be careful: Signal is produced in leakbox!" << G4endl;}
 
                     if(SiPMTower > -1)
                     { // in sipm-readout tower
                         G4int SiPMID = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
-                        fEventAction->AddVectorCher(SiPMTower*NoFibersTower+SiPMID, c_signal);
+                        //G4cout << step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName() << "\tSiPMID: " << SiPMID << "\tPhe: " << c_signal << "Tower: " << TowerID << G4endl;
+                        //fEventAction->AddVectorCher(SiPMTower*NoFibersTower+SiPMID, c_signal);
+                        fEventAction->AddVectorCher(TowerID*NoFibersTower+SiPMID, c_signal);
+
                         //fEventAction->AddVectorCher(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2, c_signal);
                         //fEventAction->AddVectorCher(SiPMID , c_signal);
                         

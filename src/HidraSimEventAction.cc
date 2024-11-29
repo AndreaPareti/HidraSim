@@ -216,8 +216,8 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
       for(int i=0; i<fiberPheVec.size(); i++){
         G4int NofPhe = fiberPheVec.at(i);
         for(int j=0; j<NofPhe; j++){
-        G4double distance_to_sipm = moduleZ/2 - fiberZVec.at(i);
-        G4double time = distance_to_sipm/vS;
+        //G4double distance_to_sipm = moduleZ/2 - fiberZVec.at(i);
+        G4double time = fiberZVec.at(i)/vS;
         //G4cout << "Position: " << fiberZVec.at(i) << "\tDistance to SiPM: " << distance_to_sipm << "\tTime: " << time <<  "\n";
         SfiberTimes.push_back(time);  // Array of photon timings to input to SimSiPM
         }
@@ -251,8 +251,8 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
         for(int i=0; i<fiberPheVec.size(); i++){
           G4int NofPhe = fiberPheVec.at(i);
           for(int j=0; j<NofPhe; j++){
-          G4double distance_to_sipm = moduleZ/2 - fiberZVec.at(i);
-          G4double time = distance_to_sipm/vC;
+          //G4double distance_to_sipm = moduleZ/2 - fiberZVec.at(i);
+          G4double time = fiberZVec.at(i)/vC;
           //G4cout << "Position: " << fiberZVec.at(i) << "\tDistance to SiPM: " << distance_to_sipm << "\tTime: " << time <<  "\n";
           CfiberTimes.push_back(time);  // Array of photon timings to input to SimSiPM
           }
