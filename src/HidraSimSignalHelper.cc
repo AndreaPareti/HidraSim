@@ -10,6 +10,7 @@
 //Includers from project files
 //
 #include "HidraSimSignalHelper.hh"
+#include "HidraSimGeoPar.hh"
 
 //Includers from Geant4
 #include "G4Poisson.hh"
@@ -137,7 +138,8 @@ G4int HidraSimSignalHelper::AttenuateHelper(const G4int& signal, const G4double&
 //
 G4int HidraSimSignalHelper::AttenuateSSignal(const G4int& signal, const G4double& distance) {
 	//const G4double SAttenuationLength = 191.6*CLHEP::cm; // from test beam data
-	const G4double SAttenuationLength = 700.0*CLHEP::cm; // from Bedeschi Datasheet
+	//const G4double SAttenuationLength = 700.0*CLHEP::cm; // from Bedeschi Datasheet
+	const G4double SAttenuationLength = 350.0*CLHEP::cm; // from Bedeschi Datasheet
 	//const G4double SAttenuationLength = attenuation->Eval(att_length[8])*CLHEP::cm; // from Bedeschi Datasheet
 
 
@@ -152,12 +154,39 @@ G4int HidraSimSignalHelper::AttenuateSSignal(const G4int& signal, const G4double
 G4int HidraSimSignalHelper::AttenuateCSignal(const G4int& signal, const G4double& distance) {
 	//const G4double CAttenuationLength = 388.9*CLHEP::cm; // from test beam data
 	//const G4double CAttenuationLength = 2000.0*CLHEP::cm; // from test beam data
-	const G4double CAttenuationLength = 700.0*CLHEP::cm; // from test beam data
+	//const G4double CAttenuationLength = 700.0*CLHEP::cm; // from test beam data
+	const G4double CAttenuationLength = 350.0*CLHEP::cm; // from test beam data
 
 	//const G4double CAttenuationLength = 1.*CLHEP::km; // 
 
     return AttenuateHelper(signal, distance, CAttenuationLength);    
     
+}
+
+
+
+//Define ApplyPMTdishomogeneity() method
+G4int HidraSimSignalHelper::ApplyPMTdishomogeneity(const G4int& signal, const G4int& SiPMID) {
+    double probability_of_survival = 0.7;
+    G4int colID = static_cast<G4int>(SiPMID/(NofFibersrow/2));
+    G4int rowID = 2*static_cast<G4int>(SiPMID%(NofFibersrow/2));     
+
+    G4int survived_photons = 0;
+
+    //if(SiPMID <10){G4cout << "SiPMID: " << SiPMID << "\tRow: " << rowID << "\tCol: " << colID << G4endl;}
+    if(rowID<=2 || rowID >= (NofFibersrow-2) || colID <=2 || colID >= (NofFiberscolumn-2) ){
+
+        for (int i=0; i<signal; i++)
+        {
+            // Simulate drawing between 0 and 1 with probability x of getting 1
+            if (G4UniformRand() <= probability_of_survival) survived_photons++;
+        }
+    }
+
+    else{survived_photons = signal;}  
+
+    return survived_photons;
+
 }
 
 

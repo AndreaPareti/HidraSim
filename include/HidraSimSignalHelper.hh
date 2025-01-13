@@ -74,6 +74,10 @@ class HidraSimSignalHelper {
 
 		G4double GetCsipmCorrection(const G4double& wl);
 
+		G4int ApplyPMTdishomogeneity(const G4int& signal, const G4int& SiPMID);
+
+
+
 };
 
 #endif

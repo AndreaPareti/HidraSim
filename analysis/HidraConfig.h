@@ -9,6 +9,7 @@
 /*****************************/    
 
     // Input directory
+    //string infolder = "../build/output_electrons_0p70BorderEfficiency_3p5mAttenuation/";
     string infolder = "../build/";
 
         
