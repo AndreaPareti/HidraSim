@@ -26,7 +26,8 @@ class HidraSimRunAction : public G4UserRunAction {
         HidraSimRunAction( HidraSimEventAction* eventAction );
         //De-constructor
         //
-        virtual ~HidraSimRunAction();
+        //virtual ~HidraSimRunAction();
+        ~HidraSimRunAction() override = default;
 
         //Methods
         //

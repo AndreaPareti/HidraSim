@@ -49,9 +49,9 @@ void HidraSimOpticalPhysics::ConstructProcess() {
     theWLSProcess->UseTimeProfile("exponential"); 
     
     theScintProcess             = new G4Scintillation();
-    theScintProcess->SetScintillationYieldFactor(1.);
+    //theScintProcess->SetScintillationYieldFactor(1.);
     //theScintProcess->SetTrackSecondariesFirst(true);
-    theScintProcess->SetScintillationExcitationRatio(0.0);
+    //theScintProcess->SetScintillationExcitationRatio(0.0);
     theScintProcess->SetTrackSecondariesFirst(true);
     // Use Birks Correction in the Scintillation process
     G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();

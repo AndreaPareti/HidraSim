@@ -247,6 +247,12 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     G4Material* LeakCounterScinMaterial = nistManager->FindOrBuildMaterial("G4_POLYSTYRENE");
 
 
+
+
+    auto invisibleAttr = new G4VisAttributes();
+    invisibleAttr->SetVisibility(false);
+    //worldLV->SetVisAttributes(invisibleAttr);
+
     //--------------------------------------------------
     //Define Optical Properties
     //--------------------------------------------------
@@ -288,10 +294,15 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
           400*cm, 400*cm, 400*cm, 400*cm };*/
 
     G4MaterialPropertiesTable *MPTScin = new G4MaterialPropertiesTable();
-    MPTScin -> AddProperty("RINDEX", 
-        photonEnergy, rindexScin, ENTRIES)->SetSpline(true);
+    MPTScin -> AddProperty("RINDEX", photonEnergy, rindexScin, ENTRIES, true);
+        //photonEnergy, rindexScin, ENTRIES)->SetSpline(true);
+        
+
     /*MPTScin -> AddProperty("ABSLENGTH",
          photonEnergy, absorptionScin, ENTRIES)->SetSpline(true);*/
+    // Properties to pass to Geant4.11     
+    MPTScin->AddConstProperty("SCINTILLATIONYIELD", 1.0, true);
+    MPTScin->AddConstProperty("EXCITATIONRATIO", 0.0, true);
 
     G4double rindexCher[ENTRIES] =
         { 1.49, 1.49, 1.49, 1.49,
@@ -313,8 +324,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
           890*cm, 890*cm, 890*cm, 890*cm };*/
 
     G4MaterialPropertiesTable *MPTCher = new G4MaterialPropertiesTable();
-    MPTCher -> AddProperty("RINDEX",
-            photonEnergy, rindexCher, ENTRIES)->SetSpline(true);
+    MPTCher -> AddProperty("RINDEX", photonEnergy, rindexCher, ENTRIES, true);
     /*MPTCher -> AddProperty("ABSLENGTH", 
             photonEnergy, absorptionCher, ENTRIES)->SetSpline(true);*/
     CherMaterial -> SetMaterialPropertiesTable(MPTCher);
@@ -330,8 +340,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
           1.42, 1.42, 1.42, 1.42 };
 
     G4MaterialPropertiesTable *MPTCherclad = new G4MaterialPropertiesTable();
-    MPTCherclad -> AddProperty("RINDEX", 
-        photonEnergy, rindexCherclad, ENTRIES)->SetSpline(true);
+    MPTCherclad -> AddProperty("RINDEX", photonEnergy, rindexCherclad, ENTRIES, true);
     CladCherMaterial -> SetMaterialPropertiesTable(MPTCherclad);
 
     G4double rindexglass[ENTRIES] =
@@ -345,8 +354,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
           1.51, 1.51, 1.51, 1.51 };
 
     G4MaterialPropertiesTable *MPTglass = new G4MaterialPropertiesTable();
-    MPTglass -> AddProperty("RINDEX", 
-            photonEnergy, rindexglass, ENTRIES)->SetSpline(true);
+    MPTglass -> AddProperty("RINDEX", photonEnergy, rindexglass, ENTRIES, true);
     GlassMaterial -> SetMaterialPropertiesTable(MPTglass);
 
     G4double rindexSi[ENTRIES] =
@@ -370,9 +378,8 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
           0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm };
 
     G4MaterialPropertiesTable *MPTSi = new G4MaterialPropertiesTable();
-    MPTSi -> AddProperty("RINDEX", photonEnergy, rindexSi, ENTRIES)->SetSpline(true);
-    MPTSi -> AddProperty("ABSLENGHT", 
-        photonEnergy, absorptionSi, ENTRIES)->SetSpline(true);
+    MPTSi -> AddProperty("RINDEX", photonEnergy, rindexSi, ENTRIES, true);
+    MPTSi -> AddProperty("ABSLENGHT", photonEnergy, absorptionSi, ENTRIES, true);
     SiMaterial -> SetMaterialPropertiesTable(MPTSi); 
   
     // Scintillating proprieties of the scintillating fiber material
@@ -422,15 +429,15 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
 
     ScinMaterial->GetIonisation()->SetBirksConstant(0.126*mm/MeV);
 
-    MPTScin -> AddProperty("FASTCOMPONENT", photonEnergy, Scin_FAST, ENTRIES);
-    MPTScin -> AddProperty("SLOWCOMPONENT", photonEnergy, Scin_SLOW, ENTRIES);
-    MPTScin -> AddConstProperty("SCINTILLATIONYIELD", 10000./MeV); // Typical is 10000./MeV (this is what makes full simulations long as hell)
+    MPTScin -> AddProperty("FASTCOMPONENT", photonEnergy, Scin_FAST, ENTRIES, true);
+    MPTScin -> AddProperty("SLOWCOMPONENT", photonEnergy, Scin_SLOW, ENTRIES, true);
+    MPTScin -> AddConstProperty("SCINTILLATIONYIELD", 10000./MeV, true); // Typical is 10000./MeV (this is what makes full simulations long as hell)
     //MPTScin -> AddConstProperty("SCINTILLATIONYIELD", 8000./MeV);     // BCF-12 Saint Gobain Sheet
-    MPTScin -> AddConstProperty("RESOLUTIONSCALE", 1.0); 
+    MPTScin -> AddConstProperty("RESOLUTIONSCALE", 1.0, true); 
     // Broad the fluctuation of photons produced
-    MPTScin -> AddConstProperty("FASTTIMECONSTANT", 2.8*ns);
-    MPTScin -> AddConstProperty("SLOWTIMECONSTANT", 10.*ns);
-    MPTScin -> AddConstProperty("YIELDRATIO", 1.0); 
+    MPTScin -> AddConstProperty("FASTTIMECONSTANT", 2.8*ns, true);
+    MPTScin -> AddConstProperty("SLOWTIMECONSTANT", 10.*ns, true);
+    MPTScin -> AddConstProperty("YIELDRATIO", 1.0, true); 
     // I don't want a slow component, if you want it must change
     ScinMaterial -> SetMaterialPropertiesTable(MPTScin);
 
@@ -537,7 +544,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
                                                    vacuumMaterial, 
                                                    "World");       
   
-    worldLV->SetVisAttributes(G4VisAttributes::Invisible);
+    worldLV->SetVisAttributes(invisibleAttr);
 
     fWorldPV = new G4PVPlacement( 0,                // no rotation
                                   G4ThreeVector(),  // at (0,0,0)
@@ -749,7 +756,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
       LkVisAttl->SetForceWireframe(true);
       LkVisAttl->SetForceSolid(true);
       leakageabsorberlLV->SetVisAttributes(LkVisAttl);
-      //leakageabsorberlLV->SetVisAttributes(G4VisAttributes::Invisible); 	// Default is uncommented
+      //leakageabsorberlLV->SetVisAttributes(invisibleAttr); 	// Default is uncommented
 
       new G4PVPlacement( transform,
               leakageabsorberlLV,         
@@ -770,7 +777,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
       LkVisAttd->SetForceWireframe(true);
       LkVisAttd->SetForceSolid(true);
       leakageabsorberdLV->SetVisAttributes(LkVisAttd);
-      //leakageabsorberdLV->SetVisAttributes(G4VisAttributes::Invisible); 	// Default is uncommented
+      //leakageabsorberdLV->SetVisAttributes(invisibleAttr); 	// Default is uncommented
       G4ThreeVector positiond;
       //positiond.setX(caloZ*sin(xrot)+xcomp);
       //positiond.setY(-caloZ*sin(yrot)+ycomp);
@@ -801,7 +808,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     G4LogicalVolume* leakageabsorberlLV = new G4LogicalVolume(leakageabsorberl,
                                                              defaultMaterial,  
                                                              "leakageabsorberl");        
-    leakageabsorberlLV->SetVisAttributes(G4VisAttributes::Invisible);
+    leakageabsorberlLV->SetVisAttributes(invisibleAttr);
 
     new G4PVPlacement( 0, G4ThreeVector(),
 				    leakageabsorberlLV,         
@@ -902,10 +909,8 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
                                       0., 0., 0., 0. };
 
     G4MaterialPropertiesTable* MPTOpSurfaceGlassSi = new G4MaterialPropertiesTable();
-    MPTOpSurfaceGlassSi -> AddProperty("EFFICIENCY", 
-        photonEnergy, efficiencyOpSurfaceGlassSi, ENTRIES)->SetSpline(true);
-    MPTOpSurfaceGlassSi -> AddProperty("REFLECTIVITY", 
-            photonEnergy, reflectivityOpSurfaceGlassSi, ENTRIES)->SetSpline(true);
+    MPTOpSurfaceGlassSi -> AddProperty("EFFICIENCY", photonEnergy, efficiencyOpSurfaceGlassSi, ENTRIES, true);
+    MPTOpSurfaceGlassSi -> AddProperty("REFLECTIVITY", photonEnergy, reflectivityOpSurfaceGlassSi, ENTRIES, true);
     OpSurfaceGlassSi -> SetMaterialPropertiesTable(MPTOpSurfaceGlassSi);
 
     // SiPM
@@ -914,7 +919,8 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
                          
     G4LogicalVolume* SiPMLV = new G4LogicalVolume(SiPMS, GlassMaterial,"SiPM");
 
-    SiPMLV->SetVisAttributes(G4VisAttributes::Invisible);
+
+    SiPMLV->SetVisAttributes(invisibleAttr);
     // Here I build the Si of the SiPM
     // 
     G4VSolid* SiS = new G4Box("Si", SiX/2, SiY/2, SiZ/2);
@@ -941,7 +947,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     SiVisAtt->SetForceWireframe(true);
     SiVisAtt->SetForceSolid(true);
     SiLV->SetVisAttributes(SiVisAtt);
-    SiLV->SetVisAttributes(G4VisAttributes::Invisible);
+    SiLV->SetVisAttributes(invisibleAttr);
 
     // Logical Skin Surface placement around the silicon of the SiPM
     //
@@ -1230,6 +1236,9 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructscinfiber(double toleran
     G4double claddingradiusmin, G4double claddingradiusmax, G4double claddingZ,
     G4Material* CherMaterial, G4String logicname, G4LogicalVolume* logic_Core_S_fiber, G4LogicalVolume* logic_Clad_S_fiber){
   
+    auto invisibleAttr = new G4VisAttributes();
+    invisibleAttr->SetVisibility(false);
+ 
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()m
     std::uniform_real_distribution<> dis(0.0, tolerance);
@@ -1243,7 +1252,7 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructscinfiber(double toleran
     G4LogicalVolume* logic_S_fiber = new G4LogicalVolume(S_fiber,
                                                          absorberMaterial,
                                                          /*"S_fiber"*/logicname);
-    logic_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);	//default is uncommented
+    logic_S_fiber->SetVisAttributes(invisibleAttr);	//default is uncommented
 	
     G4Tubs* Abs_S_fiber = new G4Tubs("Abs_Scin_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
 
@@ -1264,7 +1273,7 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructscinfiber(double toleran
     ScincoreVisAtt->SetForceWireframe(true);
     ScincoreVisAtt->SetForceSolid(true);
     logic_Core_S_fiber->SetVisAttributes(ScincoreVisAtt);
-    logic_Core_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    logic_Core_S_fiber->SetVisAttributes(invisibleAttr);
     G4ThreeVector vec_Core_S;
     vec_Core_S.setX(0.);
     vec_Core_S.setY(0.);
@@ -1286,7 +1295,7 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructscinfiber(double toleran
     ScincladVisAtt->SetForceWireframe(true);
     ScincladVisAtt->SetForceSolid(true);
     logic_Clad_S_fiber->SetVisAttributes(ScincladVisAtt);
-    logic_Clad_S_fiber->SetVisAttributes(G4VisAttributes::Invisible); 	// Default is uncommented
+    logic_Clad_S_fiber->SetVisAttributes(invisibleAttr); 	// Default is uncommented
 
     G4ThreeVector vec_Clad_S;
     vec_Clad_S.setX(0.);
@@ -1308,7 +1317,7 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructscinfiber(double toleran
     TubeVisAtt->SetForceWireframe(true);
     TubeVisAtt->SetForceSolid(true);
     logic_Abs_S_fiber->SetVisAttributes(TubeVisAtt);
-    logic_Abs_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);	//dedault is uncommented
+    logic_Abs_S_fiber->SetVisAttributes(invisibleAttr);	//dedault is uncommented
     
     return logic_S_fiber;
 
@@ -1322,6 +1331,10 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructcherfiber(double toleran
     G4double claddingradiusmin, G4double claddingradiusmax, G4double claddingZ, 
     G4Material* CladCherMaterial, G4String logicname, G4LogicalVolume* logic_Core_C_fiber, G4LogicalVolume* logic_Clad_C_fiber){ 
  
+
+    auto invisibleAttr = new G4VisAttributes();
+    invisibleAttr->SetVisibility(false);
+ 
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()m
     std::uniform_real_distribution<> dis(0.0, tolerance);
@@ -1334,7 +1347,7 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructcherfiber(double toleran
                                                          absorberMaterial,
                                                          /*"C_fiber"*/logicname);
     //std::cout << "Nome logic volume: " << logicname << std::endl;
-    logic_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    logic_C_fiber->SetVisAttributes(invisibleAttr);
     G4Tubs* Abs_C_fiber = new G4Tubs("Abs_Cher_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
 
     G4LogicalVolume* logic_Abs_C_fiber = new G4LogicalVolume(Abs_C_fiber,
@@ -1354,7 +1367,7 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructcherfiber(double toleran
     ChercoreVisAtt->SetForceWireframe(true);
     ChercoreVisAtt->SetForceSolid(true);
     logic_Core_C_fiber->SetVisAttributes(ChercoreVisAtt);
-    logic_Core_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    logic_Core_C_fiber->SetVisAttributes(invisibleAttr);
     G4ThreeVector vec_Core_C;
     vec_Core_C.setX(0.);
     vec_Core_C.setY(0.);
@@ -1376,7 +1389,7 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructcherfiber(double toleran
     ChercladVisAtt->SetForceWireframe(true);
     ChercladVisAtt->SetForceSolid(true);
     logic_Clad_C_fiber->SetVisAttributes(ChercladVisAtt);
-    logic_Clad_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);	//default is uncommented
+    logic_Clad_C_fiber->SetVisAttributes(invisibleAttr);	//default is uncommented
 
     G4ThreeVector vec_Clad_C;
     vec_Clad_C.setX(0.);
@@ -1397,7 +1410,7 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructcherfiber(double toleran
     TubeVisAtt->SetForceWireframe(true);
     TubeVisAtt->SetForceSolid(true);
     logic_Abs_C_fiber->SetVisAttributes(TubeVisAtt);
-    logic_Abs_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    logic_Abs_C_fiber->SetVisAttributes(invisibleAttr);
 
     return logic_C_fiber;
 

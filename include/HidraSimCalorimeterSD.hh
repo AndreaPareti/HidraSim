@@ -10,8 +10,8 @@
 //Includers from project files
 #include "HidraSimSignalHelper.hh"
 #include <vector>
-#include "g4root.hh"
-//#include "G4AnalysisManager.hh"
+//#include "g4root.hh"
+#include "G4AnalysisManager.hh"
 #include "G4RunManager.hh"
 #include "G4OpticalPhoton.hh"
 #include "G4OpBoundaryProcess.hh"

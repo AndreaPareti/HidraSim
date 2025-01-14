@@ -12,7 +12,8 @@
 
 //Includers from Geant4
 //
-#include "g4root.hh"
+//#include "g4root.hh"
+#include "G4AnalysisManager.hh"
 #include "G4Run.hh"
 #include "G4RunManager.hh"
 #include "G4UnitsTable.hh"
@@ -35,8 +36,11 @@ HidraSimRunAction::HidraSimRunAction( HidraSimEventAction* eventAction )
     //Instantiate analysis manager
     //
     auto analysisManager = G4AnalysisManager::Instance();
+    analysisManager->SetDefaultFileType("root");
+
     analysisManager->SetVerboseLevel( 1 );
-    analysisManager->SetNtupleMerging( 1 );
+    analysisManager->SetNtupleMerging( true );
+    //analysisManager->SetNtupleMerging( false );
 
     // Set ntuple ID to one (if more than one ntuple is saved)
     analysisManager->SetFirstNtupleId(1);
@@ -102,36 +106,55 @@ HidraSimRunAction::HidraSimRunAction( HidraSimEventAction* eventAction )
 
 //Define de-constructor
 //
-HidraSimRunAction::~HidraSimRunAction(){
+//HidraSimRunAction::~HidraSimRunAction(){
    
     //Delete only instance of G4AnalysisManager
     //
-    delete G4AnalysisManager::Instance();  
+//    delete G4AnalysisManager::Instance();  
 
-}
+//}
 
 //Define BeginOfRunAction() and EndOfRunAction() methods
 //
 void HidraSimRunAction::BeginOfRunAction( const G4Run* Run )  { 
     
+
     //Save random seeds (optional)
     //
     //G4RunManager::GetRunManager()->SetRandomNumberStore( true );
     
     //Open output file, one per Run
     //
-    auto analysisManager = G4AnalysisManager::Instance();
+    //auto analysisManager = G4AnalysisManager::Instance();
+    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+
+
+    // Reset histograms from previous run
+    analysisManager->Reset();
+
+    //analysisManager->SetDefaultFileType("root");
+
     std::string runnumber = std::to_string( Run->GetRunID() );
-    G4String outputfile = "HidraSimout_Run"+runnumber;
+    G4String outputfile = "HidraSimout_Run"+runnumber+".root";
     analysisManager->OpenFile( outputfile );
 }
 
 void HidraSimRunAction::EndOfRunAction( const G4Run* ) {
   
+
+
+  
     auto analysisManager = G4AnalysisManager::Instance();
+    //if (analysisManager) {
 
     analysisManager->Write();
+    //analysisManager->Clear();  // Clear after the data is written
+
     analysisManager->CloseFile();
+    //}
+
+
+    
 
 }
 
