@@ -38,9 +38,16 @@
 #include<numeric>
 
 // Include SiPM EndOfEvent action
-//#include "sipm/SiPMProperties.h"
-//#include "sipm/SiPMAnalogSignal.h"
+//#include <SiPMProperties.h>
+//#include <sipm/SiPMSensor.h>
+//#include <sipm/SiPMAnalogSignal.h>
+#include <SiPM.h>
 
+#include "SiPMProperties.h"
+using namespace sipm;
+
+// Create a SiPMSensor object
+//SiPMSensor mySensor(myProperties);
 
 
 
@@ -185,6 +192,31 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
        G4cout << "No hit collections in this event." << G4endl;
     }
 
+  // Scintillating SiPMs
+  // Create a SiPMProperties object
+  SiPMProperties mySciProperties;
+  mySciProperties.setDcr(0);
+  mySciProperties.setProperty("Pitch", 10);
+  mySciProperties.setProperty("Size", 1.00);
+  mySciProperties.setSampling(0.10); // 100 ps
+  // Create a SiPMSensor object
+  SiPMSensor mySciSensor(mySciProperties);
+  // Change parameters
+  //mySensor.properties().setAp(0.01);    // Using proper getter/setter
+  //mySensor.setProperty("Pitch", 25);    // Using parameter name
+
+  // Cerenkov SiPMs
+  // Create a SiPMProperties object
+  SiPMProperties myCerProperties;
+  myCerProperties.setDcr(0);
+  myCerProperties.setProperty("Pitch", 15);
+  myCerProperties.setProperty("Size", 1.00);
+  myCerProperties.setSampling(0.10);  // 100 ps
+  // Create a SiPMSensor object
+  SiPMSensor myCerSensor(myCerProperties);
+  // Change parameters
+  //mySensor.properties().setAp(0.01);    // Using proper getter/setter
+  //mySensor.setProperty("Pitch", 25);    // Using parameter name
 
 
   G4double rindexScin = 1.59;
@@ -220,18 +252,42 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
         //G4double distance_to_sipm = moduleZ/2 - fiberZVec.at(i);
         G4double time = fiberZVec.at(i)/vS;
         //G4cout << "Position: " << fiberZVec.at(i) << "\tDistance to SiPM: " << distance_to_sipm << "\tTime: " << time <<  "\n";
-        SfiberTimes.push_back(time);  // Array of photon timings to input to SimSiPM
+        //G4cout << time << "\t";
+        SfiberTimes.push_back(time/1000);  // Array of photon timings to input to SimSiPM
         }
       }
       //G4cout << G4endl;
 
-      if(SfiberTimes.size() > 0){
+      //if(SfiberTimes.size() > 0){
         // Dummy information to be changed after SiPM sim
-        fHitPheSvector.push_back(SfiberTimes.size());     // fill with total number of phe
-        fHitZcoordSvector.push_back(SfiberTimes.at(0));   // fill with arrival time of first phe
-        fHitSiPMIDSvector.push_back(current_Shit);        // fiber ID
+        //fHitPheSvector.push_back(SfiberTimes.size());     // fill with total number of phe
+        //fHitZcoordSvector.push_back(SfiberTimes.at(0));   // fill with arrival time of first phe
+        //fHitSiPMIDSvector.push_back(current_Shit);        // fiber ID
+      //}
+    //}
+
+      //std::vector<double> times = {13.12, 25.45, 33.68};
+      mySciSensor.resetState();
+      mySciSensor.addPhotons(SfiberTimes);    // Sets photon times (times are in ns) (not appending)
+      mySciSensor.runEvent();           // Runs the simulation
+      SiPMAnalogSignal mySciSignal = mySciSensor.signal();
+
+      double integral = mySciSignal.integral(5,250,0.5);   // (intStart, intGate, threshold)
+      double peak = mySciSignal.peak(5,250,0.5);   // (intStart, intGate, threshold)
+      double toa = mySciSignal.toa(5,250,0.5);   // (intStart, intGate, threshold)
+      double tot = mySciSignal.tot(5,250,0.5);   // (intStart, intGate, threshold)
+      if(peak>-1){
+      //G4cout << "S Fiber n " << current_Shit << "\tID: " << ShitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
+      //G4cout << "S Fiber n " << current_Shit  << "\tPeak: " << peak << "\tIntegral: " << integral << "\tTime Over Threshold: " << tot << "\tTime of Arrival: " << toa << G4endl;
+      //G4cout << G4endl;
+      fHitPheSvector.push_back(integral);     // fill with total number of phe
+      fHitZcoordSvector.push_back(toa);   // fill with arrival time of first phe
+      fHitSiPMIDSvector.push_back(current_Shit);        // fiber ID
       }
-    }
+      //std::cout<<mySciSensor<<"\n";
+    }  
+
+
   }
 
   // Get individual hits in C fibers
@@ -254,20 +310,47 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
           for(int j=0; j<NofPhe; j++){
           //G4double distance_to_sipm = moduleZ/2 - fiberZVec.at(i);
           G4double time = fiberZVec.at(i)/vC;
+          //G4cout << time << "\t";
           //G4cout << "Position: " << fiberZVec.at(i) << "\tDistance to SiPM: " << distance_to_sipm << "\tTime: " << time <<  "\n";
-          CfiberTimes.push_back(time);  // Array of photon timings to input to SimSiPM
+          CfiberTimes.push_back(time/1000);  // Array of photon timings to input to SimSiPM
           }
         }
         //G4cout << G4endl;
 
 
-      if(CfiberTimes.size()>0){
+      //if(CfiberTimes.size()>0){
         // Dummy information to be changed after SiPM sim
-        fHitPheCvector.push_back(CfiberTimes.size());     // fill with total number of phe
-        fHitZcoordCvector.push_back(CfiberTimes.at(0));   // fill with arrival time of first phe
-        fHitSiPMIDCvector.push_back(current_Chit);        // fiber ID
+        //fHitPheCvector.push_back(CfiberTimes.size());     // fill with total number of phe
+        //fHitZcoordCvector.push_back(CfiberTimes.at(0));   // fill with arrival time of first phe
+        //fHitSiPMIDCvector.push_back(current_Chit);        // fiber ID
+      //}
+    //}
+
+
+      //std::vector<double> times = {13.12, 25.45, 33.68};
+      myCerSensor.resetState();
+      myCerSensor.addPhotons(CfiberTimes);    // Sets photon times (times are in ns) (not appending)
+      myCerSensor.runEvent();           // Runs the simulation
+      SiPMAnalogSignal myCerSignal = myCerSensor.signal();
+
+      double integral = myCerSignal.integral(5,250,0.15);   // (intStart, intGate, threshold)
+      double peak = myCerSignal.peak(5,250,0.15);   // (intStart, intGate, threshold)
+      double toa = myCerSignal.toa(5,250,0.15);   // (intStart, intGate, threshold)
+      double tot = myCerSignal.tot(5,250,0.15);   // (intStart, intGate, threshold)
+      if(peak>0 and integral>0 and tot>1.){
+      //G4cout << "S Fiber n " << current_Shit << "\tID: " << ShitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
+      //G4cout << "C Fiber n " << current_Chit  << "\tPeak: " << peak << "\tIntegral: " << integral << "\tTime Over Threshold: " << tot << "\tTime of Arrival: " << toa << G4endl;
+      //G4cout << G4endl;
+      fHitPheCvector.push_back(integral);     // fill with total number of phe
+      fHitZcoordCvector.push_back(toa);   // fill with arrival time of first phe
+      fHitSiPMIDCvector.push_back(current_Chit);        // fiber ID
+
+
       }
-    }
+      //std::cout<<mySciSensor<<"\n";
+    }  
+
+
   }
   
 

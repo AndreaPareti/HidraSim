@@ -30,6 +30,12 @@ endif()
 # Link SiPM sim
 #find_package(sipm REQUIRED)
 
+set(SIM_SIPM_DIR /afs/cern.ch/user/a/apareti/IDEA_FCC/SimSiPM)
+include_directories(${SIM_SIPM_DIR}/include)
+link_directories(${SIM_SIPM_DIR}/build)
+
+
+
 # Setup Geant4 include directories and prohect include directories
 #
 include(${Geant4_USE_FILE})
@@ -46,7 +52,9 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 add_executable(HidraSim HidraSim.cc ${sources} ${headers})
 #target_link_libraries(HidraSim ${Geant4_LIBRARIES})
 #target_link_libraries(HidraSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sipm)
-target_link_libraries(HidraSim ${Geant4_LIBRARIES})
+#target_link_libraries(HidraSim ${Geant4_LIBRARIES})
+target_link_libraries(HidraSim ${Geant4_LIBRARIES} sipm)
+
 # Copy all scripts to the build directory 
 #
 set(HidraSim_SCRIPTS

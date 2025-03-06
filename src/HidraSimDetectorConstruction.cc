@@ -499,7 +499,9 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     //
     G4double PSX = 9.2*cm;
     G4double PSY = 9.2*cm;
-    G4double PSZ = 1.*cm;
+    //G4double PSZ = 1.*cm;
+    // TB24: increase preshower depth to reproduce data
+    G4double PSZ = 1.2*cm;
 
 
     // Leakage counter dimensions

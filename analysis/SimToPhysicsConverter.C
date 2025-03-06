@@ -62,7 +62,12 @@ class EventOut
     //int PShowerall;
     double ene_R0_S, ene_R1_S, ene_R2_S, ene_R3_S, ene_R4_S, ene_R5_S, ene_R6_S;
     double ene_R0_C, ene_R1_C, ene_R2_C, ene_R3_C, ene_R4_C, ene_R5_C, ene_R6_C;
+    double totLeakage;
 
+    void CompLeakage()
+    {
+	totLeakage = L02+L03+L04+L05+L07+L08+L09+L10+L11+L12+L13+L14+L15+L16+L20;
+    }
 
     void CompSPMTene()
     {
@@ -194,8 +199,10 @@ void SimToPhysicsConverter(const string run){
   vector<double>* LeakCounter = NULL;
   simtree->SetBranchAddress("VecLeakCounter", &LeakCounter);
 
-  double SciPheGeV = SciPheGeV_Steel;
-  double CerPheGeV = CerPheGeV_Steel;
+  //double SciPheGeV = SciPheGeV_Steel;
+  //double CerPheGeV = CerPheGeV_Steel;
+   double SciPheGeV = 100;
+   double CerPheGeV = 26;
 
 
 for (unsigned int i = 0; i < simtree->GetEntries(); i++) {
@@ -294,6 +301,8 @@ for (unsigned int i = 0; i < simtree->GetEntries(); i++) {
 
     // tail catcher
     evout->TailCatcher = LeakCounter->at(16);
+
+    evout->CompLeakage();
 
     // Truth total deposited energy
     evout->EnergyTot = edep;
