@@ -226,8 +226,9 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
                     G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
                     G4double c_signal = fSignalHelper->SmearCSignal( );
                     G4int sipmID = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
-                    c_signal = fSignalHelper->ApplyPMTdishomogeneity(c_signal, sipmID);
 
+                    // Apply tower dishomogeneity observed during TB24
+                    c_signal = fSignalHelper->ApplyPMTdishomogeneity(c_signal, sipmID);
 
                     // Attenuate Signal
                     c_signal = fSignalHelper->AttenuateCSignal(c_signal, distance_to_sipm);

@@ -27,10 +27,10 @@
 /vis/filtering/trajectories/create/particleFilter
 /vis/filtering/trajectories/particleFilter-0/add e-
 /vis/filtering/trajectories/particleFilter-0/add e+
-#/gps/particle e+
+/gps/particle e+
 #/gps/particle mu+
 #/gps/particle gamma
-/gps/particle pi+
+#/gps/particle pi+
 /gps/direction 0 0 1
 /gps/position 0 0 -300 cm
 /gps/pos/type Plane
@@ -43,14 +43,14 @@
 /gps/ene/type Gauss
 /gps/ene/mono 10 GeV
 /gps/ene/sigma 0.2 GeV
-/run/beamOn 10000
+/run/beamOn 20000
 
 #Run 1
 #/gps/energy 60. GeV
 /gps/ene/type Gauss
 /gps/ene/mono 20 GeV
 /gps/ene/sigma 0.4 GeV
-/run/beamOn 10000
+/run/beamOn 20000
 
 #Run 2
 #/gps/energy 80. GeV
@@ -64,26 +64,26 @@
 /gps/ene/type Gauss
 /gps/ene/mono 40 GeV
 /gps/ene/sigma 0.8 GeV
-/run/beamOn 10000
+/run/beamOn 20000
 
 #Run 4
 #/gps/energy 120. GeV
 /gps/ene/type Gauss
 /gps/ene/mono 60 GeV
 /gps/ene/sigma 1.2 GeV
-/run/beamOn 10000
+/run/beamOn 20000
 
 #Run 5
 #/gps/energy 140. GeV
 /gps/ene/type Gauss
 /gps/ene/mono 80 GeV
 /gps/ene/sigma 1.6 GeV
-/run/beamOn 10000
+/run/beamOn 20000
 
 #Run 6
 #/gps/energy 160. GeV
 /gps/ene/type Gauss
 /gps/ene/mono 100 GeV
 /gps/ene/sigma 2.0 GeV
-/run/beamOn 10000
+/run/beamOn 20000
 

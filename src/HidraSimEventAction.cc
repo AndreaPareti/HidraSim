@@ -41,8 +41,7 @@
 //#include <SiPMProperties.h>
 //#include <sipm/SiPMSensor.h>
 //#include <sipm/SiPMAnalogSignal.h>
-#include <SiPM.h>
-
+#include "SiPM.h"
 #include "SiPMProperties.h"
 using namespace sipm;
 

@@ -1,5 +1,5 @@
 # HidraSim
-**A Geant4 simulation of the 2020 Dual-Readout em-sized tubes prototype beam tests.**
+**A Geant4 simulation of the 2024 Dual-Readout hadron prototype based on capillary tubes beam tests.**
 
 <figure>
 <img src="./images/HidraSim_movie.gif" alt="Trulli" style="width:100%">
@@ -41,7 +41,7 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
 <!--Authors and contacts-->
 ## Authors and contacts
 - (CERN EP-SFT) Lorenzo Pezzotti (lorenzo.pezzotti@cern.ch), Alberto Ribon (Supervisor)
-- (University of Pavia and INFN Pavia) Jinky Agarwala, Gabriella Gaudio
+- (University of Pavia and INFN Pavia) Andrea Pareti (andrea.pareti@cern.ch), Gabriella Gaudio
 
 <!--Documentation and results-->
 ## Documentation and results
@@ -59,8 +59,39 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
 | v1.3 Dataset #2 <br /> tag 1.3_2 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 24/11/2021 <br /> | ./HidraSim -m runcards/HidraSim_run4.mac ./HidraSim -m runcards/HidraSim_run5.mac | No analysis | Run 4 same as Run 3 but with higher statistics, Run 5 same as Run 4 but without preshower. |
 | v1.3 Dataset #1 <br /> tag 1.3_1 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 17/11/2021 <br /> | ./HidraSim -m runcards/HidraSim_run3.mac | root -l HidraSimanalysis_v1p3.C | Produced data and results shown in the presentation on 19/11/2021 by Lorenzo. Assuming root files from Geant4 are within run3/ folder as pointed in root macro. |
 
+### Requirements
+The HidraSim simulation requires the SimSiPM sipm simulation package, available at https://github.com/EdoPro98/SimSiPM.
+Follow the linked instruction provided for installation.
+
+
 <!--How to:-->
 ## How to
+
+### Build, compile and execute on machines with available CERN CVMFS repositories
+1. git clone the repo
+   ```sh
+   git clone https://github.com/AndreaPareti/HidraSim.git
+   ```
+2. Source /cvmfs/ package, containing libraries such as gcc, root, geant ecc.
+   ```sh
+   source /cvmfs/sft.cern.ch/lcg/views/LCG_106b/x86_64-el9-gcc11-opt/setup.sh
+   ```
+3. Set SimSiPM libraries
+   With SimSiPM package installed at /path/to/SimSiPM,
+   ```sh
+   export SIM_SIPM_DIR=/afs/cern.ch/user/a/apareti/IDEA_FCC/SimSiPM
+   ```
+   check correct path with
+   ```sh
+   echo $SIM_SIPM_DIR 
+   ```
+4. cmake build directory and compile using Geant4.11 with N threads
+   ```sh
+   mkdir build && cd build
+   cmake3 -DGeant4_DIR=/cvmfs/geant4.cern.ch/geant4/11.3/x86_64-el9-gcc11-optdeb-MT/lib64/Geant4-11.3.0/ -DSIM_SIPM_DIR=/path/to/SimSiPM ../
+   make -jN
+   ```
+
 
 ### Build, compile and execute on Mac/Linux
 1. git clone the repo
@@ -81,25 +112,6 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
    ```sh
    ./HidraSim -m HidraSim_run.mac -t 2 
    ```
-Parser options
-   * -m macro.mac: pass a Geant4 macro card (example -m HidraSim_run.mac available in source directory and automatically copied in build directory) 
-   * -t integer: pass number of threads for multi-thread execution (example -t 3, default t=2)
-   * -pl Physics_List: select Geant4 physics list (example -pl FTFP_BERT)
-   * -opt FullOptic: boolean variable to switch on (true) the optical photon propagation in fibers (example -opt true, default false)
-
-
-Note: the test-beam simulated platform can be shifted in x and y directions as in the actual configuration. The platform can also rotate around its center (the horizontal rotation). The housing containing the calorimeter can the lifted up from its back side creating a spin around its front face (the vertical rotation). By default, such parameters are set to zero. They are configurable via the UI macro card before the run is initialized as:
-   ```
-   /tbgeo/xshift <> [<Unit>]
-   /tbgeo/yshift <> [<Unit>]
-   /tbgeo/horizrot <> [<Unit>]
-   /tbgeo/vertrot <> [<Unit>]
-   ```
-It is also possible to include or remove ancillary detectors (preshower, leakage counters and tail catcher) by setting true the boolean variables in HidraSimGeoPar.hh
-In the same file the prototype geometrical parameters can be changed as desired. Once the setup has been chosen, it is sufficient to recompile the simulation by running make.
-Note that an additional "truth" cylindrical leakage counter, that also includes a back plug, can be added while being turned off in default simulation.
-Tracks entering these volumes are killed and their truth energy is collected for more detailed leakage studies. 
-
 
 
 ### Build, compile and execute on lxplus
@@ -122,24 +134,30 @@ Tracks entering these volumes are killed and their truth energy is collected for
    ```
    
 
-### Build, compile and execute on CNAF - tier1 bastion
-1. git clone the repo
-   ```sh
-   git clone https://github.com/AndreaPareti/HidraSim.git
+### Run with options
+Parser options
+   * -m macro.mac: pass a Geant4 macro card (example -m HidraSim_run.mac available in source directory and automatically copied in build directory) 
+   * -t integer: pass number of threads for multi-thread execution (example -t 3, default t=2)
+   * -pl Physics_List: select Geant4 physics list (example -pl FTFP_BERT)
+   * -opt FullOptic: boolean variable to switch on (true) the optical photon propagation in fibers (example -opt true, default false)
+
+
+Note: the test-beam simulated platform can be shifted in x and y directions as in the actual configuration. The platform can also rotate around its center (the horizontal rotation). The housing containing the calorimeter can the lifted up from its back side creating a spin around its front face (the vertical rotation). By default, such parameters are set to zero. They are configurable via the UI macro card before the run is initialized as:
    ```
-2. cmake, build directory and make (using geant4.10.07_p03, check for gcc and cmake dependencies for other versions)
-   ```sh
-   in HidraSim directory:
-   mkdir build && cd build 
-   source /cvmfs/geant4.cern.ch/geant4/10.7.p03/x86_64-centos7-gcc8-optdeb-MT/CMake-setup.sh
-   source /cvmfs/sft.cern.ch/lcg/contrib/gcc/10.3.0/x86_64-centos7-gcc10-opt/setup.sh
-   cmake3 -DGeant4_DIR=/cvmfs/geant4.cern.ch/geant4/10.7.p03/x86_64-centos7-gcc8-optdeb-MT/lib64/Geant4-10.7.p03 ../   
-   make -jN
+   /tbgeo/xshift <> [<Unit>]
+   /tbgeo/yshift <> [<Unit>]
+   /tbgeo/horizrot <> [<Unit>]
+   /tbgeo/vertrot <> [<Unit>]
    ```
-3. execute (example with HidraSim_run.mac macro card, 2 threads and FTFP_BERT physics list)
-   ```sh
-   ./HidraSim -m HidraSim_run.mac -t 2 
-   ```
+
+### Change prototype geometry and TB setup
+It is possible to include or remove ancillary detectors (preshower, leakage counters and tail catcher) by setting true the boolean variables, located at the start of HidraSimGeoPar.hh
+In the same file the prototype geometrical parameters can be changed as desired. TB21, TB24, HiDRa original design and others are available.
+
+Note that an additional "truth" cylindrical leakage counter, that also includes a back plug, can be added while being turned off in default simulation.
+Tracks entering these volumes are killed and their truth energy is collected for more detailed leakage studies. 
+
+
 
 ### Submit a job with HTCondor on lxplus
 1. git clone the repo

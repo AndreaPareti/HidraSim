@@ -23,20 +23,18 @@ else()
   find_package(Geant4 REQUIRED)
 endif()
 
-# Link ROOT Packages
-#find_package(ROOT REQUIRED)
-#set(CMAKE_CXX_FLAGS "${ROOT_CXX_FLAGS}")
+
+# Define SIM_SIPM_DIR as a cache variable that can be configured
+set(SIM_SIPM_DIR "" CACHE PATH "Path to the SimSiPM directory")
 
 # Link SiPM sim
-#find_package(sipm REQUIRED)
-
-set(SIM_SIPM_DIR /afs/cern.ch/user/a/apareti/IDEA_FCC/SimSiPM)
+message(STATUS "SIM_SIPM_DIR from environment: $ENV{SIM_SIPM_DIR}")
 include_directories(${SIM_SIPM_DIR}/include)
 link_directories(${SIM_SIPM_DIR}/build)
 
 
 
-# Setup Geant4 include directories and prohect include directories
+# Setup Geant4 include directories and project include directories
 #
 include(${Geant4_USE_FILE})
 include_directories(${PROJECT_SOURCE_DIR}/include
