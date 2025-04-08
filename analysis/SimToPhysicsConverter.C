@@ -26,7 +26,6 @@
 // include file with geometry of module
 #include "HidraConfig.h"
 
-// test
 
 
 struct PMTCalibration
@@ -201,10 +200,8 @@ void SimToPhysicsConverter(const string run){
   vector<double>* LeakCounter = NULL;
   simtree->SetBranchAddress("VecLeakCounter", &LeakCounter);
 
-  //double SciPheGeV = SciPheGeV_Steel;
-  //double CerPheGeV = CerPheGeV_Steel;
-   double SciPheGeV = 100;
-   double CerPheGeV = 26;
+  double SciPheGeV = SciPheGeV_Steel;
+  double CerPheGeV = CerPheGeV_Steel;
 
 
 for (unsigned int i = 0; i < simtree->GetEntries(); i++) {

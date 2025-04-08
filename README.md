@@ -67,7 +67,7 @@ Follow the linked instruction provided for installation.
 <!--How to:-->
 ## How to
 
-### Build, compile and execute on machines with available CERN CVMFS repositories
+### Build, compile and execute on machines with available CERN CVMFS repositories (lxplus, cnaf ecc.)
 1. git clone the repo
    ```sh
    git clone https://github.com/AndreaPareti/HidraSim.git
@@ -114,24 +114,6 @@ Follow the linked instruction provided for installation.
    ```
 
 
-### Build, compile and execute on lxplus
-1. git clone the repo
-   ```sh
-   git clone https://github.com/AndreaPareti/HidraSim.git
-   ```
-2. cmake, build directory and make (using geant4.10.07_p03, check for gcc and cmake dependencies for other versions)
-   ```sh
-   in HidraSim directory:
-   mkdir build && cd build 
-   source /cvmfs/geant4.cern.ch/geant4/10.7.p03/x86_64-centos7-gcc8-optdeb-MT/CMake-setup.sh
-   source /cvmfs/sft.cern.ch/lcg/contrib/gcc/13.1.0/x86_64-el9-gcc13-opt/setup.sh
-   cmake3 -DGeant4_DIR=/cvmfs/geant4.cern.ch/geant4/10.7.p03/x86_64-centos7-gcc8-optdeb-MT/lib64/Geant4-10.7.p03 ../   
-   make -jN
-   ```
-3. execute (example with HidraSim_run.mac macro card, 2 threads and FTFP_BERT physics list)
-   ```sh
-   ./HidraSim -m HidraSim_run.mac -t 2
-   ```
    
 
 ### Run with options
@@ -151,8 +133,10 @@ Note: the test-beam simulated platform can be shifted in x and y directions as i
    ```
 
 ### Change prototype geometry and TB setup
-It is possible to include or remove ancillary detectors (preshower, leakage counters and tail catcher) by setting true the boolean variables, located at the start of HidraSimGeoPar.hh
-In the same file the prototype geometrical parameters can be changed as desired. TB21, TB24, HiDRa original design and others are available.
+The file HidraSimGeoPar.hh contains all the geometry parameters of the prototype to simulate and ancillary detectors.
+It is possible to include or remove ancillary detectors (preshower, leakage counters and tail catcher) by setting true the boolean variables.
+In the same file the prototype geometrical parameters can be changed as desired. TB21, TB24, HiDRa original design and (current) final design, as well as others are available.
+Remember to recompile once the desired geometry is set.
 
 Note that an additional "truth" cylindrical leakage counter, that also includes a back plug, can be added while being turned off in default simulation.
 Tracks entering these volumes are killed and their truth energy is collected for more detailed leakage studies. 

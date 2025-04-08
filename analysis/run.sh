@@ -1,0 +1,7 @@
+root -l -b -q 'HidraAna.C(10, "HidraSimout_Run0.root")'
+root -l -b -q 'HidraAna.C(20, "HidraSimout_Run1.root")'
+root -l -b -q 'HidraAna.C(30, "HidraSimout_Run2.root")'
+root -l -b -q 'HidraAna.C(40, "HidraSimout_Run3.root")'
+root -l -b -q 'HidraAna.C(60, "HidraSimout_Run4.root")'
+root -l -b -q 'HidraAna.C(80, "HidraSimout_Run5.root")'
+root -l -b -q 'HidraAna.C(100, "HidraSimout_Run6.root")'
