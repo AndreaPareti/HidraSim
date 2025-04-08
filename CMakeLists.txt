@@ -23,14 +23,18 @@ else()
   find_package(Geant4 REQUIRED)
 endif()
 
-# Link ROOT Packages
-#find_package(ROOT REQUIRED)
-#set(CMAKE_CXX_FLAGS "${ROOT_CXX_FLAGS}")
+
+# Define SIM_SIPM_DIR as a cache variable that can be configured
+set(SIM_SIPM_DIR "" CACHE PATH "Path to the SimSiPM directory")
 
 # Link SiPM sim
-#find_package(sipm REQUIRED)
+message(STATUS "SIM_SIPM_DIR from environment: $ENV{SIM_SIPM_DIR}")
+include_directories(${SIM_SIPM_DIR}/include)
+link_directories(${SIM_SIPM_DIR}/build)
 
-# Setup Geant4 include directories and prohect include directories
+
+
+# Setup Geant4 include directories and project include directories
 #
 include(${Geant4_USE_FILE})
 include_directories(${PROJECT_SOURCE_DIR}/include
@@ -46,7 +50,9 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 add_executable(HidraSim HidraSim.cc ${sources} ${headers})
 #target_link_libraries(HidraSim ${Geant4_LIBRARIES})
 #target_link_libraries(HidraSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sipm)
-target_link_libraries(HidraSim ${Geant4_LIBRARIES})
+#target_link_libraries(HidraSim ${Geant4_LIBRARIES})
+target_link_libraries(HidraSim ${Geant4_LIBRARIES} sipm)
+
 # Copy all scripts to the build directory 
 #
 set(HidraSim_SCRIPTS

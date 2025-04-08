@@ -1,4 +1,2 @@
-source /home/software/geant4.10.07_p03-install/bin/geant4.sh
+source /cvmfs/sft.cern.ch/lcg/views/LCG_106b/x86_64-el9-gcc11-opt/setup.sh
 
-
-#source /home/software/geant4-11.2.1-install/bin/geant4.sh

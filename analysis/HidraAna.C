@@ -24,6 +24,8 @@
 #include <numeric>
 #include <cstring>
 #include <algorithm>
+#include <unordered_map>
+
 // include file with geometry of module
 #include "HidraConfig.h"
 
@@ -153,6 +155,17 @@ void HidraAna(double energy, const string intup){
 
   auto LeakProfile = new TProfile("LeakEdepProfile", "Signal in leakage counters Vs Truth deposited energy in Calo; Edep [GeV]; LeakageCounter sum [GeV]", 100, 0., energy, 0., energy);
 
+  auto MeanTimeS_hist = new TH1F("MeanTimeS", "Mean Time S fibers [ns]; t [ns]; Counts", 100, 0., 15.);
+  auto MeanTimeC_hist = new TH1F("MeanTimeC", "Mean Time C fibers [ns]; t [ns]; Counts", 100, 0., 15.);
+
+  auto MeanEneHitS_hist = new TH1F("MeanEneHitS", "Mean Energy from hits S fibers [ns]; E[GeV]; Counts", 1000, 0., 3000);
+  auto MeanEneHitC_hist = new TH1F("MeanEneHitC", "Mean Energy from hits C fibers [ns]; E[GeV]; Counts", 1000, 0., 3000);
+
+
+  auto TDC_TS11_Profile = new TProfile("TS11TdcProfile", "Profile of S energy over TDC_TS11; TDC [ns]; E[GeV]", 100, 0., 15);
+  auto TDC_TS00_Profile = new TProfile("TS00TdcProfile", "Profile of S energy over TDC_TS00; TDC [ns]; E[GeV]", 100, 0., 15);
+  auto TDC_TS15_Profile = new TProfile("TS15TdcProfile", "Profile of S energy over TDC_TS15; TDC [ns]; E[GeV]", 100, 0., 15);
+
 
   int nentries=simtree->GetEntries();
   std::cout<<"Entries "<<nentries<<std::endl;
@@ -173,6 +186,15 @@ void HidraAna(double energy, const string intup){
   vector<double>* SSiPM = NULL;	simtree->SetBranchAddress( "VectorSignals", &SSiPM );
   vector<double>* CSiPM = NULL;	simtree->SetBranchAddress( "VectorSignalsCher", &CSiPM );
   vector<double>* LeakCounter = NULL;	simtree->SetBranchAddress( "VecLeakCounter", &LeakCounter );
+  // access hit variables
+  vector<double>* hitPheS = NULL; simtree->SetBranchAddress( "HitPheSvector", &hitPheS);
+  vector<double>* hitPheC = NULL; simtree->SetBranchAddress( "HitPheCvector", &hitPheC);
+  vector<int>* hitIdS = NULL; simtree->SetBranchAddress( "HitSiPMIDSvector", &hitIdS);
+  vector<int>* hitIdC = NULL; simtree->SetBranchAddress( "HitSiPMIDCvector", &hitIdC);
+  // access timing variable
+  vector<double>* timeS = NULL; simtree->SetBranchAddress( "HitZcoordSvector", &timeS);
+  vector<double>* timeC = NULL; simtree->SetBranchAddress( "HitZcoordCvector", &timeC);
+
 
   // Note that  SPMT, CPMT, SSiPM and CSiPM are given in photoelectrons
   // Other variables are given in MeV
@@ -187,8 +209,7 @@ void HidraAna(double energy, const string intup){
   double alb_energy=0.;
   double calib_sci=0.;
   double calib_cer=0.;
-  
-
+ 
 
 
   // Loop on events 
@@ -221,8 +242,7 @@ void HidraAna(double energy, const string intup){
     //  totsci = totsci/S_attenuation_correction;
     //  totcer = totcer/C_attenuation_correction;
     //}  
-
-    for(unsigned int N=0; N<SSiPM->size(); N++){        // Loop over SiPMs - S Fibers
+   for(unsigned int N=0; N<SSiPM->size(); N++){        // Loop over SiPMs - S Fibers
       double content = SSiPM->at(N)/sciPheGeV;
       unsigned int towID = static_cast<unsigned int>( N/(NofFiberscolumn*NofFibersrow/2) );
       unsigned int SiPMID = N%(NofFiberscolumn*NofFibersrow/2);
@@ -230,6 +250,66 @@ void HidraAna(double energy, const string intup){
       unsigned int rowID = 2*static_cast<unsigned int>(SiPMID%(NofFibersrow/2)); 
       SipmMapS->Fill( modcol[towID]*NofFiberscolumn + colID, modrow[towID]*NofFibersrow+rowID, content); 
     }
+    //std::cout << "Size of hitIdS: " << hitIdS->size() << std::endl;
+    //std::cout << "Size of hitPheS: " << hitPheS->size() << std::endl;
+    //std::cout << "Size of hitTimeS: " << timeS->size() << std::endl;
+ 
+    double meantimeS = 0;
+    double meanEneS = 0;
+    // read one value for TDC for each tower (only used T11, T15 and T00)
+    std::unordered_map<int, double> TowerTdcMap;  // associate TDC readout value (double) to tower number (int) 
+    std::vector<double> TdcVec(SPMT->size(), 0);  // vector to fill with timing values
+    std::vector<double> HitsInTowerVec(SPMT->size(), 0);  // vector to fill with number of hits in that tower
+
+    for(unsigned int N=0; N<hitIdS->size(); N++)
+    {
+      double tS = timeS->at(N);
+      int idS = hitIdS->at(N);
+      double pheS = hitPheS->at(N);
+      meantimeS+=tS;
+      meanEneS+=pheS;
+      unsigned int towID = static_cast<unsigned int>( idS/(NofFiberscolumn*NofFibersrow/2) );
+      unsigned int Id_in_tower = static_cast<unsigned int>( idS%(NofFiberscolumn*NofFibersrow/2) );
+      unsigned int colID = static_cast<unsigned int>(idS/(NofFibersrow/2));
+      unsigned int rowID = 2*static_cast<unsigned int>(idS%(NofFibersrow/2)); 
+    	//std::cout << "SiPM ID: " << idS << "\tTower: " << towID << "FiberID in tower: " << Id_in_tower << "\tCol: " << colID << "\t row: " << rowID << std::endl;
+      TdcVec[towID] += tS;
+      HitsInTowerVec[towID]++;
+      //std::cout << towID << "\t" << tS << "\t" << pheS << std::endl;
+    }
+
+    for(unsigned int tow=0; tow<SPMT->size(); tow++){
+      double tdc = TdcVec[tow]/HitsInTowerVec[tow]; // divide sum of tdc values for number of hits in that  tower
+      TowerTdcMap[tow] = tdc;
+      //double tdc = TdcVec[tow];
+      //std::cout << "Tower: " << tow << "\tTDC value: " << tdc << std::endl;
+    }
+
+    
+
+    // test with lower n of events
+    //if(i>5000){break;}
+    
+    meantimeS = meantimeS/hitIdS->size();
+    meanEneS = meanEneS/hitIdS->size();
+    MeanTimeS_hist->Fill(meantimeS);
+    MeanEneHitS_hist->Fill(meanEneS);
+
+    double meantimeC = 0;
+    double meanEneC = 0;
+
+    for(unsigned int N=0; N<hitIdC->size(); N++){
+      double tC = timeC->at(N);
+      double idC = hitIdC->at(N);
+      double pheC = hitPheC->at(N);
+      meantimeC+=tC;
+      meanEneC+=pheC;
+    }
+    meantimeC = meantimeC/hitIdC->size();
+    meanEneC = meanEneC/hitIdC->size();
+    MeanTimeC_hist->Fill(meantimeC);
+    MeanEneHitC_hist->Fill(meanEneC);
+
 
 
    for(unsigned int N=0; N<CSiPM->size(); N++){        // Loop over SiPMs - C Fibers
@@ -249,6 +329,12 @@ void HidraAna(double energy, const string intup){
     }  
     LeakCounterSum->Fill(tot_leakCount/1000);
     TailCatcher->Fill(LeakCounter->back()/1000);
+
+    TDC_TS11_Profile->Fill(TowerTdcMap[19], totsci);
+    TDC_TS00_Profile->Fill(TowerTdcMap[18], totsci);
+    TDC_TS15_Profile->Fill(TowerTdcMap[17], totsci);
+
+
 
     alb_energy = (venergy-edep-totleak)/energy/1000;    
     sciene->Fill(totsci);    
@@ -300,6 +386,27 @@ void HidraAna(double energy, const string intup){
 
   }  // Next event 
 
+
+  /*
+  TCanvas* c1 = TCanvas("c1", "c1", 700, 600);
+    // Loop over bins
+  TowerMapS->Draw("colz");
+  TText* t = new TText();
+t->SetTextAlign(22);       // Centered alignment
+t->SetTextSize(0.03);      // Adjust text size
+  for (int ix = 1; ix <= TowerMapS->GetNbinsX(); ++ix) {
+    for (int iy = 1; iy <= TowerMapS->GetNbinsY(); ++iy) {
+        double x = TowerMapS->GetXaxis()->GetBinCenter(ix);
+        double y = TowerMapS->GetYaxis()->GetBinCenter(iy);
+
+        // Custom label for this bin — you can set any string here
+        TString label = Form("Bin(%d,%d)", ix, iy);
+
+        t->DrawText(x, y, modflag[ix*NofmodulesX + NofmodulesY]);
+      }
+  }
+  c1->SaveAs("TestMap.png");
+  */
 
   
   std::cout << "\n\tLOOP ENDED \n" << std::endl;

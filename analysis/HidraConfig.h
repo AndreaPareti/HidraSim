@@ -11,7 +11,7 @@
     // Input directory
     //string infolder = "../build/output_electrons_0p70BorderEfficiency_3p5mAttenuation/";
     string infolder = "../build/";
-
+    //string infolder = "../build/OutputTest_had_0/";
         
     // Brass calibration parameters (80 module geo)
     double SciPheGeV_Brass = 218.73299999999998;   
@@ -30,7 +30,8 @@
     //double SciPheGeV_Steel = 225.96657142857143;
     //double CerPheGeV_Steel = 55.18902857142858;
     // With original sim parameters, 7m attenuation length
-    double SciPheGeV_Steel = 162.5;
+    //double SciPheGeV_Steel = 162.5;
+    double SciPheGeV_Steel = 225.5;
     double CerPheGeV_Steel = 39.9;
 
 
@@ -56,7 +57,7 @@
     const int NofmodulesY = 12;
     const int nPMT = NofmodulesX*NofmodulesY;
     // This one is DRAGO (if irot is true)
-    const int modflag[36]={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+    const int modflag[36]={  0,   1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
                              12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
                              24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35};
     
