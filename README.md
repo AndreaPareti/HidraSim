@@ -41,25 +41,10 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
 <!--Authors and contacts-->
 ## Authors and contacts
 - (CERN EP-SFT) Lorenzo Pezzotti (lorenzo.pezzotti@cern.ch), Alberto Ribon (Supervisor)
-- (University of Pavia and INFN Pavia) Andrea Pareti (andrea.pareti@cern.ch), Gabriella Gaudio
+- (University of Pavia and INFN Pavia) Andrea Pareti (andrea.pareti@cern.ch), Giacomo Polesello (giacomo.polesello@cern.ch)
 
-<!--Documentation and results-->
-## Documentation and results
 
-### Selected presentations
-- Dual-Readout Calorimetry Meeting 19/11/2021, **Results from the CERN TB Geant4 simulation** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1097245/contributions/4619316/attachments/2347762/4003816/lopezzot_DRSW_17_11_2021.pdf)
-- Dual-Readout Calorimetry Meeting 13/10/2021, **Status of 2021 Test Beam(s) SW** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1086651/contributions/4569695/attachments/2327255/3964777/lopezzot_DR_SW_13_10_2021.pdf)
-- Dual-Readout Calorimetry Meeting 21/7/2021, **HidraSim: A Geant4 simulation of the DR tubes prototype 2021 beam tests** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1061304/contributions/4460441/attachments/2285253/3883980/DR_lopezzot_21_7_2021.pdf)
-
-<!--Available datasets and analyses-->
-### Available datasets and analyses
-| HidraSim         | Reproduce data | Reproduce analysis | Comments     |
-| -------------     | ----------     | -----------        | -----------  |
-| v1.3 Dataset #3 <br /> tag 1.3_3 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 26/11/2021 <br /> | ./HidraSim -m runcards/HidraSim_run6.mac | No analysis | Run 6 same as Run 5 but with beam spot with 2.0 cm radius. |
-| v1.3 Dataset #2 <br /> tag 1.3_2 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 24/11/2021 <br /> | ./HidraSim -m runcards/HidraSim_run4.mac ./HidraSim -m runcards/HidraSim_run5.mac | No analysis | Run 4 same as Run 3 but with higher statistics, Run 5 same as Run 4 but without preshower. |
-| v1.3 Dataset #1 <br /> tag 1.3_1 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 17/11/2021 <br /> | ./HidraSim -m runcards/HidraSim_run3.mac | root -l HidraSimanalysis_v1p3.C | Produced data and results shown in the presentation on 19/11/2021 by Lorenzo. Assuming root files from Geant4 are within run3/ folder as pointed in root macro. |
-
-### Requirements
+# Requirements
 The HidraSim simulation requires the SimSiPM sipm simulation package, available at https://github.com/EdoPro98/SimSiPM.
 Follow the linked instruction provided for installation.
 
@@ -77,10 +62,11 @@ Follow the linked instruction provided for installation.
    source /cvmfs/sft.cern.ch/lcg/views/LCG_106b/x86_64-el9-gcc11-opt/setup.sh
    ```
 3. Set SimSiPM libraries
-   With SimSiPM package installed at /path/to/SimSiPM,
+   With SimSiPM package installed at /path/to/SimSiPM, in my case:
    ```sh
    export SIM_SIPM_DIR=/afs/cern.ch/user/a/apareti/IDEA_FCC/SimSiPM
    ```
+   (Ensure that the SimSiPM contains the /build and /include directories) 
    check correct path with
    ```sh
    echo $SIM_SIPM_DIR 
@@ -198,3 +184,22 @@ Here is my standard Geant4 installation (example with Geant4.10.7.p01) starting 
    make -jN
    make install
    ```
+
+
+
+
+<!--Documentation and results-->
+## Documentation and results
+
+### Selected presentations
+- Dual-Readout Calorimetry Meeting 19/11/2021, **Results from the CERN TB Geant4 simulation** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1097245/contributions/4619316/attachments/2347762/4003816/lopezzot_DRSW_17_11_2021.pdf)
+- Dual-Readout Calorimetry Meeting 13/10/2021, **Status of 2021 Test Beam(s) SW** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1086651/contributions/4569695/attachments/2327255/3964777/lopezzot_DR_SW_13_10_2021.pdf)
+- Dual-Readout Calorimetry Meeting 21/7/2021, **HidraSim: A Geant4 simulation of the DR tubes prototype 2021 beam tests** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1061304/contributions/4460441/attachments/2285253/3883980/DR_lopezzot_21_7_2021.pdf)
+
+<!--Available datasets and analyses-->
+### Available datasets and analyses
+| HidraSim         | Reproduce data | Reproduce analysis | Comments     |
+| -------------     | ----------     | -----------        | -----------  |
+| v1.3 Dataset #3 <br /> tag 1.3_3 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 26/11/2021 <br /> | ./HidraSim -m runcards/HidraSim_run6.mac | No analysis | Run 6 same as Run 5 but with beam spot with 2.0 cm radius. |
+| v1.3 Dataset #2 <br /> tag 1.3_2 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 24/11/2021 <br /> | ./HidraSim -m runcards/HidraSim_run4.mac ./HidraSim -m runcards/HidraSim_run5.mac | No analysis | Run 4 same as Run 3 but with higher statistics, Run 5 same as Run 4 but without preshower. |
+| v1.3 Dataset #1 <br /> tag 1.3_1 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 17/11/2021 <br /> | ./HidraSim -m runcards/HidraSim_run3.mac | root -l HidraSimanalysis_v1p3.C | Produced data and results shown in the presentation on 19/11/2021 by Lorenzo. Assuming root files from Geant4 are within run3/ folder as pointed in root macro. |
