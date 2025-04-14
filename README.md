@@ -74,11 +74,14 @@ Follow the linked instruction provided for installation.
    source /cvmfs/sft.cern.ch/lcg/views/LCG_106b/x86_64-el9-gcc11-opt/setup.sh
    ```
 3. Set SimSiPM libraries
-   With SimSiPM package installed at /path/to/SimSiPM, in my case:
+   With SimSiPM package installed at /path/to/SimSiPM, export sipm environment variable.
+   ```sh
+   export SIM_SIPM_DIR=/path/to/SimSiPM
+   ```
+   <ins>In my case:</ins>
    ```sh
    export SIM_SIPM_DIR=/afs/cern.ch/user/a/apareti/IDEA_FCC/SimSiPM
    ```
-   (Ensure that the SimSiPM contains the /build and /include directories) 
    check correct path with
    ```sh
    echo $SIM_SIPM_DIR 
