@@ -53,7 +53,19 @@ Follow the linked instruction provided for installation.
 ## How to
 
 ### Build, compile and execute on machines with available CERN CVMFS repositories (lxplus, cnaf ecc.)
-1. git clone the repo
+
+0. Download and compile the SimSiPM library at https://github.com/EdoPro98/SimSiPM. 
+   Note that the install command cannot work on lxplus, skip it.
+   The following steps assume that the SimSiPM /build/ directory is inside /path/to/SimSiPM/.
+   ```sh
+   git clone https://github.com/EdoPro98/SimSiPM.git
+   cd SimSiPM 
+   # In SimSiPM directory
+   cmake -B build -S .
+   make -C build
+   ```
+
+1. In the desired workspace, git clone the HidraSim repo
    ```sh
    git clone https://github.com/AndreaPareti/HidraSim.git
    ```
@@ -71,7 +83,9 @@ Follow the linked instruction provided for installation.
    ```sh
    echo $SIM_SIPM_DIR 
    ```
-4. cmake build directory and compile using Geant4.11 with N threads
+4. From the /HidraSim/ directory,
+   cmake build directory and compile using Geant4.11 with N threads.
+   
    ```sh
    mkdir build && cd build
    cmake3 -DGeant4_DIR=/cvmfs/geant4.cern.ch/geant4/11.3/x86_64-el9-gcc11-optdeb-MT/lib64/Geant4-11.3.0/ -DSIM_SIPM_DIR=/path/to/SimSiPM ../
