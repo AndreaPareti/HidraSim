@@ -1195,11 +1195,28 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
       new G4PVPlacement(transform_leakleftBox, leakleftBoxLV, "leakbox", CalorimeterBoxLV, false, 4*leakCounter+3, fCheckOverlaps);
 
     }
+
+    G4ThreeVector tailCatcherPosition; tailCatcherPosition.setX(fXshift); tailCatcherPosition.setY(fYshift); tailCatcherPosition.setZ(caloZ + leakBoxY/2 + tailCatcherDist);
+    G4RotationMatrix tailrotm;
+    tailrotm.rotateX(90*deg);
+    G4Transform3D transform_tailCatcherBox = G4Transform3D(tailrotm, tailCatcherPosition);
+    G4LogicalVolume* tailCatcherBoxLV = new G4LogicalVolume(leakBoxS, LeakCounterScinMaterial, "leakbox");
+    G4VisAttributes* tailCatcherBoxVisAtt = new G4VisAttributes(G4Colour(0.9,0,0.0));
+    tailCatcherBoxVisAtt->SetVisibility(true);
+    tailCatcherBoxVisAtt->SetForceWireframe(true);
+    tailCatcherBoxVisAtt->SetForceSolid(true);
+    tailCatcherBoxLV->SetVisAttributes(tailCatcherBoxVisAtt);
+    //new G4PVPlacement(transform_tailCatcherBox, tailCatcherBoxLV, "tailCatcherBox", CalorimeterLV, false, 0, fCheckOverlaps);
+    new G4PVPlacement(transform_tailCatcherBox, tailCatcherBoxLV, "leakbox", worldLV, false, 4*NofLeakCounterLayers, fCheckOverlaps);
+
+
+
+
   }
 
 
 
-  if(TailCatcherIn){
+/*  if(TailCatcherIn){
     G4ThreeVector tailCatcherPosition; tailCatcherPosition.setX(fXshift); tailCatcherPosition.setY(fYshift); tailCatcherPosition.setZ(caloZ + leakBoxY/2 + tailCatcherDist);
     G4RotationMatrix tailrotm;
     tailrotm.rotateX(90*deg);  
@@ -1212,7 +1229,7 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     tailCatcherBoxLV->SetVisAttributes(tailCatcherBoxVisAtt);
     //new G4PVPlacement(transform_tailCatcherBox, tailCatcherBoxLV, "tailCatcherBox", CalorimeterLV, false, 0, fCheckOverlaps);
     new G4PVPlacement(transform_tailCatcherBox, tailCatcherBoxLV, "tailCatcher", worldLV, false, NofLeakCounterLayers, fCheckOverlaps);
-  }
+  }*/
 
 
     // Return physical world

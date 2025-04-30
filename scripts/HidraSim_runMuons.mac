@@ -1,0 +1,142 @@
+# Change the default number of workers (in multi-threading mode) 
+#/run/numberOfWorkers 4
+# Select test-beam platform shift and rotation (with units)
+#
+# Module height: 28.3 mm; width: 128 mm
+# Default coordinates are set to shoot at T00 
+# (TB24) central tower
+#
+/tbgeo/xshift +61.20 mm
+#/tbgeo/yshift +32.90 mm
+#/tbgeo/yshift +25.0 mm
+/tbgeo/yshift +25.90 mm
+/tbgeo/horizrot 2.5 deg
+/tbgeo/vertrot 2.5 deg
+#
+#
+#/tbgeo/xshift +112.3 mm
+#/tbgeo/yshift +41.9 mm
+#/tbgeo/horizrot 2.5 deg
+#/tbgeo/vertrot 2.5 deg
+#
+#/tbgeo/xshift -100.20 cm
+#/tbgeo/yshift +32.90 mm
+#/tbgeo/horizrot 90.0 deg
+#/tbgeo/vertrot 2.5 deg
+#
+/run/initialize
+/vis/filtering/trajectories/create/particleFilter
+/vis/filtering/trajectories/particleFilter-0/add e-
+/vis/filtering/trajectories/particleFilter-0/add e+
+#/gps/particle e+
+/gps/particle mu+
+#/gps/particle gamma
+#/gps/particle pi+
+/gps/direction 0 0 1
+/gps/position +0.1 -0.6 -300 cm
+/gps/pos/type Plane
+/gps/pos/shape Circle
+#/gps/pos/shape Ellipse
+/gps/pos/radius 1.85 cm
+
+/control/verbose 0
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+
+#Run 0
+/gps/ene/type Gauss
+/gps/ene/mono 10 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+
+#Run 1
+/gps/ene/type Gauss
+/gps/ene/mono 20 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 2
+/gps/ene/type Gauss
+/gps/ene/mono 40 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 3
+/gps/ene/type Gauss
+/gps/ene/mono 60 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 4
+/gps/ene/type Gauss
+/gps/ene/mono 80 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 5
+/gps/ene/type Gauss
+/gps/ene/mono 100 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 6
+/gps/ene/type Gauss
+/gps/ene/mono 110 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 7
+/gps/ene/type Gauss
+/gps/ene/mono 120 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 8
+/gps/ene/type Gauss
+/gps/ene/mono 130 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 9
+/gps/ene/type Gauss
+/gps/ene/mono 140 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 10
+/gps/ene/type Gauss
+/gps/ene/mono 150 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 11
+/gps/ene/type Gauss
+/gps/ene/mono 160 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 12
+/gps/ene/type Gauss
+/gps/ene/mono 170 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 13
+/gps/ene/type Gauss
+/gps/ene/mono 180 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 14
+/gps/ene/type Gauss
+/gps/ene/mono 200 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
+
+#Run 15
+/gps/ene/type Gauss
+/gps/ene/mono 250 GeV
+/gps/ene/sigma 0.2 GeV
+/run/beamOn 100000
