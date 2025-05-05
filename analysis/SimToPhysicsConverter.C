@@ -59,15 +59,21 @@ class EventOut
     float totPMTSene = 0.;
     float totPMTCene = 0.;
     float XDWC1, XDWC2, YDWC1, YDWC2;
-    double PShower, TailCatcher, C1, C2;
+    double PShower, TailC, C1, C2;
     //int PShowerall;
     double ene_R0_S, ene_R1_S, ene_R2_S, ene_R3_S, ene_R4_S, ene_R5_S, ene_R6_S;
     double ene_R0_C, ene_R1_C, ene_R2_C, ene_R3_C, ene_R4_C, ene_R5_C, ene_R6_C;
     double totLeakage;
+    double TDC_TS11, TDC_TS00, TDC_TS15;
+    double TDC_TC11, TDC_TC00, TDC_TC15;
+
+    std::vector<double> hitTimeArrivalS, hitTimeArrivalC;
+    std::vector<int> hitFiberIdS, hitFiberIdC;    
 
     void CompLeakage()
     {
-	totLeakage = L02+L03+L04+L05+L07+L08+L09+L10+L11+L12+L13+L14+L15+L16+L20;
+	    totLeakage = L02+L03+L04+L05+L07+L08+L09+L10+L11+L12+L13+L14+L15+L20;
+      TailC = L16;
     }
 
     void CompSPMTene()
@@ -94,6 +100,81 @@ class EventOut
 
     }
 
+ 
+    void CompTiming()
+    {
+      std::vector<double> TdcVecS = std::vector<double>(36, 999.);  // vector to fill with timing values
+      std::vector<int> HitsInTowerVecS = std::vector<int>(36, 0);  // vector to fill with number of hits in that tower
+      std::vector<double> TdcVecC = std::vector<double>(36, 999.);  // vector to fill with timing values
+      std::vector<int> HitsInTowerVecC = std::vector<int>(36, 0);  // vector to fill with number of hits in that tower
+      double tS, tC;
+      int ts11nofHits = 0; double ts11_tdc = 0;
+      int ts00nofHits = 0; double ts00_tdc = 0;
+      int ts15nofHits = 0; double ts15_tdc = 0;
+      int tc11nofHits = 0; double tc11_tdc = 0;
+      int tc00nofHits = 0; double tc00_tdc = 0;
+      int tc15nofHits = 0; double tc15_tdc = 0;
+
+      for(unsigned int N=0; N<hitFiberIdS.size(); N++)
+      {
+        double tS = hitTimeArrivalS.at(N);
+        int idS = hitFiberIdS.at(N);
+        unsigned int towID = static_cast<unsigned int>( idS/(NofFiberscolumn*NofFibersrow/2) );
+        unsigned int Id_in_tower = static_cast<unsigned int>( idS%(NofFiberscolumn*NofFibersrow/2) );
+        unsigned int colID = static_cast<unsigned int>(idS/(NofFibersrow/2));
+        unsigned int rowID = 2*static_cast<unsigned int>(idS%(NofFibersrow/2)); 
+        //TdcVecS[towID] += tS;
+        //if(tS<0.){tS=0.;}
+        if( tS < TdcVecS[towID] ){TdcVecS[towID] = tS;}
+        //HitsInTowerVecS[towID]++;  
+        //if(towID==16){ ts11nofHits++; ts11_tdc+=tS;}
+        //if(towID==19){ ts00nofHits++; ts00_tdc+=tS;}
+        //if(towID==22){ ts15nofHits++; ts15_tdc+=tS;}
+      }
+
+      for(unsigned int N=0; N<hitFiberIdC.size(); N++)
+      {
+        double tC = hitTimeArrivalC.at(N);
+        int idC = hitFiberIdC.at(N);
+        unsigned int towID = static_cast<unsigned int>( idC/(NofFiberscolumn*NofFibersrow/2) );
+        unsigned int Id_in_tower = static_cast<unsigned int>( idC%(NofFiberscolumn*NofFibersrow/2) );
+        unsigned int colID = static_cast<unsigned int>(idC/(NofFibersrow/2));
+        unsigned int rowID = 2*static_cast<unsigned int>(idC%(NofFibersrow/2)); 
+        //if(tC<0.){tC=0.;}
+        //TdcVecC[towID] += tC;
+        if( tC < TdcVecC[towID]){TdcVecC[towID] = tC;}
+        //HitsInTowerVecC[towID]++;  
+        //if(towID==16){ tc11nofHits++; tc11_tdc+=tC;}
+        //if(towID==19){ tc00nofHits++; tc00_tdc+=tC;}
+        //if(towID==22){ tc15nofHits++; tc15_tdc+=tC;}
+      }
+
+      TRandom3 rng00s(EventID+42); double jitter00s = rng00s.Gaus(0, 0.75); // jitter of .75ns
+      TRandom3 rng11s(EventID+43); double jitter11s = rng11s.Gaus(0, 0.75);
+      TRandom3 rng15s(EventID+44); double jitter15s = rng15s.Gaus(0, 0.75);
+      TRandom3 rng00c(EventID+12); double jitter00c = rng00c.Gaus(0, 0.75); // jitter of .75ns
+      TRandom3 rng11c(EventID+13); double jitter11c = rng11c.Gaus(0, 0.75);
+      TRandom3 rng15c(EventID+14); double jitter15c = rng15c.Gaus(0, 0.75);
+
+      //ts11_tdc/=ts11nofHits; tc11_tdc/=tc11nofHits; 
+      //ts00_tdc/=ts00nofHits; tc00_tdc/=tc00nofHits;  
+      //ts15_tdc/=ts15nofHits; tc15_tdc/=tc15nofHits;  
+
+      //TDC_TS11 = ts11_tdc+jitter11s; 
+      //TDC_TS00 = ts00_tdc+jitter00s;
+      //TDC_TS15 = ts15_tdc+jitter15s;
+      //TDC_TC11 = tc11_tdc+jitter11c; 
+      //TDC_TC00 = tc00_tdc+jitter00c;
+      //TDC_TC15 = tc15_tdc+jitter15c;
+
+      TDC_TS11 = TdcVecS[16]+jitter11s; TDC_TS00 = TdcVecS[19]+jitter00s; TDC_TS15 = TdcVecS[22]+jitter15s;
+      TDC_TC11 = TdcVecC[16]+jitter11c; TDC_TC00 = TdcVecC[19]+jitter00c; TDC_TC15 = TdcVecC[22]+jitter15c;
+
+
+    
+    }
+    
+
     /*int SiPMCol(int index) { return index % 16; }
     int SiPMRow(int index) { return index / 16; }
     pair<double, double> SiPMSpos(int index)
@@ -113,6 +194,7 @@ class EventOut
       return pair<double, double>(x, y);
     }*/
 
+
 };
 
 class Event
@@ -126,6 +208,8 @@ class Event
   double TC00, TC10, TC11, TC12, TC13, TC14, TC15, TC16, TC17, TC20, TC21, TC22, TC23, TC24, TC25, TC30, TC31, TC32, TC33, TC34, TC35, TC40, TC41, TC42, TC43, TC44, TC45, TC50, TC51, TC52, TC53, TC54, TC55, TC60, TC61, TC62;
   double L02, L03, L04, L05, L07, L08, L09, L10, L11, L12, L13, L14, L15, L16, L20;
   double beamX, beamY;
+  double TDC_TS00, TDC_TS11, TDC_TS15;
+  double TDC_TC00, TDC_TC11, TDC_TC15;
 
   void calibratePMT(const PMTCalibration&, EventOut*);
 
@@ -146,8 +230,6 @@ void SimToPhysicsConverter(const string run){
   string outfile = "physics_" + run;
   char coutfile[outfile.size() + 1];
   strcpy(coutfile, outfile.c_str());
-
-
 
 
   auto simfile = new TFile(cinfile, "READ");
@@ -200,11 +282,18 @@ void SimToPhysicsConverter(const string run){
   vector<double>* LeakCounter = NULL;
   simtree->SetBranchAddress("VecLeakCounter", &LeakCounter);
 
+  // access hit variables
+  vector<int>* hitIdSvector = NULL; simtree->SetBranchAddress( "HitSiPMIDSvector", &hitIdSvector);
+  vector<int>* hitIdCvector = NULL; simtree->SetBranchAddress( "HitSiPMIDCvector", &hitIdCvector);
+  // access timing variable
+  vector<double>* hitTimeSvector = NULL; simtree->SetBranchAddress( "HitZcoordSvector", &hitTimeSvector);
+  vector<double>* hitTimeCvector = NULL; simtree->SetBranchAddress( "HitZcoordCvector", &hitTimeCvector);
+
   double SciPheGeV = SciPheGeV_Steel;
   double CerPheGeV = CerPheGeV_Steel;
 
 
-for (unsigned int i = 0; i < simtree->GetEntries(); i++) {
+  for (unsigned int i = 0; i < simtree->GetEntries(); i++) {
     simtree->GetEntry(i);
     evout->EventID = i;
     //std::cout << SPMT->at(0) << std::endl;
@@ -229,7 +318,8 @@ for (unsigned int i = 0; i < simtree->GetEntries(); i++) {
     evout->TS11 = SPMT->at(16)/SciPheGeV;
     evout->TS12 = SPMT->at(17)/SciPheGeV;
     evout->TS17 = SPMT->at(18)/SciPheGeV;
-    evout->TS00 = SPMT->at(19)/SciPheGeV;
+    evout->TS00 = SPMT->at(19)*0.75/SciPheGeV;
+    //evout->TS00 = SPMT->at(19)/SciPheGeV;
     evout->TS13 = SPMT->at(20)/SciPheGeV;
     evout->TS16 = SPMT->at(21)/SciPheGeV;
     evout->TS15 = SPMT->at(22)/SciPheGeV;
@@ -268,7 +358,8 @@ for (unsigned int i = 0; i < simtree->GetEntries(); i++) {
     evout->TC11 = CPMT->at(16)/CerPheGeV;
     evout->TC12 = CPMT->at(17)/CerPheGeV;
     evout->TC17 = CPMT->at(18)/CerPheGeV;
-    evout->TC00 = CPMT->at(19)/CerPheGeV;
+    evout->TC00 = CPMT->at(19)*0.75/CerPheGeV;
+    //evout->TC00 = CPMT->at(19)/CerPheGeV;
     evout->TC13 = CPMT->at(20)/CerPheGeV;
     evout->TC16 = CPMT->at(21)/CerPheGeV;
     evout->TC15 = CPMT->at(22)/CerPheGeV;
@@ -299,20 +390,36 @@ for (unsigned int i = 0; i < simtree->GetEntries(); i++) {
     evout->L02 = LeakCounter->at(3);   evout->L05 = LeakCounter->at(7);   evout->L10 = LeakCounter->at(11); evout->L14 = LeakCounter->at(15);  // calo left (as seen from beam)
 
     // tail catcher
-    evout->TailCatcher = LeakCounter->at(16);
+    evout->TailC = LeakCounter->at(16);
 
     evout->CompLeakage();
 
     // Truth total deposited energy
     evout->EnergyTot = edep;
 
+    // timing
+    evout->hitFiberIdS.assign(hitIdSvector->begin(), hitIdSvector->end());
+    evout->hitTimeArrivalS.assign(hitTimeSvector->begin(), hitTimeSvector->end());
+    evout->hitFiberIdC.assign(hitIdCvector->begin(), hitIdCvector->end());
+    evout->hitTimeArrivalC.assign(hitTimeCvector->begin(), hitTimeCvector->end());
+
+
+    evout->CompTiming();
+
+
     ftree->Fill();
 }
 
 
+  // disable hit branches before copying tree
+  ftree->SetBranchStatus( "hitTimeArrivalS", 0);
+  ftree->SetBranchStatus( "hitFiberIdS", 0);
+  ftree->SetBranchStatus( "hitTimeArrivalC", 0);
+  ftree->SetBranchStatus( "hitFiberIdC", 0);
+  TTree* ftree2 = ftree->CloneTree();
 
-
-  ftree->Write();
+  // write copied tree
+  ftree2->Write();
   Outfile->Close();
 
 }
