@@ -740,9 +740,14 @@ G4VPhysicalVolume* HidraSimDetectorConstruction::DefineVolumes() {
     // Commented leakage counters to allow for 90 degree rotation   
     if(TruthLeakageIn)
     {
-      //G4double leakradint=sqrt(caloX*caloX+caloY*caloY)*2.1;	// Added *1.2 wrt Giacomo's
+      G4double leakradint = 0;
+      if (LeakageCounterIn == false && TailCatcherIn == false){
+              leakradint=sqrt(caloX*caloX+caloY*caloY)*1.2;	// Added *1.2 wrt Giacomo's
+      }     
+      else{
       //G4double leakradint=sqrt( (caloX+leakBoxX/2)*(caloX+leakBoxX/2)+(caloY+leakBoxZ/2)*(caloY+leakBoxZ/2));	// Added *1.2 wrt Giacomo's
       G4double leakradint=sqrt( (caloBoxX)*(caloBoxX)+(caloBoxY)*(caloBoxY));	// Added *1.2 wrt Giacomo's
+      }
 
       G4double leakradout=leakradint+20*cm;
       G4double tube_dPhi = 2.* M_PI * rad;
@@ -1271,7 +1276,7 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructscinfiber(double toleran
     G4LogicalVolume* logic_S_fiber = new G4LogicalVolume(S_fiber,
                                                          absorberMaterial,
                                                          /*"S_fiber"*/logicname);
-    logic_S_fiber->SetVisAttributes(invisibleAttr);	//default is uncommented
+    //logic_S_fiber->SetVisAttributes(invisibleAttr);	//default is uncommented
 	
     G4Tubs* Abs_S_fiber = new G4Tubs("Abs_Scin_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
 
@@ -1292,7 +1297,7 @@ G4LogicalVolume* HidraSimDetectorConstruction::constructscinfiber(double toleran
     ScincoreVisAtt->SetForceWireframe(true);
     ScincoreVisAtt->SetForceSolid(true);
     logic_Core_S_fiber->SetVisAttributes(ScincoreVisAtt);
-    logic_Core_S_fiber->SetVisAttributes(invisibleAttr);
+    //logic_Core_S_fiber->SetVisAttributes(invisibleAttr);
     G4ThreeVector vec_Core_S;
     vec_Core_S.setX(0.);
     vec_Core_S.setY(0.);

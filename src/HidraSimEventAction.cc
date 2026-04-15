@@ -67,6 +67,11 @@ HidraSimEventAction::HidraSimEventAction()
     EscapedEnergyl(0.),
     EscapedEnergyd(0.),
     PSEnergy(0.),
+    EmEnergy(0.),
+    NeutronEkin(0.),
+    PionCount(0),
+    NeutronCount(0),
+    EventID(0),
     VectorSignals(0.),
     VectorSignalsCher(0.),
     VecSPMT(0.),
@@ -105,10 +110,11 @@ HidraSimEventAction::GetHitsCollection(G4int hcID,
 
 //Define BeginOfEventAction() and EndOfEventAction() methods
 //
-void HidraSimEventAction::BeginOfEventAction(const G4Event*) {  
+void HidraSimEventAction::BeginOfEventAction(const G4Event* event) {  
     
     //Initialize data memebers at begin of each event
     //
+    EventID = event->GetEventID();
     EnergyScin = 0.;
     EnergyCher = 0.;
     NofCherDet = 0;
@@ -122,6 +128,11 @@ void HidraSimEventAction::BeginOfEventAction(const G4Event*) {
     EscapedEnergyl = 0.;
     EscapedEnergyd = 0.;
     PSEnergy = 0.;
+    EmEnergy = 0.;
+    NeutronEkin = 0.;
+    PionCount = 0;
+    NeutronCount = 0;
+    NeutronEnergies.clear(); // reset per-event list
 
     VectorSignals.clear();
     VectorSignalsCher.clear();
@@ -191,6 +202,12 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
        G4cout << "No hit collections in this event." << G4endl;
     }
 
+    
+    //double intStart = 8.33;
+    double intStart = 0.1;
+    double intGate = 100.;
+    //G4double integrationTime = 30;
+
   // Scintillating SiPMs
   // Create a SiPMProperties object
   SiPMProperties mySciProperties;
@@ -198,6 +215,10 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   mySciProperties.setProperty("Pitch", 10);
   mySciProperties.setProperty("Size", 1.00);
   mySciProperties.setSampling(0.10); // 100 ps
+  mySciProperties.setRecoveryTime(20.);
+  mySciProperties.setRiseTime(1.);
+  mySciProperties.setFallTimeFast(30.);
+
   // Create a SiPMSensor object
   SiPMSensor mySciSensor(mySciProperties);
   // Change parameters
@@ -211,6 +232,9 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   myCerProperties.setProperty("Pitch", 15);
   myCerProperties.setProperty("Size", 1.00);
   myCerProperties.setSampling(0.10);  // 100 ps
+  myCerProperties.setRecoveryTime(20.);
+  myCerProperties.setRiseTime(1.);
+  myCerProperties.setFallTimeFast(30.);
   //myCerProperties.setRecoveryTime(10);
   // Create a SiPMSensor object
   SiPMSensor myCerSensor(myCerProperties);
@@ -218,9 +242,6 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   //mySensor.properties().setAp(0.01);    // Using proper getter/setter
   //mySensor.setProperty("Pitch", 25);    // Using parameter name
 
-  double intStart = 1.;
-  double intGate = 30.;
-  //G4double integrationTime = 30;
 
 
 
@@ -251,15 +272,13 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
 
     if(fiberPheVec.size()>0)
     {
+        // Each packet shares the same Z position along fibre ~ same time
         //G4cout << "S Fiber n " << current_Shit << "\tID: " << ShitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
+        double nPheS = std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0);
         for(int i=0; i<fiberPheVec.size(); i++){
             G4int NofPhe = fiberPheVec.at(i);
             for(int j=0; j<NofPhe; j++){
                 G4double phTime = fiberZVec.at(i)/vS;
-                //G4double integrationTime = 30;
-                //if(phTime/1000. > integrationTime || phTime/1000.<=0.){continue;}
-                if(phTime/1000. < intStart+0.5){continue;}
-                //G4cout << "Position: " << fiberZVec.at(i) << "\tTime: " << phTime/1000. <<  "\n";
                 SfiberTimes.push_back(phTime/1000.);  // Array of photon timings to input to SimSiPM
             }
         }
@@ -268,18 +287,15 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
         mySciSensor.addPhotons(SfiberTimes);    // Sets photon times (times are in ns) (not appending)
         mySciSensor.runEvent();           // Runs the simulation
         SiPMAnalogSignal mySciSignal = mySciSensor.signal();
-        double integral = mySciSignal.integral(intStart,intGate,0.15);   // (intStart, intGate, threshold)
-        double peak = mySciSignal.peak(intStart,intGate,0.25);   // (intStart, intGate, threshold)
-        double toa = mySciSignal.toa(intStart,intGate,0.25);   // (intStart, intGate, threshold)
-        double tot = mySciSignal.tot(intStart,intGate,0.25);   // (intStart, intGate, threshold)
-        if(peak>-1 and toa < 100.){
-          //G4cout << "S Fiber n " << current_Shit << "\tID: " << ShitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
-          //G4cout << "S Fiber n " << current_Shit  << "\tPeak: " << peak << "\tIntegral: " << integral << "\tTime Over Threshold: " << tot << "\tTime of Arrival: " << toa << G4endl;
-          //G4cout << G4endl;
-          fHitPheSvector.push_back(integral);     // fill with total number of phe
-          fHitZcoordSvector.push_back(toa);   // fill with arrival time of first phe
-          fHitSiPMIDSvector.push_back(current_Shit);        // fiber ID
-        }
+        double integral = mySciSignal.integral(intStart,intGate,0.5);   // (intStart, intGate, threshold)
+        double peak = mySciSignal.peak(intStart,intGate,0.5);   // (intStart, intGate, threshold)
+        double toa = mySciSignal.toa(intStart,intGate,0.5);   // (intStart, intGate, threshold)
+        double tot = mySciSignal.tot(intStart,intGate,0.5);   // (intStart, intGate, threshold)
+        //fHitPheSvector.push_back(integral);     // fill with SiPM signal intergral
+        fHitPheSvector.push_back(nPheS);     // fill with total number of phe
+        fHitZcoordSvector.push_back(toa+intStart);   // fill with arrival time of first phe
+        //fHitZcoordSvector.push_back(toa);   // fill with arrival time of first phe
+        fHitSiPMIDSvector.push_back(current_Shit);        // fiber ID
     }  
 
 
@@ -295,18 +311,12 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
 
     if(fiberPheVec.size()>0)
     {
-      //G4cout << "C Fiber n " << current_Chit << "\tID: " << ChitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
+      double nPheC = std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0);
         for(int i=0; i<fiberPheVec.size(); i++)
         {
             G4int NofPhe = fiberPheVec.at(i);
             for(int j=0; j<NofPhe; j++){
-              //G4double integrationTime = 30;
-              //G4double distance_to_sipm = moduleZ/2 - fiberZVec.at(i);
               G4double phTime = fiberZVec.at(i)/vC;
-              if(phTime/1000. < intStart+0.5){continue;}
-              //if(phTime/1000. > integrationTime || phTime/1000.<=0.){continue;}
-              //G4cout << phTime << "\t";
-              //G4cout << "Position: " << fiberZVec.at(i) << "\tDistance to SiPM: " << distance_to_sipm << "\tTime: " << time <<  "\n";
               CfiberTimes.push_back(phTime/1000.);  // Array of photon timings to input to SimSiPM
             }
         }
@@ -316,22 +326,14 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
       myCerSensor.runEvent();           // Runs the simulation
       SiPMAnalogSignal myCerSignal = myCerSensor.signal();
 
-      double integral = myCerSignal.integral(intStart,intGate,0.15);   // (intStart, intGate, threshold)
-      double peak = myCerSignal.peak(intStart,intGate,0.15);   // (intStart, intGate, threshold)
-      double toa = myCerSignal.toa(intStart,intGate,0.15);   // (intStart, intGate, threshold)
-      double tot = myCerSignal.tot(intStart,intGate,0.15);   // (intStart, intGate, threshold)
-      if(peak>0 and integral>0 and tot>1. and toa<100.){
-      //G4cout << "S Fiber n " << current_Shit << "\tID: " << ShitCollection->GetSiPMID() << "\t number of packets: " << fiberPheVec.size() << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << G4endl;
-      //G4cout << "C Fiber n " << current_Chit  << "\tPeak: " << peak << "\tIntegral: " << integral << "\tTime Over Threshold: " << tot << "\tTime of Arrival: " << toa << G4endl;
-      //G4cout << "C Fiber n " << current_Chit << "\tTotal number of phe: " << std::accumulate(fiberPheVec.begin(), fiberPheVec.end(), 0) << "\tTime of Arrival: " << toa << G4endl;
-      //G4cout << G4endl;
-      fHitPheCvector.push_back(integral);     // fill with total number of phe
-      fHitZcoordCvector.push_back(toa);   // fill with arrival time of first phe
+      double integral = myCerSignal.integral(intStart,intGate,0.5);   // (intStart, intGate, threshold)
+      double peak = myCerSignal.peak(intStart,intGate,0.5);   // (intStart, intGate, threshold)
+      double toa = myCerSignal.toa(intStart,intGate,0.5);   // (intStart, intGate, threshold)
+      double tot = myCerSignal.tot(intStart,intGate,0.5);   // (intStart, intGate, threshold)
+      //fHitPheCvector.push_back(integral);     // fill with SiPM signal integral
+      fHitPheCvector.push_back(nPheC);     // fill with total number of phe
+      fHitZcoordCvector.push_back(toa+intStart);   // fill with arrival time of first phe
       fHitSiPMIDCvector.push_back(current_Chit);        // fiber ID
-
-
-      }
-      //std::cout<<mySciSensor<<"\n";
     }  
 
 
@@ -360,22 +362,35 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   //entries with vectors are automatically filled
   //
   G4cout << "Filling histos" << G4endl;
-  analysisManager->FillNtupleDColumn(1, 0, EnergyScin);
-  analysisManager->FillNtupleDColumn(1, 1, EnergyCher);
-  analysisManager->FillNtupleDColumn(1, 2, NofCherDet);
-  analysisManager->FillNtupleDColumn(1, 3, NofScinDet);
-  analysisManager->FillNtupleDColumn(1, 4, EnergyTot);
-  analysisManager->FillNtupleDColumn(1, 5, PrimaryParticleEnergy);
-  analysisManager->FillNtupleIColumn(1, 6, PrimaryPDGID);
-  analysisManager->FillNtupleDColumn(1, 7, EscapedEnergyl);
-  analysisManager->FillNtupleDColumn(1, 8, EscapedEnergyd);
-  analysisManager->FillNtupleDColumn(1, 9, PSEnergy);
-  analysisManager->FillNtupleDColumn(1, 10, PrimaryX);
-  analysisManager->FillNtupleDColumn(1, 11, PrimaryY);
+  analysisManager->FillNtupleIColumn(1, 0, EventID);
+  analysisManager->FillNtupleDColumn(1, 1, EnergyScin);
+  analysisManager->FillNtupleDColumn(1, 2, EnergyCher);
+  analysisManager->FillNtupleDColumn(1, 3, NofCherDet);
+  analysisManager->FillNtupleDColumn(1, 4, NofScinDet);
+  analysisManager->FillNtupleDColumn(1, 5, EnergyTot);
+  analysisManager->FillNtupleDColumn(1, 6, PrimaryParticleEnergy);
+  analysisManager->FillNtupleIColumn(1, 7, PrimaryPDGID);
+  analysisManager->FillNtupleDColumn(1, 8, EscapedEnergyl);
+  analysisManager->FillNtupleDColumn(1, 9, EscapedEnergyd);
+  analysisManager->FillNtupleDColumn(1, 10, PSEnergy);
+  analysisManager->FillNtupleDColumn(1, 11, PrimaryX);
+  analysisManager->FillNtupleDColumn(1, 12, PrimaryY);
+  analysisManager->FillNtupleDColumn(1, 13, EmEnergy);
+  analysisManager->FillNtupleDColumn(1, 14, NeutronEkin);
+  analysisManager->FillNtupleIColumn(1, 15, PionCount);
+  analysisManager->FillNtupleIColumn(1, 16, NeutronCount);
 
 
   analysisManager->AddNtupleRow(1);    // Remember this otherwise data is not printed on file
 
+}
+
+void HidraSimEventAction::AddPionCount() {
+    PionCount++;
+}
+
+void HidraSimEventAction::AddNeutronCount() {
+    NeutronCount++;
 }
 
 //**************************************************

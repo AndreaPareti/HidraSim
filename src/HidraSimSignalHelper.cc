@@ -71,15 +71,15 @@ G4double HidraSimSignalHelper::ApplyBirks( const G4double& de, const G4double& s
 //Define SmearSSignal() method
 //
 G4int HidraSimSignalHelper::SmearSSignal( const G4double& satde ) {
-    //return G4Poisson(satde*9.5);        // Original
-    return G4Poisson(satde*21.32);		// TB2023 
+    return G4Poisson(satde*9.5);        // Original
+    //return G4Poisson(satde*21.32);		// TB2023 
 }
 
 //Define SmearCSignal() method
 //
 G4int HidraSimSignalHelper::SmearCSignal( ){
-    //return G4Poisson(0.153);            // Original
-    return G4Poisson(0.243);            // TB2023
+    return G4Poisson(0.153);            // Original
+    //return G4Poisson(0.243);            // TB2023
 
 }
 
@@ -139,9 +139,13 @@ G4int HidraSimSignalHelper::AttenuateHelper(const G4int& signal, const G4double&
 G4int HidraSimSignalHelper::AttenuateSSignal(const G4int& signal, const G4double& distance) {
 	//const G4double SAttenuationLength = 191.6*CLHEP::cm; // from test beam data
 	//const G4double SAttenuationLength = 700.0*CLHEP::cm; // from Bedeschi Datasheet
-	const G4double SAttenuationLength = 350.0*CLHEP::cm; // From TB2024 data
-	//const G4double SAttenuationLength = attenuation->Eval(att_length[8])*CLHEP::cm; // from Bedeschi Datasheet
+	
+    
+    //const G4double SAttenuationLength = 350.0*CLHEP::cm; // From TB2024 data
+	//const G4double SAttenuationLength = 1000.0*CLHEP::cm; // From TB2024 data
+    //const G4double SAttenuationLength = attenuation->Eval(att_length[8])*CLHEP::cm; // from Bedeschi Datasheet
 
+	const G4double SAttenuationLength = 10000.0*CLHEP::cm; // From TB2024 data
 
 	//const G4double SAttenuationLength = 1.*CLHEP::km; // 
 
@@ -154,7 +158,14 @@ G4int HidraSimSignalHelper::AttenuateSSignal(const G4int& signal, const G4double
 G4int HidraSimSignalHelper::AttenuateCSignal(const G4int& signal, const G4double& distance) {
 	//const G4double CAttenuationLength = 388.9*CLHEP::cm; // from test beam data
 	//const G4double CAttenuationLength = 700.0*CLHEP::cm; // from test beam data
-	const G4double CAttenuationLength = 350.0*CLHEP::cm; // From TB2024 data
+	
+    
+    //const G4double CAttenuationLength = 350.0*CLHEP::cm; // From TB2024 data
+	//const G4double CAttenuationLength = 1000.0*CLHEP::cm; // From TB2024 data
+
+
+    const G4double CAttenuationLength = 10000.0*CLHEP::cm; // From TB2024 data
+
 
     return AttenuateHelper(signal, distance, CAttenuationLength);    
     
@@ -172,7 +183,7 @@ G4int HidraSimSignalHelper::ApplyPMTdishomogeneity(const G4int& signal, const G4
     G4int survived_photons = 0;
 
     // Apply survival probability
-    if(rowID<=2 || rowID >= (NofFibersrow-2) || colID <=2 || colID >= (NofFiberscolumn-2) ){
+    if(rowID<=2 || rowID >= (NofFibersrow-4) || colID <=2 || colID >= (NofFiberscolumn-2) ){
 
         for (int i=0; i<signal; i++)
         {

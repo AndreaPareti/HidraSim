@@ -52,18 +52,26 @@ HidraSimRunAction::HidraSimRunAction( HidraSimEventAction* eventAction )
     //Define ntuple structure
     //
     analysisManager->CreateNtuple("HidraSimout", "HidraSimoutput");
-    analysisManager->CreateNtupleDColumn("EnergyScin");                     //0
-    analysisManager->CreateNtupleDColumn("EnergyCher");                     //1
-    analysisManager->CreateNtupleDColumn("NofCherDet");                     //2
-    analysisManager->CreateNtupleDColumn("NofScinDet");                     //3
-    analysisManager->CreateNtupleDColumn("EnergyTot");                      //4
-    analysisManager->CreateNtupleDColumn("PrimaryParticleEnergy");          //5
-    analysisManager->CreateNtupleIColumn("PrimaryPDGID");                   //6
-    analysisManager->CreateNtupleDColumn("EscapedEnergyl");                  //7
-    analysisManager->CreateNtupleDColumn("EscapedEnergyd");                  //8
-    analysisManager->CreateNtupleDColumn("PSEnergy");                       //9
-    analysisManager->CreateNtupleDColumn("PrimaryX");                       //10
-    analysisManager->CreateNtupleDColumn("PrimaryY");                       //11
+    analysisManager->CreateNtupleIColumn("EventID");                        //0
+    analysisManager->CreateNtupleDColumn("EnergyScin");                     //1
+    analysisManager->CreateNtupleDColumn("EnergyCher");                     //2
+    analysisManager->CreateNtupleDColumn("NofCherDet");                     //3
+    analysisManager->CreateNtupleDColumn("NofScinDet");                     //4
+    analysisManager->CreateNtupleDColumn("EnergyTot");                      //5
+    analysisManager->CreateNtupleDColumn("PrimaryParticleEnergy");          //6
+    analysisManager->CreateNtupleIColumn("PrimaryPDGID");                   //7
+    analysisManager->CreateNtupleDColumn("EscapedEnergyl");                  //8
+    analysisManager->CreateNtupleDColumn("EscapedEnergyd");                  //9
+    analysisManager->CreateNtupleDColumn("PSEnergy");                       //10
+    analysisManager->CreateNtupleDColumn("PrimaryX");                       //11
+    analysisManager->CreateNtupleDColumn("PrimaryY");                       //12
+    analysisManager->CreateNtupleDColumn("EmEnergy");                       //13
+    analysisManager->CreateNtupleDColumn("NeutronEkin");                    //14
+    analysisManager->CreateNtupleIColumn("PionCount");                     //15
+    analysisManager->CreateNtupleIColumn("NeutronCount");                  //16
+
+    // vector containing individual neutron energies for each event
+    analysisManager->CreateNtupleDColumn("NeutronEnergies", fEventAction->GetNeutronEnergies());
 
     analysisManager->CreateNtupleDColumn("VectorSignals", fEventAction->GetVectorSignals());
     analysisManager->CreateNtupleDColumn("VectorSignalsCher", fEventAction->GetVectorSignalsCher());
@@ -140,10 +148,7 @@ void HidraSimRunAction::BeginOfRunAction( const G4Run* Run )  {
 }
 
 void HidraSimRunAction::EndOfRunAction( const G4Run* ) {
-  
-
-
-  
+    
     auto analysisManager = G4AnalysisManager::Instance();
     //if (analysisManager) {
 

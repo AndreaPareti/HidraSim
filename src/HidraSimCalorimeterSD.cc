@@ -39,13 +39,12 @@ void HidraSimCalorimeterSD::Initialize(G4HCofThisEvent* hce)
   // Create hits collection
   fHitsCollection = new HidraSimCalorimeterHitsCollection(SensitiveDetectorName, collectionName[0]); 
 
-
   // Add this collection in hce
   auto hcID 
     = G4SDManager::GetSDMpointer()->GetCollectionID(collectionName[0]);
   hce->AddHitsCollection( hcID, fHitsCollection ); 
 
-  // Create and register the first hit collection
+  // Create and register the hit collection
   for(G4int fiber=0; fiber<fNofActiveFibers; fiber++){   
         fHitsCollection->insert(new HidraSimCalorimeterHit());
   }      
@@ -82,7 +81,6 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
     // Select photons that have total internal reflection in C fibers
     if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ) // check if particle is optical photon
     {
-          //int a = 0; 
           G4OpBoundaryProcessStatus theStatus = Undefined;
           G4ProcessManager* OpManager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
           if (OpManager) 
@@ -118,6 +116,7 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
                     G4ThreeVector position = preStepPoint->GetPosition();                
                     G4int SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
                     //auto hit  = new HidraSimCalorimeterHit();
+                    
                     // Get hit accounting data for this cell
                     //auto hit = (*fHitsCollection)[SiPMID];                    
                     auto hit = (*fHitsCollection)[NofFibersrow*NofFiberscolumn*SiPMTower/2 + SiPMID];                    
@@ -135,12 +134,6 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
                     G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
 
                     hit->AppendHit(c_signal, distance_to_sipm);
-          
-
-                    
-                    // Add values
-                    //fHitsCollection->insert(hit);
-                    //fHitsCollection[SiPMID]->insert(hit);
 
                     return true;
                 }
@@ -185,12 +178,16 @@ G4bool HidraSimCalorimeterSD::ProcessHits(G4Step* step,
             G4ThreeVector position = preStepPoint->GetPosition();
             G4int SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
 
+            //G4cout << "SiPMID: " << SiPMID << G4endl;
+
             // Get calorimeter cell id 
             //auto hit = (*fHitsCollection)[SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2];
             
             //auto hit  = new HidraSimCalorimeterHit();
+            
             // Get hit accounting data for this cell
             //auto hit = (*fHitsCollection)[SiPMID];
+            //G4cout << "Hit SiPM " << SiPMID << " in  sipm tower " << SiPMTower << " in tower " << TowerID << G4endl; 
             auto hit = (*fHitsCollection)[NofFibersrow*NofFiberscolumn*SiPMTower/2 + SiPMID];
 
             if ( ! hit ) {

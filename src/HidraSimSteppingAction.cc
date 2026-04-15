@@ -21,6 +21,9 @@
 #include "G4OpBoundaryProcess.hh"
 #include "G4OpticalPhoton.hh"
 
+#include "G4PhysicsModelCatalog.hh"   // optional if using GetCreatorModelName()
+#include "G4VProcess.hh"
+
 //Define constructor
 //
 HidraSimSteppingAction::HidraSimSteppingAction( HidraSimEventAction* eventAction,
@@ -88,6 +91,25 @@ void HidraSimSteppingAction::AuxSteppingAction( const G4Step* step ) {
             volume->GetName() == "Abs_Cher_fiber"  ) {
             fEventAction->AddVecTowerE(fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3)),
 				  edep );
+            G4Track* track = step->GetTrack();
+            G4String particleName = track->GetDefinition()->GetParticleName();
+            if (particleName == "e-" || particleName == "e+" || particleName == "gamma" ) {
+                G4double EmEdep = step->GetTotalEnergyDeposit();
+                fEventAction->AddEmEnergy(EmEdep);
+            }
+            // previously we added kinetic energy of neutrons entering the
+            // fibre volumes.  this is commented out to avoid double counting
+            // now that the birth-energy code (below) handles all neutron
+            // contributions.
+            /*
+            if (particleName == "neutron") {
+                if (track->GetCurrentStepNumber() == 1) {
+                    G4double neutronEkin = track->GetKineticEnergy();
+                    fEventAction->AddNeutronEkin(neutronEkin);
+                }
+            }
+            */
+                  
     }
     	
     if ( volume->GetName() == "Preshower_scin" || volume->GetName() == "Preshower_pb"){
@@ -117,6 +139,122 @@ void HidraSimSteppingAction::AuxSteppingAction( const G4Step* step ) {
                                     step->GetTrack()->GetPosition().y());
 
     }
+
+    // Count produced pions (secondaries only)
+    if (step->GetTrack()->GetCurrentStepNumber() == 1 && step->GetTrack()->GetParentID() != 0) {
+        G4String particleName = step->GetTrack()->GetDefinition()->GetParticleName();
+        //if (particleName == "pi+" || particleName == "pi-" || particleName == "pi0") {
+        if (particleName == "pi+" || particleName == "pi-" ) {
+            fEventAction->AddPionCount();
+        }
+    }
+
+    // Count produced neutrons (secondaries only)
+    if (step->GetTrack()->GetCurrentStepNumber() == 1 && step->GetTrack()->GetParentID() != 0) {
+        G4String particleName = step->GetTrack()->GetDefinition()->GetParticleName();
+        if (particleName == "neutron") {
+            fEventAction->AddNeutronCount();
+        }
+    }
+
+
+    /*
+    // Score kinetic energy of secondary neutrons created in this step.
+    // This measures the energy "put into neutrons" by hadronic interactions
+    // and uses the existing AddNeutronEkin accumulator for output.
+    // Optionally one could filter by creator process or creation volume here.
+    const auto* secondaries = step->GetSecondaryInCurrentStep();
+    if (secondaries) {
+        for (auto secIter = secondaries->begin(); secIter != secondaries->end(); ++secIter) {
+            const G4Track* secTrack = *secIter;
+            if (secTrack->GetDefinition()->GetPDGEncoding() == 2112) { // neutron PDG
+                G4double ekin = secTrack->GetKineticEnergy();
+                fEventAction->AddNeutronEkin(ekin);
+                fEventAction->AddNeutronEnergy(ekin); // record individual neutron energy
+                // print creator process:
+                // const G4VProcess* proc = secTrack->GetCreatorProcess();
+                // G4String procName = proc ? proc->GetProcessName() : "Unknown";
+                // G4cout << "Secondary neutron created by " << procName
+                //        << " Ekin=" << ekin << G4endl;
+            }
+        }
+    }*/
+
+
+
+    const auto* secondaries = step->GetSecondaryInCurrentStep();
+    if (secondaries) {
+        for (auto secIter = secondaries->begin(); secIter != secondaries->end(); ++secIter) {
+            const G4Track* secTrack = *secIter;
+            if (secTrack->GetDefinition()->GetPDGEncoding() == 2112) { // neutron
+                G4double ekin = secTrack->GetKineticEnergy();
+                //fEventAction->AddNeutronEkin(ekin);
+                //fEventAction->AddNeutronEnergy(ekin);
+
+                G4String modelName = secTrack->GetCreatorModelName();
+                //G4double ekin = secTrack->GetKineticEnergy();
+                //G4double time = secTrack->GetGlobalTime();
+
+                G4String stage = "other";
+                G4String tag   = "other";
+
+                if (modelName == "model_G4EvaporationChannel" ||
+                    modelName == "model_PRECO" ||
+                    modelName == "model_G4FermiBreakUpVI" ||
+                    modelName == "model_GammaNPreco") {
+                    stage = "deexcitation";
+                }
+                else if (modelName == "model_BertiniCascade" ||
+                        modelName == "model_FTFP") {
+                    stage = "cascade";
+                }
+                else if (modelName == "model_hBertiniCaptureAtRest_NuclearCapture") {
+                    stage = "capture";
+                }
+
+                if (stage == "deexcitation") {
+                    tag = "evap_or_preco";
+                }
+                else if (stage == "cascade") {
+                    if (ekin > 50*MeV) tag = "leading_like";
+                    else               tag = "cascade_soft";
+                }
+
+
+                const G4VProcess* proc = secTrack->GetCreatorProcess();
+                
+                //G4String procName = proc ? proc->GetProcessName() : "primary/unknown";
+                //G4int modelID = secTrack->GetCreatorModelID();
+                //G4String modelName = secTrack->GetCreatorModelName();
+
+                if (modelName == "model_FTFP") {
+
+                G4cout << "Event " << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID()
+                    //<< ": Neutron produced by process = " << procName
+                    << ", model = " << modelName
+                    << ", Ekin = " << ekin/MeV << " MeV"
+                    << G4endl;
+                }
+
+
+                // add neutron energy if production model is not "model_FTFP" -> Esclude hard neutrons
+                if (modelName != "model_FTFP") {
+                    fEventAction->AddNeutronEkin(ekin);
+                    fEventAction->AddNeutronEnergy(ekin);
+                }
+
+
+
+
+
+
+
+            }
+        }
+    }
+
+
+
 }
 
 //Define FastSteppingAction() method
@@ -168,7 +306,7 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
         signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
         
         G4int sipmID = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
-        signalhit = fSignalHelper->ApplyPMTdishomogeneity(signalhit, sipmID);
+        //signalhit = fSignalHelper->ApplyPMTdishomogeneity(signalhit, sipmID);
         G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
 
         signalhit = fSignalHelper->AttenuateSSignal(signalhit, distance_to_sipm);
@@ -177,8 +315,10 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
         if(SiPMTower > -1)
         { 
             SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-            //fEventAction->AddVectorScin( SiPMTower*NoFibersTower + SiPMID , signalhit ); 
-            fEventAction->AddVectorScin( TowerID*NoFibersTower + SiPMID , signalhit ); 
+            fEventAction->AddVectorScin( SiPMTower*NoFibersTower + SiPMID , signalhit ); 
+            
+            
+            //fEventAction->AddVectorScin( TowerID*NoFibersTower + SiPMID , signalhit ); \\ causing seg fault
 
             //fEventAction->AddVectorScin( SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2, signalhit ); 
             //fEventAction->AddVectorScin( SiPMID , signalhit ); 
@@ -228,7 +368,7 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
                     G4int sipmID = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
 
                     // Apply tower dishomogeneity observed during TB24
-                    c_signal = fSignalHelper->ApplyPMTdishomogeneity(c_signal, sipmID);
+                    //c_signal = fSignalHelper->ApplyPMTdishomogeneity(c_signal, sipmID);
 
                     // Attenuate Signal
                     c_signal = fSignalHelper->AttenuateCSignal(c_signal, distance_to_sipm);
@@ -243,8 +383,11 @@ void HidraSimSteppingAction::FastSteppingAction( const G4Step* step ) {
                     { // in sipm-readout tower
                         G4int SiPMID = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
                         //G4cout << step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName() << "\tSiPMID: " << SiPMID << "\tPhe: " << c_signal << "Tower: " << TowerID << G4endl;
-                        //fEventAction->AddVectorCher(SiPMTower*NoFibersTower+SiPMID, c_signal);
-                        fEventAction->AddVectorCher(TowerID*NoFibersTower+SiPMID, c_signal);
+                        //G4cout << "Hit fibre " << SiPMID << " in tower " << SiPMTower << G4endl;
+                        fEventAction->AddVectorCher(SiPMTower*NoFibersTower+SiPMID, c_signal);
+                        
+                        
+                        //fEventAction->AddVectorCher(TowerID*NoFibersTower+SiPMID, c_signal); // causing seg fault
 
                         //fEventAction->AddVectorCher(SiPMID+NofFibersrow*NofFiberscolumn*SiPMTower/2, c_signal);
                         //fEventAction->AddVectorCher(SiPMID , c_signal);
