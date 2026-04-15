@@ -50,6 +50,12 @@ class HidraSimEventAction : public G4UserEventAction {
         void AddEscapedEnergyl(G4double escapedenergy);
         void AddEscapedEnergyd(G4double escapedenergy);
         void AddPSEnergy(G4double de);
+        void AddEmEnergy(G4double Emde);
+        void AddNeutronEkin(G4double ekin);
+        // record individual neutron kinetic energies for spectral analysis
+        void AddNeutronEnergy(G4double ekin);
+        void AddPionCount();
+        void AddNeutronCount();
 
 
         //Save vectors in ntuple
@@ -61,6 +67,8 @@ class HidraSimEventAction : public G4UserEventAction {
 	    std::vector<G4double>& GetVecCPMT() {return VecCPMT;}
 	    std::vector<G4double>& GetVecLeakCounter() {return VecLeakCounter;}
 
+		// per-event neutron energies for spectral studies
+		std::vector<G4double>& GetNeutronEnergies() { return NeutronEnergies; }
 
         //Fill vector of scintillating fibers with energy deposition
         //
@@ -109,13 +117,18 @@ class HidraSimEventAction : public G4UserEventAction {
         G4double  EscapedEnergyl; //Energy deposited in leakage absorber
         G4double  EscapedEnergyd; //Energy deposited in leakage absorber
 	    G4double  PSEnergy;
-
-        //Vector of SiPMs filled with scintillating signals
-    	//
-        std::vector<G4double> VectorSignals;
-        //Vector of SiPMs filled with Cherenkov signals
+	    G4double  EmEnergy;
+	G4double  NeutronEkin; //accumulated kinetic energy of neutrons
+        G4int     PionCount; //number of pions produced
+        G4int     NeutronCount; //number of neutrons produced
+        G4int     EventID; //event ID number
 	    //
+        std::vector<G4double> VectorSignals; //accumulated energy in scintillating fibers per SiPM
+
         std::vector<G4double> VectorSignalsCher;
+
+        // per-event neutron energies (one entry per neutron) for spectrum studies
+        std::vector<G4double> NeutronEnergies;
 	    //Vector of PMTs filled with scintillating signals
     	//
     	std::vector<G4double> VecSPMT;
@@ -217,6 +230,18 @@ inline void HidraSimEventAction::AddPSEnergy(G4double de){
     PSEnergy += de;
 }
 
+inline void HidraSimEventAction::AddEmEnergy(G4double Emde){
+    EmEnergy += Emde;
+}
+
+inline void HidraSimEventAction::AddNeutronEkin(G4double ekin){
+    NeutronEkin += ekin;
+}
+
+// push back individual neutron kinetic energy
+inline void HidraSimEventAction::AddNeutronEnergy(G4double ekin){
+    NeutronEnergies.push_back(ekin);
+}
 
 
 #endif
