@@ -8,43 +8,47 @@
 //Includers from project files
 //
 #include "HidraSimActionInitialization.hh"
+#include "HidraSimDetectorConstruction.hh"
+#include "HidraSimEventAction.hh"
+#include "HidraSimGeneratorConfig.hh"
 #include "HidraSimPrimaryGeneratorAction.hh"
 #include "HidraSimRunAction.hh"
-#include "HidraSimEventAction.hh"
 #include "HidraSimSteppingAction.hh"
 
-//Constructor
-//
-HidraSimActionInitialization::HidraSimActionInitialization( HidraSimDetectorConstruction* detConstruction)
+#include "G4GenericMessenger.hh"
+
+HidraSimActionInitialization::HidraSimActionInitialization(
+    HidraSimDetectorConstruction* detConstruction)
     : G4VUserActionInitialization(),
-    //fFullOptic( FullOptic ),
-    fDetConstruction( detConstruction )		
-{}
+      fDetConstruction(detConstruction) {
+  fMessenger = new G4GenericMessenger(this, "/hidra/gen/", "Primary generator controls.");
 
-//De-constructor
-//
-HidraSimActionInitialization::~HidraSimActionInitialization() {}
+  auto& modeCmd = fMessenger->DeclareProperty(
+      "mode",
+      HidraSimGeneratorConfig::Mode(),
+      "Select generator mode: gps, gun, pythia");
 
-//BuildForMaster() method
-//
-void HidraSimActionInitialization::BuildForMaster() const {
-    
-    auto eventAction = new HidraSimEventAction;
-    SetUserAction( new HidraSimRunAction( eventAction ) );
-
+  modeCmd.SetParameterName("mode", false);
+  modeCmd.SetCandidates("gps gun pythia");
 }
 
-//Build() method
-//
-void HidraSimActionInitialization::Build() const {
-  
-    SetUserAction(new HidraSimPrimaryGeneratorAction);
-    auto eventAction = new HidraSimEventAction;
-    SetUserAction(new HidraSimRunAction( eventAction ));
-    SetUserAction(eventAction);
-    //SetUserAction(new HidraSimSteppingAction(eventAction, fDetConstruction, fFullOptic));
-    SetUserAction(new HidraSimSteppingAction(eventAction, fDetConstruction));
+HidraSimActionInitialization::~HidraSimActionInitialization() {
+  delete fMessenger;
+}
 
-}  
+void HidraSimActionInitialization::BuildForMaster() const {
+  auto eventAction = new HidraSimEventAction;
+  SetUserAction(new HidraSimRunAction(eventAction));
+}
+
+void HidraSimActionInitialization::Build() const {
+  SetUserAction(new HidraSimPrimaryGeneratorAction);
+
+  auto eventAction = new HidraSimEventAction;
+  SetUserAction(new HidraSimRunAction(eventAction));
+  SetUserAction(eventAction);
+  SetUserAction(new HidraSimSteppingAction(eventAction, fDetConstruction));
+}
+
 
 //**************************************************

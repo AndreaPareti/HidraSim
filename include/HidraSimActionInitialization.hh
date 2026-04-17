@@ -10,37 +10,24 @@
 #ifndef HidraSimActionInitialization_h
 #define HidraSimActionInitialization_h 1
 
-//Includers from Geant4
-//
 #include "G4VUserActionInitialization.hh"
 #include "G4Types.hh"
 
-//Includers from C++
-//
-#include <chrono>
-#include <random>
-
-//Forward declaration
-//
 class HidraSimDetectorConstruction;
+class G4GenericMessenger;
 
 class HidraSimActionInitialization : public G4VUserActionInitialization {
-    
-    public:
-        //Constructor
-        //
-        HidraSimActionInitialization(HidraSimDetectorConstruction*);
-        virtual ~HidraSimActionInitialization();
+public:
+  explicit HidraSimActionInitialization(HidraSimDetectorConstruction*);
+  ~HidraSimActionInitialization() override;
 
-        virtual void BuildForMaster() const;
-        virtual void Build() const;
+  void BuildForMaster() const override;
+  void Build() const override;
 
-    private:
-
-        G4bool fFullOptic;
-
-	HidraSimDetectorConstruction* fDetConstruction;
-
+private:
+  G4bool fFullOptic = false;
+  HidraSimDetectorConstruction* fDetConstruction = nullptr;
+  G4GenericMessenger* fMessenger = nullptr;
 };
 
 #endif

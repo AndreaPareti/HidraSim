@@ -3,6 +3,7 @@
 #include <string>
 #include<TMath.h>
 #include<TRandom.h>
+#include "TRandom2.h"
 
 /*****************************/
 //     Analysis Parameters   //
@@ -10,8 +11,11 @@
 
     // Input directory
     //string infolder = "../build/output_electrons_0p70BorderEfficiency_3p5mAttenuation/";
+    //string infolder = "../build/OutputMuons_06may2025_noBremsstrahlung/";
+    //string infolder = "../build/OutputMuons_06may2025/";
     string infolder = "../build/";
-    //string infolder = "../build/OutputTest_had_0/";
+    //string infolder = "../build/OutputPions_12Jun_NoDisHomogeneity_36miniM_NoAttenuation/";
+    //string infolder = "../build/OutputPions_12Jun_NoDisHomogeneity_36miniM_3p5mAttenuation/";
         
     // Brass calibration parameters (80 module geo)
     double SciPheGeV_Brass = 218.73299999999998;   
@@ -31,17 +35,26 @@
     //double CerPheGeV_Steel = 55.18902857142858;
     // With original sim parameters, 7m attenuation length
     //double SciPheGeV_Steel = 162.5;
+    
+    //double SciPheGeV_Steel = 225.5;
+    //double CerPheGeV_Steel = 39.9;
+
+
+    //double SciPheGeV_Steel = 225.5;
+    //double CerPheGeV_Steel = 37.7;
+
     double SciPheGeV_Steel = 225.5;
-    double CerPheGeV_Steel = 39.9;
+    double CerPheGeV_Steel = 54.5;
+
 
 
     //double CerPheGeV_Steel = 4700;    
     double steel_elcontainment = 1.0006985714285714;
     //double chi_steel = 0.157; //datasheet
-    double chi_steel = 0.33;    // 1km
+    double chi_steel = 0.38;    // 1km
     //double chi_steel = -0.15; 
-    double steel_picontainment[9] = {1.08782751, 1.08371817, 1.08131437, 1.07960884, 1.07720503, 1.0754995, 1.07417659, 1., 1.};    
-
+    //double steel_picontainment[9] = {1.08782751, 1.08371817, 1.08131437, 1.07960884, 1.07720503, 1.0754995, 1.07417659, 1., 1.};    
+    double steel_picontainment[9] = {1.1433746015339512, 1.1315494079733497, 1.1249125380501666, 1.1194798448848728, 1.1170488463119514, 1.1144917360437772, 1., 1., 1.};
 
 
     // PDG numbers for em objects
@@ -51,7 +64,7 @@
     /**********************************************/
     /* Geometry Parameters used in the simulation */
     /**********************************************/
-
+    /*
     // TB 24 (DRAGO -> 36 modules)
     const int NofmodulesX = 3;
     const int NofmodulesY = 12;
@@ -71,6 +84,61 @@
     const bool irot=false;
     //const int NofModulesSiPM = 10;
     //std::vector<int> SiPMtowers = {36, 37, 38, 39, 40, 41, 42, 43, 44, 45};
+    */
+
+
+    // TB26 HiDRa -> 80 moduels, horizontal tower placement, one module moved to corners
+    const int NofmodulesX = 5;
+    const int NofmodulesY = 20;
+    const int modflag[100]={-1, -1, 0, -1, -1,
+                                -1,  1, 2, 3, -1, 
+                                -1,  4, 5,  6, -1, 
+                                -1, 7, 8,  9, -1,
+                                10, 1, 12, 13, 14, 
+                                15,  16, 17, 18, 19, 
+                                20, 21, 22, 23, 24,
+                                25, 26, 27, 28, 29,
+                                30, 31, 32, 33, 34, 
+                                35, 36, 37, 38, 39, 
+                                40, 41, 42, 43, 44, 
+                                45, 46, 47, 48, 49, 
+                                50, 51, 52, 53, 54,
+                                55, 56, 57, 58, 59, 
+                                60, 61, 62, 63, 64, 
+                                65, 66, 67, 68, 69, 
+                                -1, 70, 71, 72, -1, 
+                                -1, 73, 74, 75, -1,
+                                -1, 76, 77, 78, -1,
+                                -1, -1, 79, -1, -1};  
+    const int NofModulesSiPM=80;
+    const int SiPMMod[100]={-1, -1, 0, -1, -1,
+                                -1,  1, 2, 3, -1, 
+                                -1,  4, 5,  6, -1, 
+                                -1, 7, 8,  9, -1,
+                                10, 1, 12, 13, 14, 
+                                15,  16, 17, 18, 19, 
+                                20, 21, 22, 23, 24,
+                                25, 26, 27, 28, 29,
+                                30, 31, 32, 33, 34, 
+                                35, 36, 37, 38, 39, 
+                                40, 41, 42, 43, 44, 
+                                45, 46, 47, 48, 49, 
+                                50, 51, 52, 53, 54,
+                                55, 56, 57, 58, 59, 
+                                60, 61, 62, 63, 64, 
+                                65, 66, 67, 68, 69, 
+                                -1, 70, 71, 72, -1, 
+                                -1, 73, 74, 75, -1,
+                                -1, 76, 77, 78, -1,
+                                -1, -1, 79, -1, -1};
+
+    //const int NofFiberscolumn = 64;
+    //const int NofFibersrow = 16;
+    const int NoModulesActive=80;
+    //const double moduleZ = (2500.)*mm;
+    const bool irot=false;
+    //const int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
+
 
 
 

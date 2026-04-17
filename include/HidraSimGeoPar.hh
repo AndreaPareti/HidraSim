@@ -163,7 +163,7 @@ const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
 
 
 // Still HiDRa, full SiPM readout 
-
+/*
 // TB26 HiDRa -> 80 moduels, horizontal tower placement, one module moved to corners
 const G4int NofmodulesX = 5;
 const G4int NofmodulesY = 20;
@@ -214,7 +214,7 @@ const G4int NofFibersrow = 16;
 const G4int NoModulesActive=80;
 const G4double moduleZ = (2500.)*mm;
 const G4bool irot=false;
-const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
+const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;*/
 
 
 
@@ -309,7 +309,7 @@ const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
 
 
     // 480 miniM Geo
-    /*
+    
     const G4int NofmodulesX = 10; 
     const G4int NofmodulesY = 48;
     const G4bool irot=false;
@@ -340,7 +340,7 @@ const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
     const G4int NoModulesActive=480;
     const G4double moduleZ = (2500.)*mm;
     const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
-    */
+    
     
 
 

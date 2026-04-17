@@ -128,9 +128,9 @@ void HidraAna(double energy, const string intup){
   auto drene = new TH1F("drene", "Reco E_{DR} = S-#chiC / 1-#chi; E [GeV]; Counts",100,bmin_val,bmax);  
   auto totdep = new TH1F("totdep", "totdep",100,bmin_val,bmax);
   // Albedo represents beam energy - deposited E in the calo - truth leaked energy from side and back of calo  
-  auto leakene = new TH1F("leakene", "leakene",100,0.,1.); 
-  auto leakene_lat = new TH1F("leakene_lat", "leakene_lat", 100, 0., 1.);
-  auto leakene_dep = new TH1F("leakene_dep", "leakene_dep", 100, 0., 1.);
+  auto leakene = new TH1F("leakene", "leakene",100,0.,1.1*energy); 
+  auto leakene_lat = new TH1F("leakene_lat", "leakene_lat", 100, 0., 1.1*energy);
+  auto leakene_dep = new TH1F("leakene_dep", "leakene_dep", 100, 0., 1.1*energy);
   auto albedo = new TH1F("albedo", "albedo", 100, 0., 1.);
   auto chidist = new TH1F("chidist", "chidist",100,0.,1.);  
   auto histofem = new TH2F("histofem", "histofem", 100, 0., 1.5, 100, 0., 1.5);
@@ -256,6 +256,8 @@ void HidraAna(double energy, const string intup){
  
     double meantimeS = 0;
     double meanEneS = 0;
+
+    /*
     // read one value for TDC for each tower (only used T11, T15 and T00)
     std::unordered_map<int, double> TowerTdcMap;  // associate TDC readout value (double) to tower number (int) 
     std::vector<double> TdcVec(SPMT->size(), 0);  // vector to fill with timing values
@@ -285,8 +287,7 @@ void HidraAna(double energy, const string intup){
       //std::cout << "Tower: " << tow << "\tTDC value: " << tdc << std::endl;
     }
 
-    
-
+  
     // test with lower n of events
     //if(i>5000){break;}
     
@@ -309,6 +310,8 @@ void HidraAna(double energy, const string intup){
     meanEneC = meanEneC/hitIdC->size();
     MeanTimeC_hist->Fill(meantimeC);
     MeanEneHitC_hist->Fill(meanEneC);
+    */
+
 
 
 
@@ -330,12 +333,12 @@ void HidraAna(double energy, const string intup){
     LeakCounterSum->Fill(tot_leakCount/1000);
     TailCatcher->Fill(LeakCounter->back()/1000);
 
-    TDC_TS11_Profile->Fill(TowerTdcMap[19], totsci);
-    TDC_TS00_Profile->Fill(TowerTdcMap[18], totsci);
-    TDC_TS15_Profile->Fill(TowerTdcMap[17], totsci);
+    //TDC_TS11_Profile->Fill(TowerTdcMap[19], totsci);
+    //TDC_TS00_Profile->Fill(TowerTdcMap[18], totsci);
+    //TDC_TS15_Profile->Fill(TowerTdcMap[17], totsci);
 
 
-
+    totsci=totsci/2; totcer = totcer/2;
     alb_energy = (venergy-edep-totleak)/energy/1000;    
     sciene->Fill(totsci);    
     cerene->Fill(totcer); 
@@ -347,10 +350,14 @@ void HidraAna(double energy, const string intup){
     totene->Fill(elcont*0.5*(totsci+totcer));   
     drenec->Fill(picont*(totsci-chi*totcer)/(1-chi));   
     totdep->Fill(tottow/1000.);   
-    leakene_lat->Fill(lenergy/1000/energy);
-    leakene_dep->Fill(denergy/1000/energy);
-    leakene->Fill(totleak/1000/energy);  
+    leakene_lat->Fill(lenergy/1000);  // in GeV
+    leakene_dep->Fill(denergy/1000);
+    leakene->Fill(totleak/1000);  
     albedo->Fill(alb_energy);
+    // if leakage counter are not present, total leakage is truth energy minus deposited energy in calo
+    //leakene->Fill( (venergy-edep)/1000);  
+
+
     chidist->Fill((totsci-ecalo)/(totcer-ecalo)); 
     histofem->Fill(totsci/ecalo, totcer/ecalo, 1);
     sum_towerE+=tottow;
@@ -413,11 +420,14 @@ t->SetTextSize(0.03);      // Adjust text size
 
   
 
-  double leakedE = leakene->GetMean()*energy;
+  double leakedE = leakene->GetMean();
   double err_leakage = (leakene->GetRMS())/sqrt(nentries); 
   double mean_containment = energy - leakedE;
   double phe_GeV_sci = sum_scin/(energy-leakedE)/nentries;
   double phe_GeV_cer = sum_chev/(energy-leakedE)/nentries;
+  //std::cout << "\nTotal leakage at energy " << energy << ": " << leakedE << "\tContainment: " << (energy-leakedE)/energy << "\t1/containment correction: " << energy/(energy-leakedE) << std::endl;
+  std::cout << "\nTotal leakage at energy " << energy << ": " << leakedE << "\tContainment: " << (mean_containment)/energy << "\tcontainment correction = 1/cont: " << 1/mean_containment << std::endl;
+
   std::cout << "\nphe/GeV (S): " << Stot/(energy-leakedE)/nentries << "\nphe/GeV (C): " << Ctot/(energy-leakedE)/nentries << std::endl;
   double chidist_mean = 0.;
 
@@ -520,7 +530,31 @@ t->SetTextSize(0.03);      // Adjust text size
   //std::cout << " ? " << energy << "\t" << phe_GeV_sci << "\t" << phe_GeV_cer << "\t" << chidist_mean << "\t"  << energy/mean_containment << "\t" << leakene->GetMean() << "\t"  << leakene->GetRMS() << std::endl;
   // Print calorimeter parameters (energy)
   //cout << " # " << energy << " " << peak1 << " " << epeak1 << " " << rms1 << " " << erms1  << " "  << chi << " " << mean_containment/energy << " " << err_leakage/energy << endl;
+  cout << " # " << energy << " " << chi << " " << totdep->GetMean()/energy << " " << err_leakage/energy << endl;
+  //cout << " ! " << energy << "\t " << count1 << "\t " << count2 << std::endl;
+  
+  //std::ofstream tailFile("tailFile.txt", std::ios::app);
+  //tailFile << energy << "\t " << count1 << "\t " << count2 << std::endl;
+  //tailFile.close();
+
+  /*
+  std::ofstream EnergyFile("EnergyResFile.txt", std::ios::app);
+  EnergyFile << energy << " " << peak_drenec << " " << epeak_drenec << " " << rms_drenec << " " << erms_drenec << 
+  " " << peak_S << " " << epeak_S << " " << rms_S << " " << erms_S << " " << peak_C << " " << epeak_C << " " << rms_C << " " << erms_C << std::endl;
+  EnergyFile.close();
  
+  cout << " # " << energy << " " << peak_comb << " " << epeak_comb << " " << rms_comb << " " << erms_comb  << " "  << chi << " " << mean_containment/energy << " " << err_leakage/energy <<
+  " " << peak_S << " " << epeak_S << " " << rms_S << " " << erms_S << " " << peak_C << " " << epeak_C << " " << rms_C << " " << erms_C << std::endl;
+  */
+  cout << " # " << energy << " " << peak_drenec << " " << epeak_drenec << " " << rms_drenec << " " << erms_drenec  << " "  << chi << " " << mean_containment/energy << " " << err_leakage/energy <<
+  " " << peak_sciene << " " << epeak_sciene << " " << rms_sciene << " " << erms_sciene << " " << peak_cerene << " " << epeak_cerene << " " << rms_cerene << " " << erms_cerene << std::endl;
+
+  std::ofstream EnergyFile("EnergyResFile.txt", std::ios::app);
+  EnergyFile << energy << "\t" << peak_drenec << "\t" << epeak_drenec << "\t" << rms_drenec << "\t" << erms_drenec  << "\t"  << chi << "\t" << mean_containment/energy << "\t" << err_leakage/energy <<
+  "\t" << peak_sciene << "\t" << epeak_sciene << "\t" << rms_sciene << "\t" << erms_sciene << "\t" << peak_cerene << "\t" << epeak_cerene << "\t" << rms_cerene << "\t" << erms_cerene << std::endl;
+  EnergyFile.close();
+
+
   //std::cout << " % " << energy << " " << peak_drenec << " " << epeak_drenec << " " << rms_drenec << " " << erms_drenec << 
   //" " << peak_S << " " << epeak_S << " " << rms_S << " " << erms_S << " " << peak_C << " " << epeak_C << " " << rms_C << " " << erms_C << std::endl;
 

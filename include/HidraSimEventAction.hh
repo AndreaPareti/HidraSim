@@ -98,6 +98,13 @@ class HidraSimEventAction : public G4UserEventAction {
         std::vector<double>& GetHitZcoordCvector() {return fHitZcoordCvector;}
         std::vector<int>& GetHitSiPMIDCvector() {return fHitSiPMIDCvector;}
 
+        // Final state particles from Pythia
+        std::vector<G4double>& GetFinalStateEnergy() {return fFinalStateEnergy;}
+        std::vector<G4double>& GetFinalStatePx() {return fFinalStatePx;}
+        std::vector<G4double>& GetFinalStatePy() {return fFinalStatePy;}
+        std::vector<G4double>& GetFinalStatePz() {return fFinalStatePz;}
+        std::vector<G4int>& GetFinalStatePDGID() {return fFinalStatePDGID;}
+
 
         void SaveHitPheSvector(std::vector<double> HitPheSvector);
         void AddNewHit();
@@ -151,6 +158,13 @@ class HidraSimEventAction : public G4UserEventAction {
         std::vector<double> fHitZcoordCvector;
         std::vector<int> fHitSiPMIDCvector; 
         //G4int NofHitSInEvt;
+
+        // Final state particles from Pythia events
+        std::vector<G4double> fFinalStateEnergy;
+        std::vector<G4double> fFinalStatePx;
+        std::vector<G4double> fFinalStatePy;
+        std::vector<G4double> fFinalStatePz;
+        std::vector<G4int> fFinalStatePDGID;
 
 
         HidraSimCalorimeterHitsCollection* GetHitsCollection(G4int hcID,

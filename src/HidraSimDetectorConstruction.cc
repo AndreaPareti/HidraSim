@@ -42,6 +42,13 @@
 #include "G4TwoVector.hh"
 
 
+#include "G4FieldManager.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4ThreeVector.hh"
+#include "G4TransportationManager.hh"
+#include "G4UniformMagField.hh"
+
+
 
 
 // Include SensitiveDetector--> Save hits
@@ -1486,35 +1493,43 @@ std::vector<G4TwoVector> HidraSimDetectorConstruction::calcmod(double radius, in
 
 
 //methods to make S and C fibers sensitive detectors
+
 void HidraSimDetectorConstruction::ConstructSDandField()
 {
-  G4SDManager::GetSDMpointer()->SetVerboseLevel(1);
-  // 
-  // Sensitive detectors
-  //
-  G4VSensitiveDetector *SfiberSD = new HidraSimCalorimeterSD("SfiberSD", "SfiberHitsCollection", G4int(NofFibersrow*NofFiberscolumn*NofModulesSiPM/2));   // original
-  //G4VSensitiveDetector *SfiberSD = new HidraSimCalorimeterSD("SfiberSD", "SfiberHitsCollection");
-  G4SDManager::GetSDMpointer()->AddNewDetector(SfiberSD);
+  auto* sdManager = G4SDManager::GetSDMpointer();
+  sdManager->SetVerboseLevel(1);
 
-  G4VSensitiveDetector *CfiberSD = new HidraSimCalorimeterSD("CfiberSD", "CfiberHitsCollection", G4int(NofFibersrow*NofFiberscolumn*NofModulesSiPM/2)); // original
-  //G4VSensitiveDetector *CfiberSD = new HidraSimCalorimeterSD("CfiberSD", "CfiberHitsCollection"); 
-  G4SDManager::GetSDMpointer()->AddNewDetector(CfiberSD);
+  auto* sfiberSD = sdManager->FindSensitiveDetector("SfiberSD", false);
+  if (!sfiberSD) {
+    sfiberSD = new HidraSimCalorimeterSD(
+        "SfiberSD",
+        "SfiberHitsCollection",
+        G4int(NofFibersrow * NofFiberscolumn * NofModulesSiPM / 2));
+    sdManager->AddNewDetector(sfiberSD);
+  }
 
-  SetSensitiveDetector("Core_S_fiber", SfiberSD); 
-  SetSensitiveDetector("Core_C_fiber", CfiberSD); 
-  SetSensitiveDetector("Clad_S_fiber", SfiberSD); 
-  SetSensitiveDetector("Clad_C_fiber", CfiberSD); 
+  auto* cfiberSD = sdManager->FindSensitiveDetector("CfiberSD", false);
+  if (!cfiberSD) {
+    cfiberSD = new HidraSimCalorimeterSD(
+        "CfiberSD",
+        "CfiberHitsCollection",
+        G4int(NofFibersrow * NofFiberscolumn * NofModulesSiPM / 2));
+    sdManager->AddNewDetector(cfiberSD);
+  }
 
+  SetSensitiveDetector("Core_S_fiber", sfiberSD);
+  SetSensitiveDetector("Clad_S_fiber", sfiberSD);
+  SetSensitiveDetector("Core_C_fiber", cfiberSD);
+  SetSensitiveDetector("Clad_C_fiber", cfiberSD);
 
-  // Magnetic field
-  //
-  // Create global magnetic field messenger.
-  // Uniform magnetic field is then created automatically if
-  // the field value is not zero.
-  //G4ThreeVector fieldValue;
-  //fMagFieldMessenger = new G4GlobalMagFieldMessenger(fieldValue);
-  //fMagFieldMessenger->SetVerboseLevel(1);
-  
-  // Register the field messenger for deleting
-  //G4AutoDelete::Register(fMagFieldMessenger);
+  auto* fieldMessenger = fFieldMessenger.Get();
+  if (!fieldMessenger) {
+    auto fieldValue = G4ThreeVector(0.5 * tesla, 0.5 * tesla, 0.0);
+
+    fieldMessenger = new G4GlobalMagFieldMessenger(fieldValue);
+    fieldMessenger->SetVerboseLevel(1);
+
+    G4AutoDelete::Register(fieldMessenger);
+    fFieldMessenger.Put(fieldMessenger);
+  }
 }

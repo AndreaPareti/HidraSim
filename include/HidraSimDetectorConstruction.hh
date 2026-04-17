@@ -18,6 +18,10 @@
 #include "G4LogicalVolume.hh"
 #include "G4TwoVector.hh"
 #include "G4ExtrudedSolid.hh"
+#include "G4Cache.hh"
+
+#include <memory>
+
 
 //Include geometrical parameters
 #include "HidraSimGeoPar.hh"
@@ -26,6 +30,9 @@
 //
 class G4VPhysicalVolume;
 class G4GlobalMagFieldMessenger;
+class G4UniformMagField;
+
+
 
 class HidraSimDetectorConstruction : public G4VUserDetectorConstruction {
   
@@ -102,7 +109,9 @@ class HidraSimDetectorConstruction : public G4VUserDetectorConstruction {
 	std::vector<G4TwoVector> calcmod(double radius, int nrow, int ncol); 
 
     // make fibers sensitive detector to save hits
-    virtual void ConstructSDandField();
+    //virtual void ConstructSDandField();
+    void ConstructSDandField() override;
+
 
 
     private:
@@ -126,6 +135,11 @@ class HidraSimDetectorConstruction : public G4VUserDetectorConstruction {
         //Parameters selectable via UI
         //
         G4double fXshift{0.}, fYshift{0.}, fVerrot{0.}, fOrzrot{0.};
+
+        std::unique_ptr<G4UniformMagField> fMagField;
+        G4Cache<G4GlobalMagFieldMessenger*> fFieldMessenger;
+
+
 
 };
 

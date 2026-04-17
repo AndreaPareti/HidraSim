@@ -1,0 +1,10 @@
+/control/verbose 2
+/run/verbose 1
+/event/verbose 0
+/tracking/verbose 0
+
+/run/numberOfThreads 1
+/hidra/gen/mode pythia
+
+/run/initialize
+/run/beamOn 100

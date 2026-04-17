@@ -69,6 +69,7 @@ HidraSimRunAction::HidraSimRunAction( HidraSimEventAction* eventAction )
     analysisManager->CreateNtupleDColumn("NeutronEkin");                    //14
     analysisManager->CreateNtupleIColumn("PionCount");                     //15
     analysisManager->CreateNtupleIColumn("NeutronCount");                  //16
+    analysisManager->CreateNtupleIColumn("NumFinalStateParticles");        //17
 
     // vector containing individual neutron energies for each event
     analysisManager->CreateNtupleDColumn("NeutronEnergies", fEventAction->GetNeutronEnergies());
@@ -79,6 +80,14 @@ HidraSimRunAction::HidraSimRunAction( HidraSimEventAction* eventAction )
     analysisManager->CreateNtupleDColumn("VecSPMT", fEventAction->GetVecSPMT());
     analysisManager->CreateNtupleDColumn ("VecCPMT", fEventAction->GetVecCPMT());
     analysisManager->CreateNtupleDColumn ("VecLeakCounter", fEventAction->GetVecLeakCounter());
+    
+    // Final state particles from Pythia
+    analysisManager->CreateNtupleDColumn("FinalStateEnergy", fEventAction->GetFinalStateEnergy());
+    analysisManager->CreateNtupleDColumn("FinalStatePx", fEventAction->GetFinalStatePx());
+    analysisManager->CreateNtupleDColumn("FinalStatePy", fEventAction->GetFinalStatePy());
+    analysisManager->CreateNtupleDColumn("FinalStatePz", fEventAction->GetFinalStatePz());
+    analysisManager->CreateNtupleIColumn("FinalStatePDGID", fEventAction->GetFinalStatePDGID());
+    
     analysisManager->CreateNtupleDColumn("HitPheSvector", fEventAction->GetHitPheSvector());
     analysisManager->CreateNtupleDColumn("HitZcoordSvector", fEventAction->GetHitZcoordSvector());
     analysisManager->CreateNtupleIColumn("HitSiPMIDSvector", fEventAction->GetHitSiPMIDSvector());

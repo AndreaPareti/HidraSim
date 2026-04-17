@@ -12,6 +12,7 @@
 #include "HidraSimEventAction.hh"
 #include "HidraSimRunAction.hh"
 #include "HidraSimDetectorConstruction.hh"
+#include "HidraSimGeneratorConfig.hh"
 #include "G4HCofThisEvent.hh"
 //#include "HidraSimGeoPar.hh"
 
@@ -146,6 +147,11 @@ void HidraSimEventAction::BeginOfEventAction(const G4Event* event) {
     fHitPheCvector.clear();
     fHitZcoordCvector.clear();
     fHitSiPMIDCvector.clear();
+    fFinalStateEnergy.clear();
+    fFinalStatePx.clear();
+    fFinalStatePy.clear();
+    fFinalStatePz.clear();
+    fFinalStatePDGID.clear();
 
 
     VectorSignals.assign(NoFibersTower*NofModulesSiPM, 0.);
@@ -342,6 +348,13 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
 
 
 
+  // Copy final state particle information from GeneratorConfig to event-local storage
+  fFinalStateEnergy = HidraSimGeneratorConfig::FinalStateEnergy();
+  fFinalStatePx = HidraSimGeneratorConfig::FinalStatePx();
+  fFinalStatePy = HidraSimGeneratorConfig::FinalStatePy();
+  fFinalStatePz = HidraSimGeneratorConfig::FinalStatePz();
+  fFinalStatePDGID = HidraSimGeneratorConfig::FinalStatePDGID();
+
   // Print per event (modulo n)
   //
   auto eventID = event->GetEventID();
@@ -380,6 +393,8 @@ void HidraSimEventAction::EndOfEventAction(const G4Event* event) {
   analysisManager->FillNtupleIColumn(1, 15, PionCount);
   analysisManager->FillNtupleIColumn(1, 16, NeutronCount);
 
+  // Fill final state particle information
+  analysisManager->FillNtupleIColumn(1, 17, HidraSimGeneratorConfig::NumFinalStateParticles());
 
   analysisManager->AddNtupleRow(1);    // Remember this otherwise data is not printed on file
 
