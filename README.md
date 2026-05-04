@@ -96,10 +96,12 @@ Parser options
    * -pl Physics_List: select Geant4 physics list (example -pl FTFP_BERT)
    * -opt FullOptic: boolean variable to switch on (true) the optical photon propagation in fibers (example -opt true, default false) -> NOTE: Not available any longer
 
+
 ### Build, compile and execute on lxplus and machines with CVMFS (ALMA9)
+
 1. git clone the repo
    ```sh
-   git clone git clone https://github.com/DRCalo/HidraSim.git
+   git clone https://github.com/DRCalo/HidraSim.git
    ```
 2. cmake, build directory and make (using geant4-v11.3.1, check for gcc and cmake dependencies for other versions)
    ```sh
@@ -135,26 +137,27 @@ Parser options
 
 At this point you have an environment set up with Geant4 and all the needed dependencies. You should follow instructions in the terminal to build and execute the code.
 
-### Submit a job with HTCondor on lxplus -> To be tested after Geant4-11
+### Submit a job with HTCondor on lxplus
 1. git clone the repo
    ```sh
    git clone https://github.com/lopezzot/DREMTubes.git
    ```
-2. prepare execution files (example with Geant4.10.07_p01, DREMTubes_run.mac, 2 threads, FTFP_BERT physics list)
+2. prepare execution files (example with Geant4.11.2.2, DREMTubes_run.mac, 2 threads, FTFP_BERT physics list)
     ```sh
-    mkdir DREMTubes-build; cd DREMTubes-build
+    mkdir build; cd build
     mkdir error log output
-    cp ../../DREMTubes/scripts/DREMTubes_lxplus_10.7.p01.sh .
-    source DREMTubes_lxplus_10.7.p01.sh
+    cp ../../DREMTubes/scripts/DREMTubes_lxplus_11.2.2.sh .
+    source DREMTubes_lxplus_11.2.2.sh
     ```
-3. prepare for HTCondor submission (example with Geant4.10.07_p01, DREMTubes_run.mac, 2 threads, FTFP_BERT physics list)
+3. prepare for HTCondor submission (example with Geant4.11.2.2, DREMTubes_run.mac, 2 threads, FTFP_BERT physics list)
     ```sh
-    cp ../../DREMTubes/scripts/DREMTubes_HTCondor_10.7.p01.sh .
+    cp ../../DREMTubes/scripts/DREMTubes_HTCondor_11.2.2.sh .
     export MYHOME=`pwd`
-    echo cd $MYHOME >> DREMTubes_HTCondor_10.7.p01.sh
-    echo $MYHOME/DREMTubes -m $MYHOME/DREMTubes_run.mac -t 2 >> DREMTubes_HTCondor_10.7.p01.sh
+    echo cd $MYHOME >> DREMTubes_HTCondor_11.2.2.sh
+    echo $MYHOME/DREMTubes -m $MYHOME/DREMTubes_run.mac -t 2 >> DREMTubes_HTCondor_11.2.2.sh
+    chmod +x DREMTubes_HTCondor_11.2.2.sh
     cp ../../DREMTubes/scripts/DREMTubes_HTCondor.sub .
-    sed -i '1 i executable = DREMTubes_HTCondor_10.7.p01.sh' DREMTubes_HTCondor.sub
+    sed -i '1 i executable = DREMTubes_HTCondor_11.2.2.sh' DREMTubes_HTCondor.sub
     ```
 4. submit a job
    ```sh
