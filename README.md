@@ -140,7 +140,7 @@ At this point you have an environment set up with Geant4 and all the needed depe
 ### Submit a job with HTCondor on lxplus
 1. git clone the repo
    ```sh
-   git clone https://github.com/lopezzot/DREMTubes.git
+   git clone https://github.com/DRCalo/HidraSim.git
    ```
 2. prepare execution files (example with Geant4.11.2.2, DREMTubes_run.mac, 2 threads, FTFP_BERT physics list)
     ```sh
