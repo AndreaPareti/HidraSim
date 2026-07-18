@@ -178,8 +178,18 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     //G4Element* elZn = new G4Element("Zinc", symbol="Zn", z=30., a); //Zinc
     auto elZn = nistManager->FindOrBuildElement(30, true);
 
+    auto elFe = nistManager->FindOrBuildElement(26, true);  // iron
+    
+    auto elCr = nistManager->FindOrBuildElement(24, true);  // chromium
+
+    auto elNi = nistManager->FindOrBuildElement(28, true);  // nickel
+
     //Materials 
     //
+    G4Material* Steel304 = new G4Material("Steel304", 7.93*g/cm3, 3);
+    Steel304->AddElement(elFe,0.68);
+    Steel304->AddElement(elCr,0.20);
+    Steel304->AddElement(elNi,0.12);
 
     // Polystyrene from elements (C5H5)
     G4Material* Polystyrene = new G4Material("Polystyrene", 1.05*g/cm3, 2);
@@ -222,7 +232,8 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     G4Material* SiMaterial = nistManager->FindOrBuildMaterial("G4_Si");
     G4Material* LeadMaterial = nistManager->FindOrBuildMaterial("G4_Pb");
     G4Material* PSScinMaterial = nistManager->FindOrBuildMaterial("G4_POLYSTYRENE");
-    G4Material* absorberMaterial = G4Material::GetMaterial("Brass");
+    //G4Material* absorberMaterial = G4Material::GetMaterial("Brass");
+    G4Material* absorberMaterial = G4Material::GetMaterial("Steel304");
     G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
     G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
     G4Material* GlassMaterial = G4Material::GetMaterial("Glass");
@@ -696,13 +707,16 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     G4RotationMatrix rotY = G4RotationMatrix();
     rotX.rotateX(xrot);
     rotY.rotateY(yrot);
+    // First apply xrot -> vertical tilt
+    // Then apply yrot -> horizontal rotation
     G4RotationMatrix rotm = rotY * rotX;
 
-    G4ThreeVector position;
-
-    position.setX(fXshift);
-    position.setY(fYshift);
-    position.setZ(0.);
+    // Apply the vertical tilt around the horizontal hinge line at the bottom
+    // side of the front face. Keep the horizontal rotation centered on the
+    // calorimeter box center.
+    G4ThreeVector platformShift(fXshift, fYshift, 0.);
+    G4ThreeVector rotationPivot(0., -caloBoxY, -caloBoxZ);
+    G4ThreeVector position = platformShift + rotY * rotationPivot - rotm * rotationPivot;
 
     G4Transform3D transform = G4Transform3D(rotm,position); 
 

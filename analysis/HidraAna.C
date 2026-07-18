@@ -17,11 +17,13 @@
 #include <TTree.h>
 #include <TFile.h>
 #include <TDirectory.h>
+#include <TCanvas.h>
 #include <TH2F.h>
 #include <iostream>
 #include <array>
 #include <stdint.h>
 #include <string>
+#include <vector>
 #include <fstream>
 #include <string>
 #include <cstring>
@@ -90,6 +92,50 @@ TH2F* CreateHybridEventDisplay(const std::string& name,
   return new TH2F(name.c_str(), title.c_str(),
                   NofmodulesX*NofFiberscolumn/grouping, -detectorExtentX, detectorExtentX,
                   NofmodulesY*NofFibersrow, -detectorExtentY, detectorExtentY);
+}
+
+TH2F* CreateCaloCoordinatesMap(const std::string& name,
+                               const std::string& title)
+{
+  return new TH2F(name.c_str(), title.c_str(),
+                  NofmodulesX, -dtubeX*NofFiberscolumn*(NofmodulesX/2.0), dtubeX*NofFiberscolumn*(NofmodulesX/2.0),
+                  NofmodulesY, -dtubeY*NofFibersrow*(NofmodulesY/2.0), dtubeY*NofFibersrow*(NofmodulesY/2.0));
+}
+
+double Percentile(std::vector<double>& values, double percentile)
+{
+  if(values.empty()) return 0.;
+
+  std::sort(values.begin(), values.end());
+  const double rank = percentile*(values.size() - 1);
+  const unsigned int lowIndex = static_cast<unsigned int>(std::floor(rank));
+  const unsigned int highIndex = static_cast<unsigned int>(std::ceil(rank));
+  if(lowIndex == highIndex) return values.at(lowIndex);
+
+  const double weight = rank - lowIndex;
+  return values.at(lowIndex)*(1. - weight) + values.at(highIndex)*weight;
+}
+
+void FillCaloCoordinatesMap(TH2F* hist,
+                            const std::vector<double>& towerContent,
+                            int modcol[],
+                            int modrow[])
+{
+  if(!hist) return;
+
+  for(unsigned int j=0; j<towerContent.size(); j++){
+    double towerX = dtubeX * NofFiberscolumn * ((NofmodulesX-1.0)/2.0 - modcol[j]);
+    double towerY = dtubeY * NofFibersrow * (modrow[j] - (NofmodulesY-1.0)/2.0);
+    hist->Fill(towerX, towerY, towerContent.at(j));
+  }
+}
+
+TCanvas* DrawCaloCoordinatesMap(TH2F* hist, const std::string& canvasName)
+{
+  auto canvas = new TCanvas(canvasName.c_str(), hist->GetTitle(), 900, 900);
+  hist->Draw("colz text");
+  canvas->Write();
+  return canvas;
 }
 
 void FillTowerPatch(TH2F* hist, int moduleID, int modcol[], int modrow[], double content)
@@ -161,9 +207,7 @@ void HidraAna(double energy, const string intup, unsigned int EventDisplayEvery 
 //Open ntuples
   string infile = "../build/"+intup;
   std::cout<<"Using file: "<<infile<<std::endl;
-  char cinfile[infile.size() + 1];
-  strcpy(cinfile, infile.c_str());
-  auto simfile = new TFile(cinfile, "READ");
+  auto simfile = new TFile(infile.c_str(), "READ");
   auto *simtree = (TTree*)simfile->Get( "DREMTubesout" );
   std::cout << "\n Test 0 ongoing... \n" << std::endl;
 
@@ -202,9 +246,13 @@ void HidraAna(double energy, const string intup, unsigned int EventDisplayEvery 
   auto leakene = new TH1F("leakene", "leakene",100,0.,0.1);
   auto chidist = new TH1F("chidist", "chidist",100,0.,1.);
   auto mapcalo  = new TH2F("mapcalo", "mapcalo",NofmodulesX,0.,NofmodulesX,NofmodulesY,0.,NofmodulesY);
-  auto CaloCoordinatesMap = new TH2F("CaloCoordinatesMap", "Calo Coordinates Map; X [mm]; Y [mm]", 
-                                     NofmodulesX, -dtubeX*NofFiberscolumn*(NofmodulesX/2.0), dtubeX*NofFiberscolumn*(NofmodulesX/2.0),
-                                     NofmodulesY, -dtubeY*NofFibersrow*(NofmodulesY/2.0), dtubeY*NofFibersrow*(NofmodulesY/2.0));
+  auto CaloCoordinatesMap = CreateCaloCoordinatesMap("CaloCoordinatesMap", "Calo Coordinates Map; X [mm]; Y [mm]");
+  auto CaloCoordinatesMapTruthEdepP99 = CreateCaloCoordinatesMap("CaloCoordinatesMapTruthEdepP99", "99th percentile deposited truth energy [GeV]; X [mm]; Y [mm]");
+  auto CaloCoordinatesMapSciCalibP99 = CreateCaloCoordinatesMap("CaloCoordinatesMapSciCalibP99", "99th percentile calibrated scintillation energy [GeV]; X [mm]; Y [mm]");
+  auto CaloCoordinatesMapCerCalibP99 = CreateCaloCoordinatesMap("CaloCoordinatesMapCerCalibP99", "99th percentile calibrated Cherenkov energy [GeV]; X [mm]; Y [mm]");
+  auto CaloCoordinatesMapTruthEdepP50 = CreateCaloCoordinatesMap("CaloCoordinatesMapTruthEdepP50", "50th percentile deposited truth energy [GeV]; X [mm]; Y [mm]");
+  auto CaloCoordinatesMapSciCalibP50 = CreateCaloCoordinatesMap("CaloCoordinatesMapSciCalibP50", "50th percentile calibrated scintillation energy [GeV]; X [mm]; Y [mm]");
+  auto CaloCoordinatesMapCerCalibP50 = CreateCaloCoordinatesMap("CaloCoordinatesMapCerCalibP50", "50th percentile calibrated Cherenkov energy [GeV]; X [mm]; Y [mm]");
   auto SipmMapS = new TH2F("SipmMapS", "SipmS; Col; Row", NofmodulesX*NofFiberscolumn, 0, NofmodulesX*NofFiberscolumn, NofmodulesY*NofFibersrow/2, 0, NofmodulesY*NofFibersrow);
   auto SipmMapC = new TH2F("SipmMapC", "SipmC; Col; Row", NofmodulesX*NofFiberscolumn, 0, NofmodulesX*NofFiberscolumn, NofmodulesY*NofFibersrow/2, 0, NofmodulesY*NofFibersrow);
 
@@ -250,8 +298,8 @@ void HidraAna(double energy, const string intup, unsigned int EventDisplayEvery 
   //const double cerPheGeV = 29.4;  // tb24
   //const double sciPheGeV = 178.501; // 10m
   //const double cerPheGeV = 43; // 10m
-  const double sciPheGeV = 116.755;
-  const double cerPheGeV = 29.654;
+  const double sciPheGeV = 162.03;
+  const double cerPheGeV = 43.04;
 
   double elcont=1.005;
   double picont=1.028;
@@ -259,6 +307,9 @@ void HidraAna(double energy, const string intup, unsigned int EventDisplayEvery 
   // total number of photoelectrons (not calibrated)
   double sciphe_raw = 0;
   double cerphe_raw = 0;
+  std::vector<std::vector<double>> towerTruthEnergySamples(NoModulesActive);
+  std::vector<std::vector<double>> towerSciEnergySamples(NoModulesActive);
+  std::vector<std::vector<double>> towerCerEnergySamples(NoModulesActive);
 // Loop on events 
   for( unsigned int i=0; i<simtree->GetEntries(); i++){
     double ecalo=energy-lenergy/1000;
@@ -292,6 +343,9 @@ void HidraAna(double energy, const string intup, unsigned int EventDisplayEvery 
     double totsci=0.;
     double totcer=0.;
     double tottow=0.;
+    std::vector<double> towerTruthEnergy(NoModulesActive, 0.);
+    std::vector<double> towerSciEnergy(NoModulesActive, 0.);
+    std::vector<double> towerCerEnergy(NoModulesActive, 0.);
 
 
 
@@ -304,6 +358,9 @@ void HidraAna(double energy, const string intup, unsigned int EventDisplayEvery 
       totsci+=sciTowerContent;
       totcer+=cerTowerContent;
       tottow+=TowerE->at(j);
+      towerTruthEnergy.at(j) = TowerE->at(j)/1000.;
+      towerSciEnergy.at(j) += sciTowerContent;
+      towerCerEnergy.at(j) += cerTowerContent;
       mapcalo->Fill(modcol[j],modrow[j],TowerE->at(j)/1000/nentries);
       double towerX = dtubeX * NofFiberscolumn * ((NofmodulesX-1.0)/2.0 - modcol[j]);
       double towerY = dtubeY * NofFibersrow * (modrow[j] - (NofmodulesY-1.0)/2.0);
@@ -327,6 +384,7 @@ void HidraAna(double energy, const string intup, unsigned int EventDisplayEvery 
       int actual_mod_id = SiPMMod[towID];
       int modcol_sipm = modcol[actual_mod_id];
       int modrow_sipm = modrow[actual_mod_id];
+      towerSciEnergy.at(actual_mod_id) += content;
       // Get coordinate
       double SiPM_X, SiPM_Y;
       GetSiPMcoordinate(towID, rowID, colID, SiPM_X, SiPM_Y, "S", grouping, modcol_sipm, modrow_sipm);
@@ -354,6 +412,7 @@ void HidraAna(double energy, const string intup, unsigned int EventDisplayEvery 
       int actual_mod_id = SiPMMod[towID];
       int modcol_sipm = modcol[actual_mod_id];
       int modrow_sipm = modrow[actual_mod_id];
+      towerCerEnergy.at(actual_mod_id) += content;
       SipmMapC->Fill( modcol_sipm*NofFiberscolumn + colID, modrow_sipm*NofFibersrow+rowID, content); 
       double SiPM_X, SiPM_Y;
       GetSiPMcoordinate(towID, rowID, colID, SiPM_X, SiPM_Y, "C", grouping, modcol_sipm, modrow_sipm);
@@ -383,10 +442,45 @@ void HidraAna(double energy, const string intup, unsigned int EventDisplayEvery 
     totdep->Fill(tottow/1000.);   
     leakene->Fill(lenergy/1000/energy);   
     chidist->Fill((totsci-ecalo)/(totcer-ecalo));    
+    for(unsigned int j=0; j<NoModulesActive; j++){
+      towerTruthEnergySamples.at(j).push_back(towerTruthEnergy.at(j));
+      towerSciEnergySamples.at(j).push_back(towerSciEnergy.at(j));
+      towerCerEnergySamples.at(j).push_back(towerCerEnergy.at(j));
+    }
     //std::cout << "totSci: " << totsci << "\t totCer: " << totcer << std::endl;
     //break;
 
   }
+
+  std::vector<double> towerTruthEnergyP99(NoModulesActive, 0.);
+  std::vector<double> towerSciEnergyP99(NoModulesActive, 0.);
+  std::vector<double> towerCerEnergyP99(NoModulesActive, 0.);
+  std::vector<double> towerTruthEnergyP50(NoModulesActive, 0.);
+  std::vector<double> towerSciEnergyP50(NoModulesActive, 0.);
+  std::vector<double> towerCerEnergyP50(NoModulesActive, 0.);
+  for(unsigned int j=0; j<NoModulesActive; j++){
+    towerTruthEnergyP99.at(j) = Percentile(towerTruthEnergySamples.at(j), 0.99);
+    towerSciEnergyP99.at(j) = Percentile(towerSciEnergySamples.at(j), 0.99);
+    towerCerEnergyP99.at(j) = Percentile(towerCerEnergySamples.at(j), 0.99);
+    towerTruthEnergyP50.at(j) = Percentile(towerTruthEnergySamples.at(j), 0.50);
+    towerSciEnergyP50.at(j) = Percentile(towerSciEnergySamples.at(j), 0.50);
+    towerCerEnergyP50.at(j) = Percentile(towerCerEnergySamples.at(j), 0.50);
+  }
+
+  FillCaloCoordinatesMap(CaloCoordinatesMapTruthEdepP99, towerTruthEnergyP99, modcol, modrow);
+  FillCaloCoordinatesMap(CaloCoordinatesMapSciCalibP99, towerSciEnergyP99, modcol, modrow);
+  FillCaloCoordinatesMap(CaloCoordinatesMapCerCalibP99, towerCerEnergyP99, modcol, modrow);
+  FillCaloCoordinatesMap(CaloCoordinatesMapTruthEdepP50, towerTruthEnergyP50, modcol, modrow);
+  FillCaloCoordinatesMap(CaloCoordinatesMapSciCalibP50, towerSciEnergyP50, modcol, modrow);
+  FillCaloCoordinatesMap(CaloCoordinatesMapCerCalibP50, towerCerEnergyP50, modcol, modrow);
+
+  DrawCaloCoordinatesMap(CaloCoordinatesMapTruthEdepP99, "c_CaloCoordinatesMapTruthEdepP99");
+  DrawCaloCoordinatesMap(CaloCoordinatesMapSciCalibP99, "c_CaloCoordinatesMapSciCalibP99");
+  DrawCaloCoordinatesMap(CaloCoordinatesMapCerCalibP99, "c_CaloCoordinatesMapCerCalibP99");
+  DrawCaloCoordinatesMap(CaloCoordinatesMapTruthEdepP50, "c_CaloCoordinatesMapTruthEdepP50");
+  DrawCaloCoordinatesMap(CaloCoordinatesMapSciCalibP50, "c_CaloCoordinatesMapSciCalibP50");
+  DrawCaloCoordinatesMap(CaloCoordinatesMapCerCalibP50, "c_CaloCoordinatesMapCerCalibP50");
+
   std::cout << "Phe/GeV Sci: " << sciphe_raw/(venergy/1000)/nentries << "\t Phe/GeV Cer: " << cerphe_raw/(venergy/1000)/nentries << std::endl;
   
   /*

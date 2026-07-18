@@ -43,13 +43,16 @@ using json = nlohmann::json;
 const unsigned int grouping = 8;
 const unsigned int EventDisplayEvery = 100;
 const unsigned int FersMultiplicity = 2;
-const unsigned int MinActivatedFersToStoreOutput = 1;
 
 const double chi = 0.38;
-const double sciPheGeV = 119.001; // tb24 attenuation
-const double cerPheGeV = 29.4;  // tb24 attenuation
+const double DetectorAlignmentX = +20.7;
+const double DetectorAlignmentY = -0.6;
+//const double sciPheGeV = 119.001; // tb24 attenuation
+//const double cerPheGeV = 29.4;  // tb24 attenuation
 //const double sciPheGeV = 178.501; // test with 10m attenuation -> remove att. effect
 //const double cerPheGeV = 43;      // test with 10m attenuation -> remove att. effect
+const double sciPheGeV = 156; // test with 6.5 m attenuation -> tb25
+const double cerPheGeV = 42;      // test with 9 m attenuation -> tb25
 
 const double NofSipmCells_sci = 7772;
 const double NofSipmCells_cer = 3443;
@@ -84,7 +87,7 @@ const double ScalePedestalSubtractionFactorS = 1.0;
 const double ScalePedestalSubtractionFactorC = 1.0;
 //const double ScalePedestalSubtractionFactorS = 1.1;  // 1.09 for correlated
 //const double ScalePedestalSubtractionFactorC = 1.055; // 1.055 for correlated
-const double FersThresholdScaleFactor = 1;
+const double FersThresholdScaleFactor = 1.;
 const NoiseCorrelationMode NoiseMode = NoiseCorrelationMode::UncorrelatedByChannel; // use uncorrelated noise
 //const NoiseCorrelationMode NoiseMode = NoiseCorrelationMode::CorrelatedWithinFers; // use correlated noise within FERS
 
@@ -271,6 +274,8 @@ struct ChannelAccumulatedSignal {
   int ch = -1;
   int calibIndex = -1;
   bool isSci = false;
+  double x = 0.0;
+  double y = 0.0;
   double threshold = 0.0;
   double thresholdSignal = 0.0;
   double outputSignal = 0.0;
@@ -321,7 +326,8 @@ double GetFersThreshold(int fersId)
     throw std::runtime_error("Missing threshold for FERS id: " + std::to_string(fersId));
   }
   
-  return it->second * FersThresholdScaleFactor;
+  //return it->second;
+  return it->second * FersThresholdScaleFactor; // try scaling to consider pedestal non-subtracted values
 }
 
 // -----------------------------------------------------------------------------
@@ -494,6 +500,8 @@ void AccumulateChannelSignal(ChannelSignalMap& channelSignals,
       info.ch,
       info.calibIndex,
       info.type == "S",
+      info.x,
+      info.y,
       GetFersThreshold(info.fersId),
       0.0,
       0.0,
@@ -715,6 +723,67 @@ unsigned int CountActivatedFers(
   }
 
   return activated;
+}
+
+struct BarycentreSummary {
+  double x = std::numeric_limits<double>::quiet_NaN();
+  double y = std::numeric_limits<double>::quiet_NaN();
+  double z = std::numeric_limits<double>::quiet_NaN();
+};
+
+struct BarycentreRawSums {
+  double weightedX = 0.0;
+  double weightedY = 0.0;
+  double weight = 0.0;
+};
+
+double LongitudinalBarycentre(double dx, double dy)
+{
+  if (!std::isfinite(dx) || !std::isfinite(dy)) {
+    return std::numeric_limits<double>::quiet_NaN();
+  }
+
+  const double tiltTan = std::tan(2.5 * std::acos(-1.0) / 180.0);
+  return std::hypot(dx, dy) / tiltTan;
+}
+
+BarycentreSummary MakeBarycentreSummary(double weightedX,
+                                        double weightedY,
+                                        double weight,
+                                        double dwcX,
+                                        double dwcY)
+{
+  BarycentreSummary summary;
+  if (weight <= 0.0) {
+    return summary;
+  }
+
+  summary.x = weightedX / weight + DetectorAlignmentX;
+  summary.y = weightedY / weight + DetectorAlignmentY;
+  const double dx = summary.x - dwcX;
+  const double dy = summary.y - dwcY;
+  summary.z = LongitudinalBarycentre(dx, dy);
+  return summary;
+}
+
+BarycentreRawSums ActivatedChannelBarycentreRawSums(
+  const ChannelSignalMap& channelSignals,
+  const std::unordered_map<FersKey, unsigned int>& fersChannelsOverThreshold)
+{
+  BarycentreRawSums sums;
+
+  for (const auto& [channelKey, channel] : channelSignals) {
+    if (!IsActivatedFers(fersChannelsOverThreshold, channel.fersKey)) {
+      continue;
+    }
+
+    const double signal = channel.smearedOutputSignal;
+    sums.weightedX += channel.x * signal;
+    sums.weightedY += channel.y * signal;
+    sums.weight += signal;
+  }
+
+  return sums;
 }
 
 
@@ -1093,7 +1162,7 @@ void AppendSummaryCsvLocked(const std::string& csvPath,
 // Main analysis
 // -----------------------------------------------------------------------------
 
-void HidraTB25Ana(double energy, const std::string& input)
+void HidraTB25Ana_pions(double energy, const std::string& input)
 {
   // read SiPM map and calibration files
   const std::string sipmMapPath =
@@ -1167,6 +1236,79 @@ void HidraTB25Ana(double energy, const std::string& input)
   activatedChannelsTree->Branch("activatedChannelOutput", &activatedChannelOutput);
   activatedChannelsTree->Branch("activatedChannelOutputTrue", &activatedChannelOutputTrue);
   activatedChannelsTree->Branch("activatedChannelOutputSmeared", &activatedChannelOutputSmeared);
+
+  TTree* eventSummaryTree =
+    new TTree("EventSummary", "Per-event TB25 energy, FERS, DWC, and barycentre summary");
+
+  unsigned int summaryEvent = 0;
+  unsigned int nActivatedFers = 0;
+  double pmt_s_before_fers = 0.0;
+  double pmt_c_before_fers = 0.0;
+  double sipm_s_before_fers = 0.0;
+  double sipm_c_before_fers = 0.0;
+  double total_s_before_fers = 0.0;
+  double total_c_before_fers = 0.0;
+  double pmt_s_after_fers = 0.0;
+  double pmt_c_after_fers = 0.0;
+  double sipm_s_after_fers = 0.0;
+  double sipm_c_after_fers = 0.0;
+  double total_s_after_fers = 0.0;
+  double total_c_after_fers = 0.0;
+  double dwc_x = 0.0;
+  double dwc_y = 0.0;
+  double s_bary_x_before_fers = 0.0;
+  double s_bary_y_before_fers = 0.0;
+  double s_bary_z_before_fers = 0.0;
+  double c_bary_x_before_fers = 0.0;
+  double c_bary_y_before_fers = 0.0;
+  double c_bary_z_before_fers = 0.0;
+  double total_bary_x_before_fers = 0.0;
+  double total_bary_y_before_fers = 0.0;
+  double total_bary_z_before_fers = 0.0;
+  double s_bary_x_after_fers = 0.0;
+  double s_bary_y_after_fers = 0.0;
+  double s_bary_z_after_fers = 0.0;
+  double c_bary_x_after_fers = 0.0;
+  double c_bary_y_after_fers = 0.0;
+  double c_bary_z_after_fers = 0.0;
+  double total_bary_x_after_fers = 0.0;
+  double total_bary_y_after_fers = 0.0;
+  double total_bary_z_after_fers = 0.0;
+
+  eventSummaryTree->Branch("event", &summaryEvent);
+  eventSummaryTree->Branch("n_activated_fers", &nActivatedFers);
+  eventSummaryTree->Branch("pmt_s_before_fers", &pmt_s_before_fers);
+  eventSummaryTree->Branch("pmt_c_before_fers", &pmt_c_before_fers);
+  eventSummaryTree->Branch("sipm_s_before_fers", &sipm_s_before_fers);
+  eventSummaryTree->Branch("sipm_c_before_fers", &sipm_c_before_fers);
+  eventSummaryTree->Branch("total_s_before_fers", &total_s_before_fers);
+  eventSummaryTree->Branch("total_c_before_fers", &total_c_before_fers);
+  eventSummaryTree->Branch("pmt_s_after_fers", &pmt_s_after_fers);
+  eventSummaryTree->Branch("pmt_c_after_fers", &pmt_c_after_fers);
+  eventSummaryTree->Branch("sipm_s_after_fers", &sipm_s_after_fers);
+  eventSummaryTree->Branch("sipm_c_after_fers", &sipm_c_after_fers);
+  eventSummaryTree->Branch("total_s_after_fers", &total_s_after_fers);
+  eventSummaryTree->Branch("total_c_after_fers", &total_c_after_fers);
+  eventSummaryTree->Branch("dwc_x", &dwc_x);
+  eventSummaryTree->Branch("dwc_y", &dwc_y);
+  eventSummaryTree->Branch("s_bary_x_before_fers", &s_bary_x_before_fers);
+  eventSummaryTree->Branch("s_bary_y_before_fers", &s_bary_y_before_fers);
+  eventSummaryTree->Branch("s_bary_z_before_fers", &s_bary_z_before_fers);
+  eventSummaryTree->Branch("c_bary_x_before_fers", &c_bary_x_before_fers);
+  eventSummaryTree->Branch("c_bary_y_before_fers", &c_bary_y_before_fers);
+  eventSummaryTree->Branch("c_bary_z_before_fers", &c_bary_z_before_fers);
+  eventSummaryTree->Branch("total_bary_x_before_fers", &total_bary_x_before_fers);
+  eventSummaryTree->Branch("total_bary_y_before_fers", &total_bary_y_before_fers);
+  eventSummaryTree->Branch("total_bary_z_before_fers", &total_bary_z_before_fers);
+  eventSummaryTree->Branch("s_bary_x_after_fers", &s_bary_x_after_fers);
+  eventSummaryTree->Branch("s_bary_y_after_fers", &s_bary_y_after_fers);
+  eventSummaryTree->Branch("s_bary_z_after_fers", &s_bary_z_after_fers);
+  eventSummaryTree->Branch("c_bary_x_after_fers", &c_bary_x_after_fers);
+  eventSummaryTree->Branch("c_bary_y_after_fers", &c_bary_y_after_fers);
+  eventSummaryTree->Branch("c_bary_z_after_fers", &c_bary_z_after_fers);
+  eventSummaryTree->Branch("total_bary_x_after_fers", &total_bary_x_after_fers);
+  eventSummaryTree->Branch("total_bary_y_after_fers", &total_bary_y_after_fers);
+  eventSummaryTree->Branch("total_bary_z_after_fers", &total_bary_z_after_fers);
 
   // ---------------------------------------
   // create the RNG banks once
@@ -1266,6 +1408,7 @@ void HidraTB25Ana(double energy, const std::string& input)
   std::vector<double>* SSiPM = nullptr; simtree->SetBranchAddress("VectorSignals", &SSiPM);
   std::vector<double>* CSiPM = nullptr; simtree->SetBranchAddress("VectorSignalsCher", &CSiPM);
 
+  
   for (unsigned int i = 0; i < static_cast<unsigned int>(nentries); i++) {
     simtree->GetEntry(i);
 
@@ -1277,6 +1420,10 @@ void HidraTB25Ana(double energy, const std::string& input)
     double totsci = 0.;
     double totcer = 0.;
     double tottow = 0.;
+    double pmtSciTotal = 0.0;
+    double pmtCerTotal = 0.0;
+    double sipmSciTotal = 0.0;
+    double sipmCerTotal = 0.0;
 
     double barX_sci = 0.;
     double barY_sci = 0.;
@@ -1306,8 +1453,12 @@ void HidraTB25Ana(double energy, const std::string& input)
 
     // Fill energy in PMT towers
     for (unsigned int j = 0; j < SPMT->size(); j++) {
-      totsci += SPMT->at(j) / sciPheGeV;
-      totcer += CPMT->at(j) / cerPheGeV;
+      const double pmtSci = SPMT->at(j) / sciPheGeV;
+      const double pmtCer = CPMT->at(j) / cerPheGeV;
+      pmtSciTotal += pmtSci;
+      pmtCerTotal += pmtCer;
+      totsci += pmtSci;
+      totcer += pmtCer;
       tottow += TowerE->at(j);
       mapcalo->Fill(modcol[j], modrow[j], TowerE->at(j) / 1000. / nentries);
     }
@@ -1325,6 +1476,7 @@ void HidraTB25Ana(double energy, const std::string& input)
       const double content = rawPhe / sciPheGeV; // converted to GeV
 
       totsci += content;
+      sipmSciTotal += content;
 
       const unsigned int towID  = static_cast<unsigned int>(n / (NofFiberscolumn * NofFibersrow / 2));
       const unsigned int SiPMID = n % (NofFiberscolumn * NofFibersrow / 2);
@@ -1385,6 +1537,7 @@ void HidraTB25Ana(double energy, const std::string& input)
       const double content = rawPhe / cerPheGeV;
 
       totcer += content;
+      sipmCerTotal += content;
 
       const unsigned int towID  = static_cast<unsigned int>(n / (NofFiberscolumn * NofFibersrow / 2));
       const unsigned int SiPMID = n % (NofFiberscolumn * NofFibersrow / 2);
@@ -1479,26 +1632,23 @@ void HidraTB25Ana(double energy, const std::string& input)
       fersChannelsOverThreshold
     );
 
-    const unsigned int activatedFers = CountActivatedFers(fersChannelsOverThreshold);
-    if (activatedFers >= MinActivatedFersToStoreOutput) {
-      FillActivatedChannelOutputArrays(
-        sciChannelSignals,
-        fersChannelsOverThreshold,
-        activatedChannelOutput,
-        activatedChannelOutputTrue,
-        activatedChannelOutputSmeared
-      );
+    FillActivatedChannelOutputArrays(
+      sciChannelSignals,
+      fersChannelsOverThreshold,
+      activatedChannelOutput,
+      activatedChannelOutputTrue,
+      activatedChannelOutputSmeared
+    );
 
-      FillActivatedChannelOutputArrays(
-        cerChannelSignals,
-        fersChannelsOverThreshold,
-        activatedChannelOutput,
-        activatedChannelOutputTrue,
-        activatedChannelOutputSmeared
-      );
+    FillActivatedChannelOutputArrays(
+      cerChannelSignals,
+      fersChannelsOverThreshold,
+      activatedChannelOutput,
+      activatedChannelOutputTrue,
+      activatedChannelOutputSmeared
+    );
 
-      activatedChannelsTree->Fill();
-    }
+    activatedChannelsTree->Fill();
 
 
     PrintPerEventFersChannelCounts(
@@ -1514,14 +1664,92 @@ void HidraTB25Ana(double energy, const std::string& input)
     const double totcerFersOn =
       SumActivatedSmearedChannelOutput(cerChannelSignals, fersChannelsOverThreshold);
 
+    const BarycentreSummary sciBaryBefore =
+      MakeBarycentreSummary(barX_sci, barY_sci, sciPosWeight, beamX, beamY);
+    const BarycentreSummary cerBaryBefore =
+      MakeBarycentreSummary(barX_cer, barY_cer, cerPosWeight, beamX, beamY);
+    const BarycentreSummary totalBaryBefore =
+      MakeBarycentreSummary(
+        barX_sci + barX_cer,
+        barY_sci + barY_cer,
+        sciPosWeight + cerPosWeight,
+        beamX,
+        beamY
+      );
+    const BarycentreRawSums sciBaryAfterRaw =
+      ActivatedChannelBarycentreRawSums(sciChannelSignals, fersChannelsOverThreshold);
+    const BarycentreRawSums cerBaryAfterRaw =
+      ActivatedChannelBarycentreRawSums(cerChannelSignals, fersChannelsOverThreshold);
+
+    const BarycentreSummary sciBaryAfter =
+      MakeBarycentreSummary(
+        sciBaryAfterRaw.weightedX,
+        sciBaryAfterRaw.weightedY,
+        sciBaryAfterRaw.weight,
+        beamX,
+        beamY
+      );
+    const BarycentreSummary cerBaryAfter =
+      MakeBarycentreSummary(
+        cerBaryAfterRaw.weightedX,
+        cerBaryAfterRaw.weightedY,
+        cerBaryAfterRaw.weight,
+        beamX,
+        beamY
+      );
+    const BarycentreSummary totalBaryAfter =
+      MakeBarycentreSummary(
+        sciBaryAfterRaw.weightedX + cerBaryAfterRaw.weightedX,
+        sciBaryAfterRaw.weightedY + cerBaryAfterRaw.weightedY,
+        sciBaryAfterRaw.weight + cerBaryAfterRaw.weight,
+        beamX,
+        beamY
+      );
+
+    summaryEvent = i;
+    nActivatedFers = CountActivatedFers(fersChannelsOverThreshold);
+    pmt_s_before_fers = pmtSciTotal;
+    pmt_c_before_fers = pmtCerTotal;
+    sipm_s_before_fers = sipmSciTotal;
+    sipm_c_before_fers = sipmCerTotal;
+    total_s_before_fers = pmtSciTotal + sipmSciTotal;
+    total_c_before_fers = pmtCerTotal + sipmCerTotal;
+    pmt_s_after_fers = pmtSciTotal;
+    pmt_c_after_fers = pmtCerTotal;
+    sipm_s_after_fers = totsciFersOn;
+    sipm_c_after_fers = totcerFersOn;
+    total_s_after_fers = pmtSciTotal + totsciFersOn;
+    total_c_after_fers = pmtCerTotal + totcerFersOn;
+    dwc_x = beamX;
+    dwc_y = beamY;
+    s_bary_x_before_fers = sciBaryBefore.x;
+    s_bary_y_before_fers = sciBaryBefore.y;
+    s_bary_z_before_fers = sciBaryBefore.z;
+    c_bary_x_before_fers = cerBaryBefore.x;
+    c_bary_y_before_fers = cerBaryBefore.y;
+    c_bary_z_before_fers = cerBaryBefore.z;
+    total_bary_x_before_fers = totalBaryBefore.x;
+    total_bary_y_before_fers = totalBaryBefore.y;
+    total_bary_z_before_fers = totalBaryBefore.z;
+    s_bary_x_after_fers = sciBaryAfter.x;
+    s_bary_y_after_fers = sciBaryAfter.y;
+    s_bary_z_after_fers = sciBaryAfter.z;
+    c_bary_x_after_fers = cerBaryAfter.x;
+    c_bary_y_after_fers = cerBaryAfter.y;
+    c_bary_z_after_fers = cerBaryAfter.z;
+    total_bary_x_after_fers = totalBaryAfter.x;
+    total_bary_y_after_fers = totalBaryAfter.y;
+    total_bary_z_after_fers = totalBaryAfter.z;
+    eventSummaryTree->Fill();
+
     if (sciPosWeight > 0.) {
-      ResidualHistSciX->Fill((barX_sci / sciPosWeight) - beamX);
-      ResidualHistSciY->Fill((barY_sci / sciPosWeight) - beamY);
+      ResidualHistSciX->Fill((barX_sci / sciPosWeight + DetectorAlignmentX) - beamX);
+      ResidualHistSciY->Fill((barY_sci / sciPosWeight + DetectorAlignmentY) - beamY);
     }
 
     if (cerPosWeight > 0.) {
-      ResidualHistCerX->Fill((barX_cer / cerPosWeight) - beamX);
-      ResidualHistCerY->Fill((barY_cer / cerPosWeight) - beamY);
+      ResidualHistCerX->Fill((barX_cer / cerPosWeight + DetectorAlignmentX) - beamX);
+      ResidualHistCerY->Fill((barY_cer / cerPosWeight + DetectorAlignmentY) - beamY);
     }
 
     if (writeEventDisplay && eventDisplayDir) {

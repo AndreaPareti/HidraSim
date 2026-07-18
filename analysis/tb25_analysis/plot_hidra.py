@@ -25,8 +25,8 @@ scaling_c = 1.0
 #scaling_s = 1.12
 #scaling_c = 1.18
 
-#scaling_s = 1.13
-#scaling_c = 1.14
+scaling_s = 1.07
+scaling_c = 1.05
 
 myOutDir = "plots/Attenuation10m"
 #myOutDir = "plots/AttenuationTB24"

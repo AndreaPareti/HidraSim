@@ -16,7 +16,7 @@ const double tuberadius = 1.0;
 
 
 
-
+/*
 // 70 modules -> TB25
 const int NofmodulesX = 5;
 const int NofmodulesY = 18;
@@ -48,21 +48,21 @@ const int NofFibersrow = 16;
 const int NoModulesActive=70;
 const double moduleZ = (2500.);
 const bool irot=false;
-const int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
+const int NoFibersTower=NofFiberscolumn*NofFibersrow/2;*/
 
 
 
 
 
-/*
+
 // 80 modules -> TB26 (HiDRa geometry, SiPMs placed in two towers)
-const int NofModulesX = 5;
-const int NofModulesY = 20;
+const int NofmodulesX = 5;
+const int NofmodulesY = 20;
 const int modflag[100]={-1, -1, 0, -1, -1,
                             -1,  1, 2, 3, -1, 
                             -1,  4, 5,  6, -1, 
                             -1, 7, 8,  9, -1,
-                            10, 1, 12, 13, 14, 
+                            10, 11, 12, 13, 14, 
                             15,  16, 17, 18, 19, 
                             20, 21, 22, 23, 24,
                             25, 26, 27, 28, 29,
@@ -87,7 +87,7 @@ const int NofSiPMTowersY = 10;
 const int NoModulesActive=80;
 const double moduleZ = (2500.);
 const bool irot=false;
-const int NoFibersTower=NofFiberscolumn*NofFibersrow/2;*/
+const int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
 
 
 
