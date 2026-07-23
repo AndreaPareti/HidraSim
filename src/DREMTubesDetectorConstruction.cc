@@ -10,6 +10,7 @@
 //Includers from project files
 //
 #include "DREMTubesDetectorConstruction.hh"
+#include "DREMTubesCalorimeterSD.hh"
 #include "DREMTubesGeoMessenger.hh"
 
 //Includers from Geant4
@@ -40,6 +41,7 @@
 #include "G4Sphere.hh"
 #include "G4Colour.hh"
 #include "G4TwoVector.hh"
+#include "G4SDManager.hh"
 
 //Messenger constructor
 //
@@ -140,6 +142,20 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::Construct() {
   
     // Define volumes
     return DefineVolumes();
+}
+
+
+// Define Sensitive Detectors for calorimeter hits
+void DREMTubesDetectorConstruction::ConstructSDandField()
+{
+    auto* calorimeterSD = new DREMTubesCalorimeterSD(
+        "/DREMTubes/CalorimeterSD", "CalorimeterHits");
+    G4SDManager::GetSDMpointer()->AddNewDetector(calorimeterSD);
+
+    // Each fiber construction creates a distinct logical volume with one of
+    // these names, so the multi-volume overload must attach the SD to all of them.
+    SetSensitiveDetector("Core_S_fiber", calorimeterSD, true);
+    SetSensitiveDetector("Core_C_fiber", calorimeterSD, true);
 }
 
 G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {

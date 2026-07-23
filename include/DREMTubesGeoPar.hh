@@ -2,6 +2,29 @@
 /* Select prototype geometry and ancillaries setup */
 /***************************************************/
 #include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
+// Raw calorimeter-hit timing. Bins 1..N are inside the time window;
+// bin 0 and bin N+1 are the underflow and overflow bins.
+const G4double CalorimeterTimeStart = -1.0 * ns;
+const G4double CalorimeterTimeEnd = 99.0 * ns;
+const G4double CalorimeterTimeBinWidth = 0.1 * ns;
+const G4int NofCalorimeterTimeBins = 1000;
+
+// Distance from the photon-production point to the positive-z readout end.
+// As for time, bin 0 is underflow and bin N+1 is overflow.
+const G4double CalorimeterDistanceStart = 0.0 * mm;
+const G4double CalorimeterDistanceEnd = 2500.0 * mm;
+const G4double CalorimeterDistanceBinWidth = 10.0 * mm;
+const G4int NofCalorimeterDistanceBins = 250;
+
+// Fast scintillation timing model. Scintillation light is represented by
+// quenched visible energy, with an exponential emission delay and an effective
+// propagation velocity along the fibre axis.
+const G4double ScintillationDecayTime = 1.0 * ns;
+const G4double ScintillationRefractiveIndex = 1.59;
+const G4double ScintillationEffectiveVelocity =
+    c_light / ScintillationRefractiveIndex;
 // 
 // Ancillaries
 //
@@ -175,5 +198,3 @@ const G4double moduleZ = (2500.)*mm;
 const G4bool irot=false;
 const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
 */
-
-
