@@ -955,6 +955,32 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     //G4VPhysicalVolume* physi_SiPM[NofFiberscolumn][NofFibersrow];  
     //G4LogicalBorderSurface* logic_OpSurface_defaultAir[NofFiberscolumn][NofFibersrow];
 		
+    // The capillary geometries are identical, so construct each logical-volume
+    // tree once and reuse it for all physical placements.
+    auto* logic_S_fiber = constructscinfiber(tolerance,
+                                             tuberadius,
+                                             fiberZ,
+                                             absorberMaterial,
+                                             coreradius,
+                                             coreZ,
+                                             ScinMaterial,
+                                             claddingradiusmin,
+                                             claddingradiusmax,
+                                             claddingZ,
+                                             CherMaterial);
+
+    auto* logic_C_fiber = constructcherfiber(tolerance,
+                                             tuberadius,
+                                             fiberZ,
+                                             absorberMaterial,
+                                             coreradius,
+                                             coreZ,
+                                             CherMaterial,
+                                             claddingradiusmin,
+                                             claddingradiusmax,
+                                             claddingZ,
+                                             CladCherMaterial);
+
     G4int copynumber = 0;
 
     for(int column=0; column<NofFiberscolumn; column++){
@@ -991,17 +1017,6 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                 vec_SiPM.setZ(fiberZ/2+SiPMZ/2-0.18);
             
                 copynumber = ((NofFibersrow/2)*column+row/2);
-                auto logic_S_fiber = constructscinfiber(tolerance,
-                                                        tuberadius,
-                                                        fiberZ,
-                                                        absorberMaterial,
-                                                        coreradius,
-                                                        coreZ,
-                                                        ScinMaterial,
-                                                        claddingradiusmin,
-                                                        claddingradiusmax,
-                                                        claddingZ,
-                                                        CherMaterial);
                 // Tubes with scintillating fiber placement
                 //
                 /*physi_S_fiber[column][row] =*/ new G4PVPlacement(0,
@@ -1067,18 +1082,6 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                 vec_SiPM.setZ(fiberZ/2+SiPMZ/2-0.18);
 
                 copynumber = ((NofFibersrow/2)*column+row/2);
-                        
-                auto logic_C_fiber = constructcherfiber(tolerance,
-                                                        tuberadius,
-                                                        fiberZ,
-                                                        absorberMaterial,
-                                                        coreradius,
-                                                        coreZ,
-                                                        CherMaterial,
-                                                        claddingradiusmin,
-                                                        claddingradiusmax,
-                                                        claddingZ,
-                                                        CladCherMaterial);
                 /*physi_C_fiber[column][row] =*/ new G4PVPlacement(0,
                                                          vec_C_fiber,
                                                          logic_C_fiber,

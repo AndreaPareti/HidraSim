@@ -21,7 +21,7 @@ const G4int NofCalorimeterDistanceBins = 250;
 // Fast scintillation timing model. Scintillation light is represented by
 // quenched visible energy, with an exponential emission delay and an effective
 // propagation velocity along the fibre axis.
-const G4double ScintillationDecayTime = 1.0 * ns;
+const G4double ScintillationDecayTime = 3.2 * ns; // taken from https://luxiumsolutions.com/sites/default/files/2021-11/Fiber-Product-Sheet.pdf for BCF12 fibers
 const G4double ScintillationRefractiveIndex = 1.59;
 const G4double ScintillationEffectiveVelocity =
     c_light / ScintillationRefractiveIndex;
