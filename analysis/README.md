@@ -7,7 +7,11 @@ used to analyze HidraSim simulation ntuples.
 
 `HidraDigi_v0.C` reads the binned calorimeter hits from the `DREMTubesout`
 tree and converts them to detected photoelectrons. Run it after the Geant4
-simulation and before the higher-level analysis.
+simulation and before the higher-level analysis. The calorimeter sensitive
+detector records raw timing and longitudinal-distance cells from all fibre
+cores. The digitizer retains fibre-level channels for modules listed by
+`SiPMMod` and groups all fibres in every other module into one scintillation
+PMT channel and one Cherenkov PMT channel.
 
 From the `analysis/` directory, the default command is:
 
@@ -30,7 +34,8 @@ HidraDigi_v0(inputFile,
              scintillationAttenuationLength_mm,
              attenuateCherenkov,
              cherenkovAttenuationLength_mm,
-             randomSeed)
+             randomSeed,
+             pmtThresholdPE)
 ```
 
 For example, to enable 6.5 m scintillation attenuation and 9 m Cherenkov
@@ -45,35 +50,68 @@ when their corresponding switch is enabled. Each already-smeared
 photoelectron survives with probability `exp(-distance/attenuationLength)`,
 matching the ordering in the standard simulation processing. A seed of zero
 uses ROOT's automatically generated seed; use a nonzero value for reproducible
-digitisation.
+digitisation. `pmtThresholdPE` is the cumulative detected-photoelectron
+threshold used to extract the single PMT time of arrival. It defaults to one
+photoelectron and must be positive.
 
 The output tree is named `HidraDigi`. It retains all input branches and adds:
 
 - `DigiScintillationPE`: digitised scintillation p.e. for each input hit cell.
 - `DigiCherenkovPE`: digitised Cherenkov p.e. for each input hit cell.
-- `DigiTotalScintillationPE`: event-wide scintillation p.e. sum.
-- `DigiTotalCherenkovPE`: event-wide Cherenkov p.e. sum.
-- `DigiFiberTowerID` and `DigiFiberID`: tower and fibre identifiers for each
-  fibre-level record.
-- `DigiFiberIsCherenkov`: 0 for a scintillation fibre and 1 for a Cherenkov
-  fibre.
-- `DigiFiberX_mm` and `DigiFiberY_mm`: fibre position at the sensor plane,
-  decoded with the geometry in `HidraGeo.h`.
-- `DigiFiberTotalPE`: total converted and, when enabled, attenuated signal in
-  that fibre.
-- `DigiFiberTimeOfArrival_ns`: one arrival-time array per fibre. Each element
-  is the centre of the simulation arrival-time bin for one detected
-  photoelectron. The values are time ordered, and the array length equals
-  `DigiFiberTotalPE`.
+- `DigiTotalScintillationPE`: event-wide scintillation p.e. sum after
+  Poisson conversion and, when enabled, light attenuation.
+- `DigiTotalCherenkovPE`: event-wide Cherenkov p.e. sum after Poisson
+  conversion and, when enabled, light attenuation.
+- `DigiTotalScintillationSiPMPE` and `DigiTotalCherenkovSiPMPE`: event-wide
+  totals containing only SiPM-readout channels.
+- `DigiTotalScintillationPMTPE` and `DigiTotalCherenkovPMTPE`: event-wide
+  totals containing only PMT-readout channels.
+- `DigiScintillationFiberTowerID` and `DigiScintillationFiberID`: tower and
+  fibre identifiers for each scintillation-channel record.
+- `DigiCherenkovFiberTowerID` and `DigiCherenkovFiberID`: tower and fibre
+  identifiers for each Cherenkov-channel record.
+- `DigiScintillationFiberX_mm`, `DigiScintillationFiberY_mm`,
+  `DigiCherenkovFiberX_mm`, and `DigiCherenkovFiberY_mm`: channel positions at
+  the sensor plane, decoded with the geometry in `HidraGeo.h`.
+- `DigiScintillationFiberTotalPE` and `DigiCherenkovFiberTotalPE`: total
+  converted and, when enabled, attenuated p.e. collected in each individual
+  SiPM channel. `DigiScintillationSiPMTotalPE` and
+  `DigiCherenkovSiPMTotalPE` are explicit aliases for these same
+  channel-level vectors.
+- `DigiScintillationFiberTimeOfArrival_ns` and
+  `DigiCherenkovFiberTimeOfArrival_ns`: one arrival-time array per channel.
+  Each element is the centre of the simulation arrival-time bin for one
+  detected photoelectron. The values are time ordered, and each array length
+  equals the corresponding channel entry in the matching `FiberTotalPE`
+  vector.
+- `DigiPMTTowerID`: module identifier for every PMT-readout module. This
+  vector is parallel to all `Digi...PMT...` vectors.
+- `DigiScintillationPMTTotalPE` and `DigiCherenkovPMTTotalPE`: one total
+  detected signal per PMT module after all fibres have been grouped. When
+  attenuation is enabled, only surviving photoelectrons enter these totals.
+- `DigiScintillationPMTTimeOfArrival_ns` and
+  `DigiCherenkovPMTTimeOfArrival_ns`: the centre of the first time bin whose
+  cumulative grouped PMT signal reaches `pmtThresholdPE`. The value is `NaN`
+  when that PMT does not reach threshold.
 
-All `DigiFiber...` vectors are parallel: index `i` describes one fibre. Fibres
-that have simulated calorimeter hits but fluctuate to zero detected
-photoelectrons are retained with an empty arrival-time array and zero total
-signal. The arrival-time values inherit the simulation's underflow, regular,
-and overflow time-bin convention.
+The scintillation `DigiScintillationFiber...` vectors are mutually parallel,
+as are the Cherenkov `DigiCherenkovFiber...` vectors. Index `i` describes one
+channel of the corresponding type. Channels that have simulated calorimeter
+hits but fluctuate to zero detected photoelectrons are retained with an empty
+arrival-time array and zero total signal. The arrival-time values inherit the
+simulation's underflow, regular, and overflow time-bin convention.
+
+For each signal type, the sum of the SiPM fibre totals and grouped PMT totals
+equals the corresponding event-wide `DigiTotal...PE`. Attenuation is applied
+to every raw time-distance cell before either fibre-level or PMT-level
+aggregation, so it consistently affects the channel totals and timing.
+The combined totals also satisfy
+`DigiTotalScintillationPE = DigiTotalScintillationSiPMPE +
+DigiTotalScintillationPMTPE`, with the analogous identity for Cherenkov.
 
 The conversion constants, attenuation configuration, attenuation lengths, and
 random seed are also written into the output ROOT file as metadata.
+`PMTTimeThresholdPE` records the threshold used for PMT timing.
 
 ## Standard Simulation Analysis
 
