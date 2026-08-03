@@ -60,6 +60,9 @@ G4bool DREMTubesCalorimeterSD::ProcessHits(
         return false;
     }
 
+    const G4int towerID = touchable->GetCopyNumber(3);
+    const G4int fiberID = touchable->GetCopyNumber(1);
+
     const G4double energyDeposit = step->GetTotalEnergyDeposit();
     G4double productionTime = 0.;
     G4double driftTime = 0.;
@@ -71,8 +74,6 @@ G4bool DREMTubesCalorimeterSD::ProcessHits(
         return false;
     }
 
-    const G4int fiberID = touchable->GetCopyNumber(1);
-    const G4int towerID = touchable->GetCopyNumber(3);
     const std::uint64_t hitKey = MakeHitKey(towerID, fiberID, isCherenkov);
 
     auto found = fHitLookup.find(hitKey);
@@ -103,8 +104,11 @@ G4bool DREMTubesCalorimeterSD::ProcessHits(
             if (fiber) {
                 // Use the step midpoint as the production point of the
                 // parameterised scintillation light.
-                const G4ThreeVector globalProductionPosition =
-                    0.5 * (pre->GetPosition() + post->GetPosition());
+                //const G4ThreeVector globalProductionPosition =
+                //    0.5 * (pre->GetPosition() + post->GetPosition());
+                // reproduce  stepping action: only consider pre-step point
+                const G4ThreeVector globalProductionPosition = pre->GetPosition();
+
                 const G4ThreeVector localProductionPosition =
                     touchable->GetHistory()->GetTopTransform().TransformPoint(
                         globalProductionPosition);

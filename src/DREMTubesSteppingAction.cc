@@ -272,7 +272,7 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
         G4int signalhit_pmt = fSignalHelper->SmearSSignalPMT( fSignalHelper->ApplyBirks( edep, steplength ) );
 
         // attenuate signal 
-        signalhit_pmt = fSignalHelper->AttenuateSSignal(signalhit_pmt, distance_to_sipm);
+        //signalhit_pmt = fSignalHelper->AttenuateSSignal(signalhit_pmt, distance_to_sipm);
 
         // add signal to tower
         if(SiPMTower == -1){
@@ -323,7 +323,7 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
                 G4double distance_to_sipm = fSignalHelper->GetDistanceToSiPM(step);
 
                 // attenuate signal
-                c_signal_pmt = fSignalHelper->AttenuateCSignal(c_signal_pmt, distance_to_sipm);
+                //c_signal_pmt = fSignalHelper->AttenuateCSignal(c_signal_pmt, distance_to_sipm);
 
                 TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3));		
                 SiPMTower=fDetConstruction->GetSiPMTower(TowerID);
