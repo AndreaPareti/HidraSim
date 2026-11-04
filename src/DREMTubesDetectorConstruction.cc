@@ -699,12 +699,14 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
  
     // Calorimeter placement (with rotation wrt beam axis)
     //
-    G4RotationMatrix rotm  = G4RotationMatrix();
     // Negative sign to make angles same as TB platform
     G4double xrot = - fVerrot;
-    G4double yrot = + fOrzrot;
-    rotm.rotateX(xrot);  
-    rotm.rotateY(yrot);
+    G4double yrot = - fOrzrot;
+    G4RotationMatrix rotX = G4RotationMatrix();
+    G4RotationMatrix rotY = G4RotationMatrix();
+    rotX.rotateX(xrot);
+    rotY.rotateY(yrot);
+    G4RotationMatrix rotm = rotY * rotX;
 
     G4ThreeVector position;
 
@@ -718,8 +720,6 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     //
     //  Build closed tube for detailed leakage study
     //
-    // comment for later introducing boolean variable
-    // to include truth leakage counters (or not)
     if(TruthLeakageIn)
     {
       G4double leakradint=sqrt( (caloBoxX)*(caloBoxX)+(caloBoxY)*(caloBoxY));	// Added *1.2 wrt Giacomo's
@@ -735,10 +735,10 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                               "leakageabsorberl");        
       G4VisAttributes* LkVisAttl = new G4VisAttributes(G4Colour(0.0,0.8,0.0)); //green
       LkVisAttl->SetVisibility(true);
-      LkVisAttl->SetForceWireframe(true);
+      //LkVisAttl->SetForceWireframe(true);
       LkVisAttl->SetForceSolid(true);
-      //leakageabsorberlLV->SetVisAttributes(LkVisAttl);
-      leakageabsorberlLV->SetVisAttributes(invisibleAttr); 
+      leakageabsorberlLV->SetVisAttributes(LkVisAttl);
+      //leakageabsorberlLV->SetVisAttributes(invisibleAttr); 
       //leakageabsorberlLV->SetVisAttributes(G4VisAttributes::Invisible);
 
       new G4PVPlacement( transform,
@@ -757,11 +757,12 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                               "leakageabsorberd");        
       G4VisAttributes* LkVisAttd = new G4VisAttributes(G4Colour(0.0,0.4,0.0)); //green
       LkVisAttd->SetVisibility(true);
-      LkVisAttd->SetForceWireframe(true);
+      //LkVisAttd->SetForceWireframe(true);
       LkVisAttd->SetForceSolid(true);
-      //leakageabsorberdLV->SetVisAttributes(LkVisAttd);
-      leakageabsorberdLV->SetVisAttributes(invisibleAttr);
-      //leakageabsorberdLV->SetVisAttributes(G4VisAttributes::Invisible);
+      leakageabsorberdLV->SetVisAttributes(LkVisAttd);
+      
+      
+      //leakageabsorberdLV->SetVisAttributes(invisibleAttr);
       G4ThreeVector positiond;
       positiond.setX(caloBoxZ*sin(xrot));
       positiond.setY(-caloBoxZ*sin(yrot));
@@ -1203,8 +1204,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
     G4LogicalVolume* logic_S_fiber = new G4LogicalVolume(S_fiber,
                                                          absorberMaterial,
                                                          "S_fiber");
-    //logic_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);
-    logic_S_fiber->SetVisAttributes(invisibleAttr);
+    //logic_S_fiber->SetVisAttributes(invisibleAttr);
 
 
     G4Tubs* Abs_S_fiber = new G4Tubs("Abs_Scin_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
@@ -1232,9 +1232,8 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
     ScincoreVisAtt->SetVisibility(true);
     ScincoreVisAtt->SetForceWireframe(true);
     ScincoreVisAtt->SetForceSolid(true);
-    //logic_Core_S_fiber->SetVisAttributes(ScincoreVisAtt);
-    //logic_Core_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);
-    logic_Core_S_fiber->SetVisAttributes(invisibleAttr);
+    logic_Core_S_fiber->SetVisAttributes(ScincoreVisAtt);
+    //logic_Core_S_fiber->SetVisAttributes(invisibleAttr);
 
     G4ThreeVector vec_Core_S;
     vec_Core_S.setX(0.);
@@ -1263,8 +1262,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
     ScincladVisAtt->SetVisibility(true);
     ScincladVisAtt->SetForceWireframe(true);
     ScincladVisAtt->SetForceSolid(true);
-    logic_Clad_S_fiber->SetVisAttributes(ScincladVisAtt);
-    //logic_Clad_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    //logic_Clad_S_fiber->SetVisAttributes(ScincladVisAtt);
     logic_Clad_S_fiber->SetVisAttributes(invisibleAttr);
 
 
@@ -1288,7 +1286,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
     TubeVisAtt->SetForceWireframe(true);
     TubeVisAtt->SetForceSolid(true);
     logic_Abs_S_fiber->SetVisAttributes(TubeVisAtt);
-    //logic_Abs_S_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    //logic_Abs_S_fiber->SetVisAttributes(invisibleAttr);
     
     return logic_S_fiber;
 
@@ -1318,8 +1316,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
                                                          absorberMaterial,
                                                          "C_fiber");
 
-    //logic_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
-    logic_C_fiber->SetVisAttributes(invisibleAttr);
+    //logic_C_fiber->SetVisAttributes(invisibleAttr);
 
     G4Tubs* Abs_C_fiber = new G4Tubs("Abs_Cher_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
 
@@ -1346,8 +1343,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
     ChercoreVisAtt->SetForceWireframe(true);
     ChercoreVisAtt->SetForceSolid(true);
     logic_Core_C_fiber->SetVisAttributes(ChercoreVisAtt);
-    //logic_Core_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
-    logic_Core_C_fiber->SetVisAttributes(invisibleAttr);
+    //logic_Core_C_fiber->SetVisAttributes(invisibleAttr);
 
     G4ThreeVector vec_Core_C;
     vec_Core_C.setX(0.);
@@ -1398,7 +1394,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
     TubeVisAtt->SetForceWireframe(true);
     TubeVisAtt->SetForceSolid(true);
     logic_Abs_C_fiber->SetVisAttributes(TubeVisAtt);
-    //logic_Abs_C_fiber->SetVisAttributes(G4VisAttributes::Invisible);
+    //logic_Abs_C_fiber->SetVisAttributes(invisibleAttr);
 
     return logic_C_fiber;
 
