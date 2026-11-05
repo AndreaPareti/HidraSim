@@ -195,6 +195,9 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     //a = 65.38*g/mole;
     //G4Element* elZn = new G4Element("Zinc", symbol="Zn", z=30., a); //Zinc
     auto elZn = nistManager->FindOrBuildElement(30, true);
+    auto elFe = nistManager->FindOrBuildElement(26, true);
+    auto elCr = nistManager->FindOrBuildElement(24, true);
+    auto elNi = nistManager->FindOrBuildElement(28, true);
 
     auto elFe = nistManager->FindOrBuildElement(26, true);  // iron
     
@@ -242,6 +245,12 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     auto CuZn37 = new G4Material(name="Brass", BrassDensity, 2);
     CuZn37->AddElement(elCu, 0.7);
     CuZn37->AddElement(elZn, 0.3);
+
+    // 304 stainless steel 
+    auto Steel304 = new G4Material("Steel304", 7.93*g/cm3, 3);
+    Steel304->AddElement(elFe, 0.68);
+    Steel304->AddElement(elCr, 0.20);
+    Steel304->AddElement(elNi, 0.12);
 
     // Assign material to the calorimeter volumes
     //
