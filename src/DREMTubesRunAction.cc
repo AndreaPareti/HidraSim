@@ -83,15 +83,15 @@ DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     // the scalar metadata columns above.
     analysisManager->CreateNtupleIColumn("DREMTCher.TowerID", fEventAction->GetCherenkovTowerIDs());
     analysisManager->CreateNtupleIColumn("DREMTCher.CellID", fEventAction->GetCherenkovFiberIDs());
-    analysisManager->CreateNtupleIColumn("DREMTCher.ProductionTime", fEventAction->GetCherenkovProductionTimeBins());
-    analysisManager->CreateNtupleIColumn("DREMTCher.ArrivalTime", fEventAction->GetCherenkovTimeBins());
-    analysisManager->CreateNtupleIColumn("DREMTCher.Distance", fEventAction->GetCherenkovDistanceBins());
+    analysisManager->CreateNtupleIColumn("DREMTCher.ProductionTimeBin", fEventAction->GetCherenkovProductionTimeBins());
+    analysisManager->CreateNtupleIColumn("DREMTCher.ArrivalTimeBin", fEventAction->GetCherenkovTimeBins());
+    analysisManager->CreateNtupleIColumn("DREMTCher.DistanceBin", fEventAction->GetCherenkovDistanceBins());
     analysisManager->CreateNtupleIColumn("DREMTCher.energy", fEventAction->GetCherenkovPhotonCounts());
     analysisManager->CreateNtupleIColumn("DREMTScin.TowerID", fEventAction->GetScintillationTowerIDs());
     analysisManager->CreateNtupleIColumn("DREMTScin.CellID", fEventAction->GetScintillationFiberIDs());
-    analysisManager->CreateNtupleIColumn("DREMTScin.ProductionTime", fEventAction->GetScintillationProductionTimeBins());
-    analysisManager->CreateNtupleIColumn("DREMTScin.ArrivalTime", fEventAction->GetScintillationTimeBins());
-    analysisManager->CreateNtupleIColumn("DREMTScin.Distance", fEventAction->GetScintillationDistanceBins());
+    analysisManager->CreateNtupleIColumn("DREMTScin.ProductionTimeBin", fEventAction->GetScintillationProductionTimeBins());
+    analysisManager->CreateNtupleIColumn("DREMTScin.ArrivalTimeBin", fEventAction->GetScintillationTimeBins());
+    analysisManager->CreateNtupleIColumn("DREMTScin.DistanceBin", fEventAction->GetScintillationDistanceBins());
     analysisManager->CreateNtupleDColumn("DREMTScin.energy", fEventAction->GetScintillationVisibleEnergies());
     analysisManager->FinishNtuple();
       
