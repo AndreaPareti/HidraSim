@@ -38,6 +38,7 @@ DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     auto analysisManager = G4AnalysisManager::Instance();
     analysisManager->SetVerboseLevel( 1 );
     analysisManager->SetNtupleMerging( 1 );
+    analysisManager->SetBasketEntries(100);
 
     //Using ROOT as analysisManager type, print it
     //
@@ -59,13 +60,39 @@ DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     analysisManager->CreateNtupleDColumn("PrimaryX");                       //10
     analysisManager->CreateNtupleDColumn("PrimaryY");                       //11
     analysisManager->CreateNtupleDColumn("NofSiPMScinDet");                 //12
-    analysisManager->CreateNtupleDColumn("NofSiPMCherDet");                 //13    
+    analysisManager->CreateNtupleDColumn("NofSiPMCherDet");                 //13
+    analysisManager->CreateNtupleDColumn("CherenkovTimeStart_ns");           //14
+    analysisManager->CreateNtupleDColumn("CherenkovTimeBinWidth_ns");        //15
+    analysisManager->CreateNtupleIColumn("CherenkovTimeNBins");              //16
+    analysisManager->CreateNtupleDColumn("CherenkovDistanceStart_mm");       //17
+    analysisManager->CreateNtupleDColumn("CherenkovDistanceBinWidth_mm");    //18
+    analysisManager->CreateNtupleIColumn("CherenkovDistanceNBins");          //19
+    analysisManager->CreateNtupleDColumn("ScintillationDecayTime_ns");       //20
+    analysisManager->CreateNtupleDColumn("ScintillationEffectiveVelocity_mm_per_ns"); //21
+    analysisManager->CreateNtupleIColumn("EventID");                         //22
+    analysisManager->CreateNtupleDColumn("PrimaryCalorimeterEntryTime_ns");  //23
     analysisManager->CreateNtupleDColumn("VectorSignals", fEventAction->GetVectorSignals());
     analysisManager->CreateNtupleDColumn("VectorSignalsCher", fEventAction->GetVectorSignalsCher());
     analysisManager->CreateNtupleDColumn("VecTowerE", fEventAction->GetVecTowerE());
     analysisManager->CreateNtupleDColumn("VecSPMT", fEventAction->GetVecSPMT());
     analysisManager->CreateNtupleDColumn ("VecCPMT", fEventAction->GetVecCPMT());
     analysisManager->CreateNtupleDColumn ("VecLeakCounter", fEventAction->GetVecLeakCounter());
+    // Sparse sensitive-detector collections use the same collection.member
+    // convention as the Key4hep IDEA fibre calorimeter. The time and distance
+    // members remain integer bin indices; their common binning is stored in
+    // the scalar metadata columns above.
+    analysisManager->CreateNtupleIColumn("DREMTCher.TowerID", fEventAction->GetCherenkovTowerIDs());
+    analysisManager->CreateNtupleIColumn("DREMTCher.CellID", fEventAction->GetCherenkovFiberIDs());
+    analysisManager->CreateNtupleIColumn("DREMTCher.ProductionTime", fEventAction->GetCherenkovProductionTimeBins());
+    analysisManager->CreateNtupleIColumn("DREMTCher.ArrivalTime", fEventAction->GetCherenkovTimeBins());
+    analysisManager->CreateNtupleIColumn("DREMTCher.Distance", fEventAction->GetCherenkovDistanceBins());
+    analysisManager->CreateNtupleIColumn("DREMTCher.energy", fEventAction->GetCherenkovPhotonCounts());
+    analysisManager->CreateNtupleIColumn("DREMTScin.TowerID", fEventAction->GetScintillationTowerIDs());
+    analysisManager->CreateNtupleIColumn("DREMTScin.CellID", fEventAction->GetScintillationFiberIDs());
+    analysisManager->CreateNtupleIColumn("DREMTScin.ProductionTime", fEventAction->GetScintillationProductionTimeBins());
+    analysisManager->CreateNtupleIColumn("DREMTScin.ArrivalTime", fEventAction->GetScintillationTimeBins());
+    analysisManager->CreateNtupleIColumn("DREMTScin.Distance", fEventAction->GetScintillationDistanceBins());
+    analysisManager->CreateNtupleDColumn("DREMTScin.energy", fEventAction->GetScintillationVisibleEnergies());
     analysisManager->FinishNtuple();
       
 }
