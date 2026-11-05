@@ -61,16 +61,16 @@ DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     analysisManager->CreateNtupleDColumn("PrimaryY");                       //11
     analysisManager->CreateNtupleDColumn("NofSiPMScinDet");                 //12
     analysisManager->CreateNtupleDColumn("NofSiPMCherDet");                 //13
-    analysisManager->CreateNtupleDColumn("CherenkovTimeStart_ns");           //14
-    analysisManager->CreateNtupleDColumn("CherenkovTimeBinWidth_ns");        //15
-    analysisManager->CreateNtupleIColumn("CherenkovTimeNBins");              //16
-    analysisManager->CreateNtupleDColumn("CherenkovDistanceStart_mm");       //17
-    analysisManager->CreateNtupleDColumn("CherenkovDistanceBinWidth_mm");    //18
-    analysisManager->CreateNtupleIColumn("CherenkovDistanceNBins");          //19
+    analysisManager->CreateNtupleDColumn("CaloTimeStart_ns");           //14
+    analysisManager->CreateNtupleDColumn("CaloTimeBinWidth_ns");        //15
+    analysisManager->CreateNtupleIColumn("CaloTimeNBins");              //16
+    analysisManager->CreateNtupleDColumn("CaloDistanceStart_mm");       //17
+    analysisManager->CreateNtupleDColumn("CaloDistanceBinWidth_mm");    //18
+    analysisManager->CreateNtupleIColumn("CaloDistanceNBins");          //19
     analysisManager->CreateNtupleDColumn("ScintillationDecayTime_ns");       //20
     analysisManager->CreateNtupleDColumn("ScintillationEffectiveVelocity_mm_per_ns"); //21
     analysisManager->CreateNtupleIColumn("EventID");                         //22
-    analysisManager->CreateNtupleDColumn("PrimaryCalorimeterEntryTime_ns");  //23
+    analysisManager->CreateNtupleDColumn("PrimaryCalorimeterEntryTime_ns");  //23 <- left empty for now, to be filled in future with the time of the first hit in the calorimeter
     analysisManager->CreateNtupleDColumn("VectorSignals", fEventAction->GetVectorSignals());
     analysisManager->CreateNtupleDColumn("VectorSignalsCher", fEventAction->GetVectorSignalsCher());
     analysisManager->CreateNtupleDColumn("VecTowerE", fEventAction->GetVecTowerE());
@@ -86,13 +86,13 @@ DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     analysisManager->CreateNtupleIColumn("DREMTCher.ProductionTimeBin", fEventAction->GetCherenkovProductionTimeBins());
     analysisManager->CreateNtupleIColumn("DREMTCher.ArrivalTimeBin", fEventAction->GetCherenkovTimeBins());
     analysisManager->CreateNtupleIColumn("DREMTCher.DistanceBin", fEventAction->GetCherenkovDistanceBins());
-    analysisManager->CreateNtupleIColumn("DREMTCher.energy", fEventAction->GetCherenkovPhotonCounts());
+    analysisManager->CreateNtupleIColumn("DREMTCher.energy", fEventAction->GetCherenkovPhotonCounts());     // Cherenkov photon counts
     analysisManager->CreateNtupleIColumn("DREMTScin.TowerID", fEventAction->GetScintillationTowerIDs());
     analysisManager->CreateNtupleIColumn("DREMTScin.CellID", fEventAction->GetScintillationFiberIDs());
     analysisManager->CreateNtupleIColumn("DREMTScin.ProductionTimeBin", fEventAction->GetScintillationProductionTimeBins());
     analysisManager->CreateNtupleIColumn("DREMTScin.ArrivalTimeBin", fEventAction->GetScintillationTimeBins());
     analysisManager->CreateNtupleIColumn("DREMTScin.DistanceBin", fEventAction->GetScintillationDistanceBins());
-    analysisManager->CreateNtupleDColumn("DREMTScin.energy", fEventAction->GetScintillationVisibleEnergies());
+    analysisManager->CreateNtupleDColumn("DREMTScin.energy", fEventAction->GetScintillationVisibleEnergies());  // Scintillation visible energy 
     analysisManager->FinishNtuple();
       
 }
