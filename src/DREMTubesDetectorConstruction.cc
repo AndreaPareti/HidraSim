@@ -199,18 +199,8 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     auto elCr = nistManager->FindOrBuildElement(24, true);
     auto elNi = nistManager->FindOrBuildElement(28, true);
 
-    auto elFe = nistManager->FindOrBuildElement(26, true);  // iron
-    
-    auto elCr = nistManager->FindOrBuildElement(24, true);  // chromium
-
-    auto elNi = nistManager->FindOrBuildElement(28, true);  // nickel
-
     //Materials 
     //
-    G4Material* Steel304 = new G4Material("Steel304", 7.93*g/cm3, 3);
-    Steel304->AddElement(elFe,0.68);
-    Steel304->AddElement(elCr,0.20);
-    Steel304->AddElement(elNi,0.12);
 
     // Polystyrene from elements (C5H5)
     G4Material* Polystyrene = new G4Material("Polystyrene", 1.05*g/cm3, 2);
