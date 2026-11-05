@@ -56,12 +56,12 @@ class DREMTubesEventAction : public G4UserEventAction {
 	std::vector<G4double>& GetVecSPMT() {return VecSPMT;}
         std::vector<G4double>& GetVecCPMT() {return VecCPMT;}
         std::vector<G4double>& GetVecLeakCounter() {return VecLeakCounter;}
-        std::vector<G4int>& GetCherenkovTimeTowerIDs() {return CherenkovTimeTowerIDs;}
-        std::vector<G4int>& GetCherenkovTimeFiberIDs() {return CherenkovTimeFiberIDs;}
+        std::vector<G4int>& GetCherenkovTowerIDs() {return CherenkovTowerIDs;}
+        std::vector<G4int>& GetCherenkovFiberIDs() {return CherenkovFiberIDs;}
         std::vector<G4int>& GetCherenkovProductionTimeBins() {return CherenkovProductionTimeBins;}
         std::vector<G4int>& GetCherenkovTimeBins() {return CherenkovTimeBins;}
         std::vector<G4int>& GetCherenkovDistanceBins() {return CherenkovDistanceBins;}
-        std::vector<G4int>& GetCherenkovTimeBinCounts() {return CherenkovTimeBinCounts;}
+        std::vector<G4int>& GetCherenkovPhotonCounts() {return CherenkovPhotonCounts;}
         std::vector<G4int>& GetScintillationTowerIDs() {return ScintillationTowerIDs;}
         std::vector<G4int>& GetScintillationFiberIDs() {return ScintillationFiberIDs;}
         std::vector<G4int>& GetScintillationProductionTimeBins() {return ScintillationProductionTimeBins;}
@@ -126,12 +126,12 @@ class DREMTubesEventAction : public G4UserEventAction {
     	std::vector<G4double> VecTowerE;
         //
         std::vector<G4double> VecLeakCounter;
-        std::vector<G4int> CherenkovTimeTowerIDs;
-        std::vector<G4int> CherenkovTimeFiberIDs;
+        std::vector<G4int> CherenkovTowerIDs;
+        std::vector<G4int> CherenkovFiberIDs;
         std::vector<G4int> CherenkovProductionTimeBins;
         std::vector<G4int> CherenkovTimeBins;
         std::vector<G4int> CherenkovDistanceBins;
-        std::vector<G4int> CherenkovTimeBinCounts;
+        std::vector<G4int> CherenkovPhotonCounts;
         // Parallel sparse scintillation vectors. Each index identifies one
         // production-time, arrival-time and longitudinal-distance cell.
         std::vector<G4int> ScintillationTowerIDs;

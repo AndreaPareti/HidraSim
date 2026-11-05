@@ -92,12 +92,12 @@ void DREMTubesEventAction::BeginOfEventAction(const G4Event* event) {
     VecCPMT.clear();
     VecTowerE.clear();
     VecLeakCounter.clear();
-    CherenkovTimeTowerIDs.clear();
-    CherenkovTimeFiberIDs.clear();
+    CherenkovTowerIDs.clear();
+    CherenkovFiberIDs.clear();
     CherenkovProductionTimeBins.clear();
     CherenkovTimeBins.clear();
     CherenkovDistanceBins.clear();
-    CherenkovTimeBinCounts.clear();
+    CherenkovPhotonCounts.clear();
     ScintillationTowerIDs.clear();
     ScintillationFiberIDs.clear();
     ScintillationProductionTimeBins.clear();
@@ -209,12 +209,12 @@ void DREMTubesEventAction::StoreCalorimeterHits(const G4Event* event)
         // cell and the number of photons sharing those coordinates.
         for (const auto& [bins, count] : hit->GetPhotonBinStructure()) {
             const auto& [productionTimeBin, timeBin, distanceBin] = bins;
-            CherenkovTimeTowerIDs.push_back(hit->GetTowerID());
-            CherenkovTimeFiberIDs.push_back(hit->GetFiberID());
+            CherenkovTowerIDs.push_back(hit->GetTowerID());
+            CherenkovFiberIDs.push_back(hit->GetFiberID());
             CherenkovProductionTimeBins.push_back(productionTimeBin);
             CherenkovTimeBins.push_back(timeBin);
             CherenkovDistanceBins.push_back(distanceBin);
-            CherenkovTimeBinCounts.push_back(count);
+            CherenkovPhotonCounts.push_back(count);
         }
     }
 }

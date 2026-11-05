@@ -6,8 +6,8 @@
 
 // Raw calorimeter-hit timing. Bins 1..N are inside the time window;
 // bin 0 and bin N+1 are the underflow and overflow bins.
-const G4double CalorimeterTimeStart = -1.0 * ns;
-const G4double CalorimeterTimeEnd = 99.0 * ns;
+const G4double CalorimeterTimeStart = 00.0 * ns;
+const G4double CalorimeterTimeEnd = 100.0 * ns;
 const G4double CalorimeterTimeBinWidth = 0.1 * ns;
 const G4int NofCalorimeterTimeBins = 1000;
 
@@ -126,7 +126,7 @@ const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
 */
 
 
-/*
+
 // 80 modules -> TB26 (HiDRa geometry, SiPMs placed in two towers)
 const G4int NofmodulesX = 5;
 const G4int NofmodulesY = 20;
@@ -158,7 +158,7 @@ const G4int NofFibersrow = 16;
 const G4int NoModulesActive=80;
 const G4double moduleZ = (2500.)*mm;
 const G4bool irot=false;
-const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;*/
+const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
 
 
 
@@ -202,7 +202,7 @@ const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
 
 
     // 480 miniM Geo, about 1.3 x 1.3 m2
-
+/*
     const G4int NofmodulesX = 10; 
     const G4int NofmodulesY = 48;
     const G4bool irot=false;
@@ -232,5 +232,6 @@ const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
     const G4int NoModulesActive=480;
     const G4double moduleZ = (2500.)*mm;
     const G4int NoFibersTower=NofFiberscolumn*NofFibersrow/2;
+    */
     
     

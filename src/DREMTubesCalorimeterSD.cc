@@ -1,6 +1,6 @@
 //**************************************************
 // \file DREMTubesCalorimeterSD.cc
-// \brief Implementation of the dual-readout calorimeter sensitive detector
+// \first implementation of HiDRa DRCal calorimeter sensitive detector
 //**************************************************
 
 #include "DREMTubesCalorimeterSD.hh"
@@ -23,6 +23,17 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+
+namespace {
+
+// TEMPORARY LEGACY CROSS-CHECK
+// Set this single switch to false to restore the intended forward-only
+// Cherenkov acceptance. While true, backward-going trapped photons contribute
+// to the photon count and use |cos(theta_z)| for their propagation time.
+//constexpr G4bool kIncludeBackwardCherenkovForLegacyComparison = true;
+constexpr G4bool kIncludeBackwardCherenkovForLegacyComparison = false;
+
+} // namespace
 
 DREMTubesCalorimeterSD::DREMTubesCalorimeterSD(
     const G4String& name,
@@ -54,9 +65,19 @@ G4bool DREMTubesCalorimeterSD::ProcessHits(
 {
     const auto touchable = step->GetPreStepPoint()->GetTouchableHandle();
     const G4String& volumeName = touchable->GetVolume()->GetName();
-    const G4bool isCherenkov = volumeName == "Core_C_fiber";
+    //const G4bool isCherenkov = volumeName == "Core_C_fiber";
+    //if (!isCherenkov && volumeName != "Core_S_fiber") {
+    //    return false;
+    //}
+    const G4bool isScintillation =
+    volumeName == "Core_S_fiber" ||
+    volumeName == "Clad_S_fiber";
 
-    if (!isCherenkov && volumeName != "Core_S_fiber") {
+    const G4bool isCherenkov =
+        volumeName == "Core_C_fiber" ||
+        volumeName == "Clad_C_fiber";
+
+    if (!isScintillation && !isCherenkov) {
         return false;
     }
 
@@ -126,6 +147,7 @@ G4bool DREMTubesCalorimeterSD::ProcessHits(
 
                 // Store quenched visible energy rather than creating the very
                 // large number of individual scintillation optical photons.
+                // Smearing and light attenuation will be postponed offline to the digitization stage
                 G4double visibleEnergy = energyDeposit;
                 if (step->GetStepLength() > 0.) {
                     visibleEnergy = DREMTubesSignalHelper::Instance()->ApplyBirks(
@@ -200,17 +222,25 @@ G4bool DREMTubesCalorimeterSD::GetCherenkovPhotonTiming(
         globalToLocal.TransformPoint(track->GetVertexPosition());
     const G4ThreeVector localDirection =
         globalToLocal.TransformAxis(track->GetVertexMomentumDirection());
-    const G4double forwardCosine = localDirection.z();
+    const G4double directionCosine = localDirection.z();
 
     // The readout is located at the positive local-z end of each fibre.
-    if (forwardCosine <= 0.) {
+    // The temporary legacy-comparison mode accepts photons travelling toward
+    // negative local z as well. Its absolute cosine gives a positive axial
+    // speed while preserving the angular path-length correction in the timing.
+    if (!kIncludeBackwardCherenkovForLegacyComparison &&
+        directionCosine <= 0.) {
         track->SetTrackStatus(fStopAndKill);
         return false;
     }
 
     distanceToReadout =
         std::max(0., fiber->GetZHalfLength() - localVertex.z());
-    const G4double axialVelocity = track->GetVelocity() * forwardCosine;
+    const G4double timingCosine =
+        kIncludeBackwardCherenkovForLegacyComparison
+            ? std::abs(directionCosine)
+            : directionCosine;
+    const G4double axialVelocity = track->GetVelocity() * timingCosine;
     if (axialVelocity <= 0.) {
         track->SetTrackStatus(fStopAndKill);
         return false;

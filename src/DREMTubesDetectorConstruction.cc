@@ -156,6 +156,8 @@ void DREMTubesDetectorConstruction::ConstructSDandField()
     // these names, so the multi-volume overload must attach the SD to all of them.
     SetSensitiveDetector("Core_S_fiber", calorimeterSD, true);
     SetSensitiveDetector("Core_C_fiber", calorimeterSD, true);
+    SetSensitiveDetector("Clad_S_fiber", calorimeterSD, true);
+    SetSensitiveDetector("Clad_C_fiber", calorimeterSD, true);    
 }
 
 G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
