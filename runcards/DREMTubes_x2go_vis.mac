@@ -37,7 +37,7 @@
 /run/initialize
 
 # Make the module volumes almost invisible while retaining their outlines.
-/vis/geometry/set/colour moduleequipped 0 0.80 0.85 1.00 0.015
+/vis/geometry/set/colour moduleequipped 0 0.80 0.85 1.00 0.03
 
 # Suppress non-calorimeter envelopes that otherwise obscure the towers.  Apply
 # these before opening the viewer so no half-built scene is refreshed.
@@ -85,8 +85,10 @@
 /vis/set/colour white
 /vis/set/textColour blue
 
-#/vis/viewer/set/viewpointThetaPhi 70 20 deg
-/vis/viewer/set/viewpointThetaPhi 0 180 deg
+# View the calorimeter front face from negative Z, looking towards positive Z.
+# Geant4 defines this direction from the target point towards the camera, so
+# theta = 180 deg places the camera on the negative-Z side.
+/vis/viewer/set/viewpointThetaPhi 180 0 deg
 /vis/viewer/set/targetPoint 0 0 0 m
 /vis/viewer/zoomTo 1
 
