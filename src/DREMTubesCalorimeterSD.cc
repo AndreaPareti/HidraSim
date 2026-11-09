@@ -30,8 +30,8 @@ namespace {
 // Set this single switch to false to restore the intended forward-only
 // Cherenkov acceptance. While true, backward-going trapped photons contribute
 // to the photon count and use |cos(theta_z)| for their propagation time.
-//constexpr G4bool kIncludeBackwardCherenkovForLegacyComparison = true;
-constexpr G4bool kIncludeBackwardCherenkovForLegacyComparison = false;
+constexpr G4bool kIncludeBackwardCherenkovForLegacyComparison = true;
+//constexpr G4bool kIncludeBackwardCherenkovForLegacyComparison = false;
 
 } // namespace
 
