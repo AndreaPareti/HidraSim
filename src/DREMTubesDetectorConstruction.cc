@@ -724,16 +724,13 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     G4RotationMatrix rotY = G4RotationMatrix();
     rotX.rotateX(xrot);
     rotY.rotateY(yrot);
-    // First apply xrot -> vertical tilt
-    // Then apply yrot -> horizontal rotation
     G4RotationMatrix rotm = rotY * rotX;
 
-    // Apply the vertical tilt around the horizontal hinge line at the bottom
-    // side of the front face. Keep the horizontal rotation centered on the
-    // calorimeter box center.
-    G4ThreeVector platformShift(fXshift, fYshift, 0.);
-    G4ThreeVector rotationPivot(0., -caloBoxY, -caloBoxZ);
-    G4ThreeVector position = platformShift + rotY * rotationPivot - rotm * rotationPivot;
+    G4ThreeVector position;
+
+    position.setX(fXshift);
+    position.setY(fYshift);
+    position.setZ(0.);
 
     G4Transform3D transform = G4Transform3D(rotm,position); 
 
